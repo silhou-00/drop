@@ -3,6 +3,10 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Tailwind's own container utility has stepped max-widths; the wrapper level
+   named container below must stay fluid, so the utility is never generated */
+@source not inline("container");
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -126,5 +130,62 @@
     }
     html {
         @apply font-sans;
+    }
+}
+
+/* Type scale: every size scales between a floor and a ceiling with the viewport */
+@theme {
+    --text-display: clamp(2.5rem, 5vw + 1rem, 6rem);
+    --text-heading: clamp(1.75rem, 2.5vw + 1rem, 3.25rem);
+    --text-subheading: clamp(1.25rem, 1vw + 1rem, 1.75rem);
+    --text-body: clamp(1rem, 0.25vw + 0.95rem, 1.125rem);
+    --text-caption: clamp(0.8125rem, 0.15vw + 0.78rem, 0.875rem);
+}
+
+/* Wrapper level spacing: one padding and gap per level, never typed on a wrapper */
+:root {
+    --section-padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 4vw, 3rem);
+    --section-gap: clamp(1.5rem, 3vw, 3rem);
+    --section-max-width: 90rem;
+    --sub-section-padding: 0;
+    --sub-section-gap: clamp(1rem, 2vw, 2rem);
+    --placement-padding: 0;
+    --placement-gap: clamp(0.5rem, 1.5vw, 1rem);
+    --container-padding: 0;
+    --container-gap: 0.5rem;
+}
+
+@layer components {
+    .section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--section-gap);
+        width: 100%;
+        max-width: var(--section-max-width);
+        margin-inline: auto;
+        padding: var(--section-padding);
+    }
+
+    .sub-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sub-section-gap);
+        padding: var(--sub-section-padding);
+    }
+
+    .placement {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--placement-gap);
+        padding: var(--placement-padding);
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--container-gap);
+        min-width: 0;
+        padding: var(--container-padding);
     }
 }

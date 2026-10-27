@@ -5,3 +5,7 @@ dist
 *.local.env
 *.tsbuildinfo
 .tanstack
+
+# impeccable (installed design skill, local only)
+.claude/
+.impeccable/
