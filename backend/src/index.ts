@@ -6,15 +6,18 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { config } from "./config/env.js";
+import { createHealthRouter } from "./health/router.js";
+import { createHealthService } from "./health/service.js";
+import { createRateLimiter } from "./middleware/rate-limit.js";
+import { closeDb, db } from "./shared/db/client.js";
 
 const FRONTEND_DIST = path.relative(process.cwd(), path.resolve(import.meta.dirname, "../../frontend/dist"));
 
 const app = new Hono();
 
 // api
-app.get("/api/v1/health", (c) => {
-    return c.json({ data: { status: "ok" }, error: null });
-});
+app.use("/api/*", createRateLimiter());
+app.route("/api/v1", createHealthRouter(createHealthService(db).checkDatabase));
 
 app.all("/api/*", (c) => {
     return c.json({ data: null, error: { code: "NOT_FOUND", message: "Not found" } }, 404);
@@ -24,6 +27,16 @@ app.all("/api/*", (c) => {
 app.use("/*", serveStatic({ root: FRONTEND_DIST }));
 app.get("*", serveStatic({ path: path.join(FRONTEND_DIST, "index.html") }));
 
-serve({ fetch: app.fetch, port: config.PORT }, (info) => {
+const server = serve({ fetch: app.fetch, port: config.PORT }, (info) => {
     console.log(`Drop server listening on http://localhost:${info.port}`);
 });
+
+// graceful shutdown
+async function shutdown() {
+    server.close();
+    await closeDb();
+    process.exit(0);
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

@@ -1,5 +1,11 @@
 # Backend Changelog
 
+## October 29, 2026
+
+**Database:**
+
+- The server now connects to the database, reports whether it is ready, limits how fast any one visitor can call the API, and shuts down cleanly. The database is prepared for map data and case-insensitive text.
+
 ## October 27, 2026
 
 **Documentation:**
