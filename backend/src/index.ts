@@ -5,19 +5,38 @@ import path from "node:path";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { auth } from "./auth/auth.js";
+import { createAuthRouter } from "./auth/router.js";
 import { config } from "./config/env.js";
 import { createHealthRouter } from "./health/router.js";
 import { createHealthService } from "./health/service.js";
 import { createRateLimiter } from "./middleware/rate-limit.js";
+import { createSecurityHeaders } from "./middleware/security-headers.js";
+import { createSessionMiddleware, type AppEnv } from "./middleware/session.js";
+import { createProfileRepository } from "./profiles/repository.js";
+import { createProfileRouter } from "./profiles/router.js";
+import { createProfileService } from "./profiles/service.js";
 import { closeDb, db } from "./shared/db/client.js";
+import { errorHandler } from "./shared/errors.js";
 
 const FRONTEND_DIST = path.relative(process.cwd(), path.resolve(import.meta.dirname, "../../frontend/dist"));
 
-const app = new Hono();
+const app = new Hono<AppEnv>();
+
+app.onError(errorHandler);
+
+// security headers on every response
+app.use("*", createSecurityHeaders());
 
 // api
 app.use("/api/*", createRateLimiter());
+app.use(
+    "/api/*",
+    createSessionMiddleware((headers) => auth.api.getSession({ headers })),
+);
+app.route("/", createAuthRouter());
 app.route("/api/v1", createHealthRouter(createHealthService(db).checkDatabase));
+app.route("/api/v1", createProfileRouter(createProfileService(createProfileRepository(db))));
 
 app.all("/api/*", (c) => {
     return c.json({ data: null, error: { code: "NOT_FOUND", message: "Not found" } }, 404);

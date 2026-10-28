@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClaimRouteImport } from './routes/claim'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
 import { Route as PlaygroundGooRouteImport } from './routes/playground/goo'
 import { Route as PlaygroundMarbleRouteImport } from './routes/playground/marble'
@@ -18,6 +21,21 @@ import { Route as PlaygroundMotionRouteImport } from './routes/playground/motion
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClaimRoute = ClaimRouteImport.update({
+  id: '/claim',
+  path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
@@ -43,6 +61,9 @@ const PlaygroundMotionRoute = PlaygroundMotionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
+  '/home': typeof HomeRoute
+  '/sign-in': typeof SignInRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
@@ -50,6 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
+  '/home': typeof HomeRoute
+  '/sign-in': typeof SignInRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
@@ -58,6 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
+  '/home': typeof HomeRoute
+  '/sign-in': typeof SignInRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
@@ -67,6 +94,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/claim'
+    | '/home'
+    | '/sign-in'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
@@ -74,6 +104,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/claim'
+    | '/home'
+    | '/sign-in'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
@@ -81,6 +114,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/claim'
+    | '/home'
+    | '/sign-in'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
@@ -89,6 +125,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClaimRoute: typeof ClaimRoute
+  HomeRoute: typeof HomeRoute
+  SignInRoute: typeof SignInRoute
   PlaygroundGooRoute: typeof PlaygroundGooRoute
   PlaygroundMarbleRoute: typeof PlaygroundMarbleRoute
   PlaygroundMotionRoute: typeof PlaygroundMotionRoute
@@ -102,6 +141,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/claim': {
+      id: '/claim'
+      path: '/claim'
+      fullPath: '/claim'
+      preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playground/': {
@@ -137,6 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClaimRoute: ClaimRoute,
+  HomeRoute: HomeRoute,
+  SignInRoute: SignInRoute,
   PlaygroundGooRoute: PlaygroundGooRoute,
   PlaygroundMarbleRoute: PlaygroundMarbleRoute,
   PlaygroundMotionRoute: PlaygroundMotionRoute,

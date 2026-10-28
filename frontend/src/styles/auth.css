@@ -1,0 +1,327 @@
+/* Styles for the auth pages: sign-in, claim and the placeholder home. One paper card sits on
+   the marbled bath, with Unbounded headings, Onest body and Azeret Mono for codes and links.
+   Every rule is scoped under the auth root, and every value comes from tokens.css. Colours
+   follow the light and dark tokens; under reduced motion the card appears without travel. */
+
+/* root: ground, type and the focus ring */
+.auth-page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--family-body);
+    font-size: var(--type-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+}
+
+.auth-page :focus-visible {
+    outline: none;
+    box-shadow: var(--auth-focus-ring);
+}
+
+.auth-page .auth-bath {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+}
+
+.auth-page .auth-top,
+.auth-page .auth-body {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-page .auth-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-page .auth-logo {
+    display: block;
+    width: auto;
+    height: 30px;
+}
+
+.auth-page .auth-home {
+    display: inline-flex;
+    border-radius: 12px;
+}
+
+/* card: the sub-section that holds a page's content */
+.auth-page .auth-card {
+    width: 100%;
+    max-width: var(--auth-card-max);
+    margin-inline: auto;
+    gap: var(--auth-card-gap);
+    padding: var(--auth-card-padding);
+    border-radius: var(--auth-card-radius);
+    background: var(--paper);
+    box-shadow: var(--auth-card-shadow);
+    animation: auth-enter var(--auth-enter-dur) var(--landing-e-cubic) both;
+}
+
+@keyframes auth-enter {
+    from {
+        opacity: 0;
+        transform: translateY(var(--auth-enter-distance));
+    }
+}
+
+/* placements inside the card stack their containers full width */
+.auth-page .auth-stack {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.auth-page .auth-row {
+    justify-content: space-between;
+}
+
+/* type */
+.auth-page .auth-title {
+    font: 700 var(--auth-fs-title) / 1.04 var(--family-display);
+    letter-spacing: -0.02em;
+}
+
+.auth-page .auth-lede {
+    color: var(--ink-2);
+}
+
+.auth-page .auth-note {
+    font-size: var(--type-caption);
+    color: var(--ink-2);
+}
+
+.auth-page .auth-label {
+    font-size: var(--type-caption);
+    font-weight: 600;
+}
+
+.auth-page .auth-mono {
+    font-family: var(--family-meta);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.auth-page .auth-error {
+    font-size: var(--type-caption);
+    font-weight: 600;
+    color: var(--accent-ink);
+}
+
+.auth-page .auth-status {
+    font-size: var(--type-caption);
+    font-weight: 600;
+    color: var(--ink-2);
+}
+
+.auth-page .auth-status:empty,
+.auth-page .auth-error:empty {
+    display: none;
+}
+
+/* fields */
+.auth-page .auth-input {
+    width: 100%;
+    min-height: var(--auth-field-min-h);
+    padding: var(--auth-field-padding);
+    border: var(--auth-field-border) solid var(--hair);
+    border-radius: var(--auth-field-radius);
+    background: var(--paper);
+    color: var(--ink);
+    font: 500 var(--type-body) var(--family-body);
+    transition: border-color 140ms var(--landing-e-cubic);
+}
+
+.auth-page .auth-input::placeholder {
+    color: var(--ink-2);
+    opacity: 0.7;
+}
+
+.auth-page .auth-input:hover {
+    border-color: var(--ink-2);
+}
+
+.auth-page .auth-input:focus-visible {
+    border-color: var(--ink);
+}
+
+.auth-page .auth-input[aria-invalid="true"] {
+    border-color: var(--accent-ink);
+}
+
+.auth-page .auth-code {
+    font: 700 var(--auth-fs-code) var(--family-meta);
+    letter-spacing: 0.4em;
+    text-align: center;
+}
+
+/* link name field: the fixed drop.link/ part sits inside the box */
+.auth-page .auth-prefixed {
+    display: flex;
+    align-items: center;
+    min-height: var(--auth-field-min-h);
+    padding: var(--auth-field-padding);
+    border: var(--auth-field-border) solid var(--hair);
+    border-radius: var(--auth-field-radius);
+    background: var(--paper);
+}
+
+.auth-page .auth-prefixed:hover {
+    border-color: var(--ink-2);
+}
+
+.auth-page .auth-prefixed:focus-within {
+    border-color: var(--ink);
+    box-shadow: var(--auth-focus-ring);
+}
+
+.auth-page .auth-prefixed[data-invalid="true"] {
+    border-color: var(--accent-ink);
+}
+
+.auth-page .auth-prefixed .auth-mono {
+    color: var(--ink-2);
+    white-space: nowrap;
+}
+
+.auth-page .auth-prefixed input {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--auth-field-min-h);
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: 600 var(--type-body) var(--family-body);
+    outline: none;
+}
+
+.auth-page .auth-prefixed input:focus-visible {
+    box-shadow: none;
+}
+
+/* checkbox row */
+.auth-page .auth-check {
+    display: flex;
+    align-items: center;
+    gap: var(--placement-gap);
+    min-height: 44px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-page .auth-check input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--ink);
+    cursor: pointer;
+}
+
+/* buttons: the black pill and the paper pill from the design sheet */
+.auth-page .auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--placement-gap);
+    width: 100%;
+    min-height: var(--auth-button-min-h);
+    padding: var(--auth-button-padding);
+    border-radius: 999px;
+    font: 700 var(--type-caption) / 1 var(--family-display);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        transform 140ms var(--landing-e-cubic),
+        opacity 140ms var(--landing-e-cubic);
+}
+
+.auth-page .auth-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.auth-page .auth-btn:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.auth-page .auth-btn-ink {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.auth-page .auth-btn-paper {
+    border: 1px solid var(--hair);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--family-body);
+    font-weight: 600;
+}
+
+.auth-page .auth-btn-text {
+    width: auto;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    color: var(--ink);
+    font-family: var(--family-body);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+@media (hover: hover) {
+    .auth-page .auth-btn-paper:hover:not(:disabled) {
+        border-color: var(--ink-2);
+    }
+}
+
+.auth-page .auth-spin {
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: auth-spin 800ms linear infinite;
+}
+
+@keyframes auth-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* the claimed link on the home card */
+.auth-page .auth-link {
+    font: 700 var(--auth-fs-link) / 1.2 var(--family-meta);
+    user-select: all;
+}
+
+/* reduced motion: no travel, a short fade only */
+@media (prefers-reduced-motion: reduce) {
+    .auth-page .auth-card {
+        animation: auth-fade 200ms linear both;
+    }
+
+    .auth-page .auth-spin {
+        animation: none;
+        border-top-color: currentColor;
+        opacity: 0.6;
+    }
+
+    .auth-page * {
+        transition-duration: 0ms !important;
+    }
+}
+
+@keyframes auth-fade {
+    from {
+        opacity: 0;
+    }
+}

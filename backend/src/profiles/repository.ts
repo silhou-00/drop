@@ -1,0 +1,85 @@
+// Profile database access. Queries only, no business rules. An insert reports which
+// unique constraint it hit, so the service can answer with the right conflict.
+import { eq } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { profiles, type Profile } from "./model.js";
+
+export type InsertProfile = {
+    userId: string;
+    username: string;
+    displayName: string;
+};
+
+export type InsertResult = { profile: Profile } | { conflict: "username" | "user" };
+
+export type ProfileChanges = Partial<
+    Pick<Profile, "displayName" | "acceptingDrops" | "heatmapEnabled" | "notifyEmail">
+>;
+
+const UNIQUE_VIOLATION = "23505";
+const USER_ID_CONSTRAINT = "profiles_user_id_unique";
+const USERNAME_CONSTRAINT = "profiles_username_unique";
+
+type PgError = { code?: string; constraint?: string; cause?: unknown };
+
+// find the constraint name on the error or on its wrapped cause
+function uniqueConstraint(error: unknown): string | null {
+    let current = error as PgError | undefined;
+
+    while (current) {
+        if (current.code === UNIQUE_VIOLATION) {
+            return current.constraint ?? null;
+        }
+
+        current = current.cause as PgError | undefined;
+    }
+
+    return null;
+}
+
+export function createProfileRepository(db: NodePgDatabase) {
+    async function findByUsername(username: string): Promise<Profile | null> {
+        const rows = await db.select().from(profiles).where(eq(profiles.username, username)).limit(1);
+
+        return rows[0] ?? null;
+    }
+
+    async function findByUserId(userId: string): Promise<Profile | null> {
+        const rows = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+
+        return rows[0] ?? null;
+    }
+
+    async function insertProfile(input: InsertProfile): Promise<InsertResult> {
+        try {
+            const rows = await db
+                .insert(profiles)
+                .values({ ...input, ageConfirmedAt: new Date() })
+                .returning();
+
+            return { profile: rows[0] };
+        } catch (error) {
+            const constraint = uniqueConstraint(error);
+
+            if (constraint === USERNAME_CONSTRAINT) {
+                return { conflict: "username" };
+            }
+
+            if (constraint === USER_ID_CONSTRAINT) {
+                return { conflict: "user" };
+            }
+
+            throw error;
+        }
+    }
+
+    async function updateByUserId(userId: string, changes: ProfileChanges): Promise<Profile | null> {
+        const rows = await db.update(profiles).set(changes).where(eq(profiles.userId, userId)).returning();
+
+        return rows[0] ?? null;
+    }
+
+    return { findByUsername, findByUserId, insertProfile, updateByUserId };
+}
+
+export type ProfileRepository = ReturnType<typeof createProfileRepository>;

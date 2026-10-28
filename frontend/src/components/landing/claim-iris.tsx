@@ -1,19 +1,37 @@
 // The claim step. It opens as an iris from the red pin in the nav logo, covers the page and
 // closes back into the pin. While it is open the page behind it stops scrolling, and Escape or
-// Back closes it and returns focus to whatever opened it. Sign-up arrives with the auth module,
-// so a valid name is not sent anywhere: the step checks the name with the same rule the server
-// will use and says that sign-up opens soon. It never pretends a link was created.
+// Back closes it and returns focus to whatever opened it. The name is checked as it is typed,
+// with the server's own rule and then for availability. Continue takes a free name on to
+// sign-in, where it is carried through to the claim page. Nothing is reserved here.
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLanding } from "@/hooks/landing/use-scroll-timeline";
+import { useUsernameCheck, type UsernameCheckState } from "@/hooks/profiles/use-username-check";
+import { USERNAME_INVALID_MESSAGE, USERNAME_MAX } from "@/lib/profiles/model";
 
 export type ClaimRequest = { opener: HTMLElement; name: string };
 
 type ClaimIrisProps = { request: ClaimRequest; onClosed: () => void };
 
-const USERNAME_PATTERN = /^[a-z0-9_.]{3,30}$/;
-const USERNAME_MESSAGE = "Use 3 to 30 letters, numbers, dots or underscores.";
-const SOON_MESSAGE = "Sign up opens soon. Your name is not saved yet.";
-const SUBMIT_LOCK_MS = 600;
+const CHECKING_MESSAGE = "Checking the name";
+const FREE_MESSAGE = "That name is free.";
+
+// a name can go on when it is free, or when the check could not run; claim checks again
+function canContinue(check: UsernameCheckState) {
+    return check.status === "available" || (check.status === "idle" && check.username !== "");
+}
+
+function checkMessage(check: UsernameCheckState) {
+    if (check.status === "checking") {
+        return CHECKING_MESSAGE;
+    }
+
+    if (check.status === "available") {
+        return FREE_MESSAGE;
+    }
+
+    return check.message;
+}
 
 // the red pin in the logo, where the iris opens and closes
 function pinPoint() {
@@ -46,12 +64,15 @@ function animateIris(dialog: HTMLElement, open: boolean, reduced: boolean, durat
 
 export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
     const { lenis, reduced, tokens } = useLanding();
+    const navigate = useNavigate();
     const dialogRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const lockRef = useRef(false);
     const closingRef = useRef(false);
     const [name, setName] = useState(request.name);
-    const [message, setMessage] = useState("");
+    const [waiting, setWaiting] = useState(false);
+    const [emptyTried, setEmptyTried] = useState(false);
+    const check = useUsernameCheck(name);
 
     // open: the iris grows out of the pin
     useLayoutEffect(() => {
@@ -103,7 +124,17 @@ export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
         }
     }
 
-    // name check, with a lock so a double click sends one submit
+    // a submit goes on once the check allows it; a taken or invalid name waits for an edit
+    useEffect(() => {
+        if (!waiting || lockRef.current || !canContinue(check)) {
+            return;
+        }
+
+        lockRef.current = true;
+        void navigate({ to: "/sign-in", search: { username: check.username } });
+    }, [waiting, check, navigate]);
+
+    // on to sign-in, with a lock so a double click navigates once
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -111,12 +142,13 @@ export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
             return;
         }
 
-        lockRef.current = true;
-        window.setTimeout(() => {
-            lockRef.current = false;
-        }, SUBMIT_LOCK_MS);
+        if (name.trim() === "") {
+            setEmptyTried(true);
 
-        setMessage(USERNAME_PATTERN.test(name.trim().toLowerCase()) ? SOON_MESSAGE : USERNAME_MESSAGE);
+            return;
+        }
+
+        setWaiting(true);
     }
 
     return (
@@ -159,12 +191,14 @@ export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
                                 name="name"
                                 autoComplete="off"
                                 placeholder="yourname"
-                                maxLength={30}
+                                maxLength={USERNAME_MAX}
                                 value={name}
                                 ref={inputRef}
+                                aria-describedby="claim-msg"
                                 onChange={(event) => {
                                     setName(event.target.value);
-                                    setMessage("");
+                                    setWaiting(false);
+                                    setEmptyTried(false);
                                 }}
                             />
                             <button className="btn btn-ink" type="submit">
@@ -173,8 +207,8 @@ export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
                         </form>
                     </div>
                     <div className="container">
-                        <p className="claim-msg" role="status">
-                            {message}
+                        <p id="claim-msg" className="claim-msg" role="status">
+                            {emptyTried ? USERNAME_INVALID_MESSAGE : checkMessage(check)}
                         </p>
                     </div>
                 </div>

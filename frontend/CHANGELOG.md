@@ -2,6 +2,10 @@
 
 ## October 29, 2026
 
+**Auth and profiles:**
+
+- People can sign in with an emailed six-digit code, claim their link with a live name check and the 18 or older confirmation, and see and copy their link on a simple home page. The landing's claim step now takes a free name on to sign-in instead of saying sign-up opens soon.
+
 **Landing:**
 
 - Visitors get the Drop landing page: a seven-step scroll story over one live marbled background, smooth wheel scrolling, a thin matching scrollbar for mouse users, a claim step that checks the chosen name and says sign-up opens soon, and a calm still version for reduced motion or missing graphics.

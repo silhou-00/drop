@@ -191,3 +191,38 @@
         --landing-gutter: 80px;
     }
 }
+
+/* auth pages (sign-in, claim, home): one paper card on the bath, phones first */
+:root {
+    --auth-card-max: 30rem;
+    --auth-card-padding: 24px 20px;
+    --auth-card-gap: 20px;
+    --auth-card-radius: 22px;
+    --auth-card-shadow: 0 4px 30px rgba(10, 10, 10, 0.08);
+    --auth-field-radius: 16px;
+    --auth-field-min-h: 52px;
+    --auth-field-padding: 0 16px;
+    --auth-field-border: 1.5px;
+    --auth-button-min-h: 48px;
+    --auth-button-padding: 0 22px;
+    --auth-focus-ring: 0 0 0 3px #fff, 0 0 0 6px rgba(0, 0, 0, 0.55);
+    --auth-enter-distance: 24px;
+    --auth-enter-dur: 600ms;
+    --auth-fs-title: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+    --auth-fs-code: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+    --auth-fs-link: clamp(1.05rem, 0.95rem + 0.6vw, 1.4rem);
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --auth-card-padding: 32px;
+        --auth-card-gap: 24px;
+    }
+}
+
+@media (min-width: 80rem) {
+    :root {
+        --auth-card-max: 32rem;
+        --auth-card-padding: 40px;
+    }
+}

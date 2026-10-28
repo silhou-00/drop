@@ -13,9 +13,11 @@
     },
     "dependencies": {
         "@hono/node-server": "2.1.5",
+        "better-auth": "1.7.8",
         "drizzle-orm": "0.45.4",
         "hono": "4.13.14",
         "pg": "8.23.1",
+        "resend": "6.33.0",
         "zod": "4.6.7"
     },
     "devDependencies": {
