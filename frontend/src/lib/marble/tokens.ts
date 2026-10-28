@@ -52,10 +52,10 @@ export const marbleSchema: TweakSchema<MarbleTokens> = {
     wideScale: { min: 1, max: 3, step: 0.1 },
 };
 
-// base pigments per mode, before zone intensity; ring is the pool ring at hero intensity
+// base pigments per mode, before zone intensity; ring and street are set at hero intensity
 export const MARBLE_PIGMENTS = {
-    light: { ground: "#EDF2F4", red: "#FF3131", grey: "#7C858B", ice: "#F5FDFF", ring: "#E36B6E" },
-    dark: { ground: "#0B0C0F", red: "#FF3131", grey: "#59616A", ice: "#46505A", ring: "#46505A" },
+    light: { ground: "#EDF2F4", red: "#FF3131", grey: "#7C858B", ice: "#F5FDFF", ring: "#E36B6E", street: "#9EA8AD" },
+    dark: { ground: "#0B0C0F", red: "#FF3131", grey: "#59616A", ice: "#46505A", ring: "#46505A", street: "#59616A" },
 } as const satisfies Record<MarbleMode, Record<string, string>>;
 
 // WebGL limits from the landing comp: resolution cap, idle frame rate, slow-frame fallback

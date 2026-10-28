@@ -203,3 +203,169 @@
         padding: var(--container-padding);
     }
 }
+
+/* page scrollbar, option A "Hairline": the bar's tokens arrive as variables on its own element */
+html.sb-on {
+    scrollbar-width: none;
+}
+
+html.sb-on::-webkit-scrollbar {
+    display: none;
+}
+
+html.sb-drag,
+html.sb-drag * {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grabbing !important;
+}
+
+.sb {
+    --sb-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    position: fixed;
+    z-index: var(--sb-z);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity var(--sb-fade-out) var(--sb-ease);
+}
+
+.sb.show {
+    opacity: 1;
+    transition-duration: var(--sb-fade-in);
+}
+
+/* two ink layers crossfade by ground, so a colour change stays an opacity change */
+.sb .ink {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transition: opacity 220ms var(--sb-ease);
+}
+
+.sb .ink.l {
+    background: var(--sb-ink-l);
+}
+
+.sb .ink.d {
+    background: var(--sb-ink-d);
+    opacity: 0;
+}
+
+.sb.dk .ink.l {
+    opacity: 0;
+}
+
+.sb.dk .ink.d {
+    opacity: 1;
+}
+
+.sb-a {
+    width: var(--sb-hit);
+    pointer-events: auto;
+}
+
+.sb-a .track {
+    position: absolute;
+    top: 6px;
+    right: calc(var(--sb-edge) - 3px);
+    bottom: 6px;
+    width: calc(var(--hl-w) + 6px);
+    border-radius: var(--hl-radius);
+    opacity: 0;
+    transition: opacity 200ms var(--sb-ease);
+}
+
+.sb-a .track .ink.l {
+    background: var(--sb-track-l);
+}
+
+.sb-a .track .ink.d {
+    background: var(--sb-track-d);
+}
+
+.sb-a.hover .track,
+.sb-a.drag .track {
+    opacity: 1;
+}
+
+.sb-a .thumb {
+    position: absolute;
+    top: 0;
+    right: var(--sb-edge);
+    width: var(--hl-w);
+    border-radius: var(--hl-radius);
+    transform-origin: 100% 50%;
+    will-change: transform;
+    cursor: grab;
+}
+
+.sb-a .thumb .inner {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transform: scaleX(var(--hl-idle));
+    transform-origin: 100% 50%;
+    transition: transform 200ms var(--sb-ease);
+}
+
+.sb-a.hover .thumb .inner,
+.sb-a.drag .thumb .inner {
+    transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb,
+    .sb * {
+        transition-duration: 0ms !important;
+    }
+}
+
+/* thin bar for scrolling areas inside the app; inks come from the scrollbar tokens */
+.scroll-area {
+    --area-ink: var(--area-ink-l, rgba(60, 71, 77, 0.55));
+    --area-ink-hover: var(--area-ink-l-hover, #3c474d);
+}
+
+:root[data-theme="dark"] .scroll-area {
+    --area-ink: var(--area-ink-d, rgba(180, 190, 195, 0.5));
+    --area-ink-hover: var(--area-ink-d-hover, #b4bec3);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .scroll-area {
+        --area-ink: var(--area-ink-d, rgba(180, 190, 195, 0.5));
+        --area-ink-hover: var(--area-ink-d-hover, #b4bec3);
+    }
+}
+
+.scroll-area::-webkit-scrollbar {
+    width: var(--area-w, 10px);
+    height: var(--area-w, 10px);
+}
+
+.scroll-area::-webkit-scrollbar-track,
+.scroll-area::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    min-height: 40px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--area-ink);
+    background-clip: padding-box;
+}
+
+.scroll-area::-webkit-scrollbar-thumb:hover,
+.scroll-area::-webkit-scrollbar-thumb:active {
+    background-color: var(--area-ink-hover);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    .scroll-area {
+        scrollbar-width: thin;
+        scrollbar-color: var(--area-ink) transparent;
+    }
+}

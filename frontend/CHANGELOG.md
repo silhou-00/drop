@@ -1,5 +1,11 @@
 # Frontend Changelog
 
+## October 29, 2026
+
+**Landing:**
+
+- Visitors get the Drop landing page: a seven-step scroll story over one live marbled background, smooth wheel scrolling, a thin matching scrollbar for mouse users, a claim step that checks the chosen name and says sign-up opens soon, and a calm still version for reduced motion or missing graphics.
+
 ## October 28, 2026
 
 **Design system:**

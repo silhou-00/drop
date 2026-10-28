@@ -101,7 +101,7 @@ The module 02 tokens (`fadeSlide`, `overshoot`, `bounceLand`, `springFollow`, `p
 
 ## Marble
 
-Combed Veins, a WebGL1 fragment shader ported from the landing comp without streets, camera or scroll.
+Combed Veins, a WebGL1 fragment shader ported from the landing comp. The landing adds its scene on top (streets, camera, clip, ripple); left at defaults the bath looks as it does without.
 
 **Tokens** (`marbleDefaults`, Marble folder):
 
@@ -120,11 +120,11 @@ Combed Veins, a WebGL1 fragment shader ported from the landing comp without stre
 | `wavePitch`                                              | 90               | 20 to 300 |
 | `wideScale`                                              | 2.2              | 1 to 3    |
 
-**Pigments** (`MARBLE_PIGMENTS`): light ground `#EDF2F4`, grey `#7C858B`, ice `#F5FDFF`, ring `#E36B6E`; dark ground `#0B0C0F`, grey `#59616A`, ice `#46505A`, ring `#46505A`; red `#FF3131` in both. With `I` the zone intensity: grey = mix(ground, mix(ground, grey, pigmentContrast), I); pale = midpoint of ground and grey; ice = mix(ground, ice, min(1, I*1.2)); red = mix(ground, desaturate(red, saturation), I); ring = mix(ground, ring, min(1, I/0.7)).
+**Pigments** (`MARBLE_PIGMENTS`): light ground `#EDF2F4`, grey `#7C858B`, ice `#F5FDFF`, ring `#E36B6E`, street `#9EA8AD`; dark ground `#0B0C0F`, grey `#59616A`, ice `#46505A`, ring `#46505A`, street `#59616A`; red `#FF3131` in both. The dark street value is not on the sheet; the landing is always light. With `I` the zone intensity: grey = mix(ground, mix(ground, grey, pigmentContrast), I); pale = midpoint of ground and grey; ice = mix(ground, ice, min(1, I*1.2)); red = mix(ground, desaturate(red, saturation), I); ring = mix(ground, ring, min(1, I/0.7)).
 
 **Frames.** The canvas is cover-fitted to a reference frame: portrait 390x844, landscape 1440x900 (chosen by aspect). In landscape, line gap, wave amplitude and pitch are scaled by `wideScale` and line width by its square root.
 
-**Renderer** (`createMarble(canvas, tokens, { zone, mode, driftPeriod, onFail })`): returns `{ setUniforms, setProgress, pause, resume, destroy }`, or `null` when WebGL or the shader fails at once. Later failures call `onFail` with `no-webgl`, `shader`, `context-lost` or `slow`.
+**Renderer** (`createMarble(canvas, tokens, { zone, mode, driftPeriod, onFail })`): returns `{ setUniforms, setProgress, setCamera, setScene, setClip, frame, pause, resume, destroy }`, or `null` when WebGL or the shader fails at once. Later failures call `onFail` with `no-webgl`, `shader`, `context-lost` or `slow`.
 
 | `MARBLE_GL`       | Value | Meaning                                             |
 | ----------------- | ----- | --------------------------------------------------- |
@@ -133,7 +133,7 @@ Combed Veins, a WebGL1 fragment shader ported from the landing comp without stre
 | `slowMs`          | 40    | median frame time (40 samples) that counts as slow  |
 | `fallbackQuality` | 0.7   | resolution step taken once before failing as `slow` |
 
-The renderer pauses when the canvas is offscreen (IntersectionObserver) or the tab is hidden, and resizes with a ResizeObserver. `setProgress(p)` sets the ink spread: 1 (default) is the full bath, 0 is grey with no impact pool. `destroy` deletes the buffer and program and keeps the context, so a remount on the same canvas works.
+The renderer pauses when the canvas is offscreen (IntersectionObserver) or the tab is hidden, and resizes with a ResizeObserver. `setProgress(p)` sets the ink spread: 1 (default) is the full bath, 0 is grey with no impact pool. `setCamera({ point, anchor, zoom })` holds a frame point at a screen anchor; `setClip({ x, y, w, h })` limits shading to a rectangle; `setScene` sets `comb`, `calm`, `impactTime`, `impactPoint`, `ripple`, `streets`, `redStreet`, `accent`. With `external: true` the renderer runs no loop and draws when the caller calls `frame(now)`. `referenceFrame(width, height, tokens)` returns the fitted frame and its line metrics. `destroy` deletes the buffer and program and keeps the context, so a remount on the same canvas works.
 
 **Component** (`<MarbleBackground variant intensity className>`): fills its positioned parent, `aria-hidden`, no pointer input. Shows the still `/marble/<variant>-<port|land>-<light|dark>.webp` first (landscape at `min-aspect-ratio: 1/1`), then fades the canvas in over `shaderFadeIn`. Under reduced motion or after a failure only the still shows. The `content` zone adds a ground veil at `contentFade` opacity, masked transparent to opaque over `fadeLength` px from the top.
 
@@ -142,3 +142,26 @@ The renderer pauses when the canvas is offscreen (IntersectionObserver) or the t
 ## Brand
 
 `public/brand/logo.svg` (light) and `public/brand/logo-dark.svg` (dark), copied from the comps.
+
+## Landing
+
+Ported from the approved landing comp (concept A, "The Bath"). Styles in `src/styles/landing.css`, scoped under `.landing`; tokens in `src/styles/tokens.css` and `src/lib/landing/tokens.ts`.
+
+- **Theme.** Light only. The route forces `data-theme="light"` while mounted.
+- **Bands.** The landing follows the comp's own steps, not the app bands: mobile below 48rem (768), wide at `64rem and (min-aspect-ratio: 21/20)`, full HD at 120rem (1920, gutter 80px).
+- **Variables.** `--on-dark-*` (ink on dark ground), `--landing-glass`, `--landing-shadow`, `--landing-e-*` (easings), rise variables, and `--landing-s1-pad`, `--landing-s2-gap`, `--landing-s3-gap`, `--landing-gutter`, `--landing-nav-h`, `--landing-max`, `--landing-fs-*` (all type in `clamp()`).
+- **Lengths.** Beat 06 (kept quiet) is 515svh, as in the comp. The claim band is 185svh (comp: 200svh), trimmed to remove paper before the footer.
+- **Motion.** `landingMotion` values unchanged, plus `load`, `card`, `streets` and `shader.accent` (0.13) in `landingDefaults`.
+- **Stills** (`public/landing/`): `still-<port|land>-<comb|grey|ink>.webp`, 29.1KB to 47.8KB, from the comp.
+
+## Scrollbar
+
+Option A, "Hairline", from the scrollbar sheet. Values in `src/lib/scrollbar/tokens.ts`.
+
+| Group      | Values                                                                                                                                                                             |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared`   | edge 6, hit 18, hideDelay 1200ms, fadeIn 140ms, fadeOut 320ms, inkLight `#3C474D`, inkDark `#B4BEC3`, trackLight `rgba(10,10,10,.10)`, trackDark `rgba(245,253,255,.16)`, zIndex 7 |
+| `hairline` | width 10, idleScale 0.4, minThumb 44, radius 999                                                                                                                                   |
+| `area`     | width 10, inkLight `rgba(60,71,77,.55)`, inkLightHover `#3C474D`, inkDark `rgba(180,190,195,.5)`, inkDarkHover `#B4BEC3`                                                           |
+
+Fine pointers only. The ink crossfades to `inkDark` over dark ground. The sheet's top (84) and bottom (24) insets are not used by the hairline and are not stored.
