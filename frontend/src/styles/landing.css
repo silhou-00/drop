@@ -69,9 +69,6 @@
 .landing .foot-sum {
     max-width: 34ch;
 }
-.landing .meter-band {
-    padding: 0;
-}
 
 /* ---------- grounds: full-bleed colour under the plate, wiped per boundary ---------- */
 .landing .grounds {
@@ -259,34 +256,6 @@
 .landing .place b {
     color: var(--accent-ink);
     font-weight: 700;
-}
-.landing .tag span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transform: translate(14px, -50%) scale(0.7);
-    transform-origin: 0 50%;
-    opacity: 0;
-    transition:
-        transform var(--pop-dur) var(--landing-e-back),
-        opacity 200ms linear;
-    white-space: nowrap;
-    background: var(--ink);
-    color: #fff;
-    font: 600 0.75rem/1 var(--family-meta);
-    padding: 8px 11px;
-    border-radius: 999px;
-}
-.landing .tag span::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-fill);
-}
-.landing .tag.on span {
-    opacity: 1;
-    transform: translate(26px, -50%);
 }
 .landing .obj.hole {
     border-radius: 14px;
@@ -656,15 +625,10 @@
     position: relative;
     z-index: 3;
 }
-.landing .num,
-.landing .meta {
+.landing .num {
     font: 700 0.8125rem/1 var(--family-meta);
     letter-spacing: 0.04em;
     color: var(--accent-ink);
-}
-.landing .meta {
-    color: var(--ink);
-    font-weight: 600;
 }
 .landing h1,
 .landing h2 {
@@ -1111,26 +1075,6 @@
     bottom: max(24px, 3.5svh);
     gap: 10px;
 }
-.landing .hero .chip-c {
-    display: none;
-}
-.landing .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--paper);
-    border-radius: 999px;
-    padding: 8px 14px;
-    font: 600 0.875rem/1.2 var(--family-body);
-    box-shadow: var(--landing-shadow-lift);
-}
-.landing .chip i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent-fill);
-    box-shadow: 0 0 0 3px rgba(255, 49, 49, 0.2);
-}
 .landing .cta-row {
     display: flex;
     flex-wrap: wrap;
@@ -1188,9 +1132,6 @@
     }
     .landing .hero .num-c {
         display: none;
-    }
-    .landing .hero .chip-c {
-        display: block;
     }
 }
 
@@ -1669,49 +1610,6 @@
     color: var(--ink-2);
 }
 
-/* ---------- progress meter (wide screens, bottom right) ---------- */
-.landing .meter {
-    position: fixed;
-    flex-direction: row;
-    right: var(--landing-gutter);
-    bottom: 20px;
-    z-index: 5;
-    display: none;
-    align-items: center;
-    gap: 12px;
-    background: var(--paper);
-    border: 1px solid var(--hair);
-    border-radius: 999px;
-    padding: 10px 16px;
-    box-shadow: var(--landing-shadow-rest);
-}
-@media (min-width: 1024px) and (min-aspect-ratio: 21/20) {
-    .landing .meter {
-        display: flex;
-    }
-}
-.landing .meter b {
-    font: 700 0.8125rem/1 var(--family-meta);
-}
-.landing .meter span {
-    font: 600 0.875rem/1 var(--family-body);
-    min-width: 12ch;
-}
-.landing .meter .bar {
-    width: 96px;
-    height: 3px;
-    background: var(--hair);
-    border-radius: 3px;
-    overflow: hidden;
-}
-.landing .meter .bar i {
-    display: block;
-    height: 100%;
-    background: var(--accent-ink);
-    transform-origin: 0 50%;
-    transform: scaleX(0);
-}
-.landing.claiming .meter,
 .landing.claiming .nav-band {
     visibility: hidden;
 }

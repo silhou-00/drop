@@ -1,13 +1,12 @@
 // The landing page (concept A, "The Bath"). One marble bath sits under seven beats: the hero
 // drop, the map window, the note that lifts off it, the lens, the phone track, the safety index
 // and the claim. One frame loop drives everything: it advances Lenis for smooth wheel
-// scrolling, reads the scroll position and hands the state to every beat, the bath, the nav,
-// the beat pill and the scrollbar. Under reduced motion there is no Lenis and no live shader;
+// scrolling, reads the scroll position and hands the state to every beat, the bath, the nav
+// and the scrollbar. Under reduced motion there is no Lenis and no live shader;
 // the still bath and the final states show instead. The page is always shown in light mode.
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BathPlate } from "@/components/landing/bath-plate";
-import { BeatProgress } from "@/components/landing/beat-progress";
 import { Claim } from "@/components/landing/claim";
 import { ClaimIris, type ClaimRequest } from "@/components/landing/claim-iris";
 import { DiveBeat, NoteScene } from "@/components/landing/dive-beat";
@@ -160,7 +159,6 @@ function LandingPage() {
                     <SiteFooter />
                 </main>
 
-                <BeatProgress />
                 {claim ? <ClaimIris request={claim} onClosed={() => setClaim(null)} /> : null}
                 <ScrollHairline lenis={lenis} source={hairlineSource} />
             </div>

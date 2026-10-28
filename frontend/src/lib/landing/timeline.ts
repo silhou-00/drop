@@ -78,15 +78,6 @@ export type ScrollState = {
     prog: number;
 };
 
-const BEAT_NAMES = [
-    "Drop",
-    "Leave it somewhere",
-    "Someone finds it",
-    "Guess who",
-    "Answer in your story",
-    "Kept quiet",
-    "Claim",
-];
 const WIDE_MIN = 1024;
 const WIDE_ASPECT = 1.05;
 
@@ -292,24 +283,6 @@ export function groundAt(y: number, L: LandingLayout): Ground {
     }
 
     return y < L.c.F1 ? "dark" : "paper";
-}
-
-// the beat pill: the last beat whose top has passed the middle of the screen
-export function beatAt(y: number, L: LandingLayout) {
-    const probe = y + 0.5 * L.H;
-    let k = 0;
-
-    L.top.forEach((t, i) => {
-        if (probe >= t) {
-            k = i + 1;
-        }
-    });
-
-    if (y >= L.c.rev) {
-        k = 6;
-    }
-
-    return { index: k, name: BEAT_NAMES[k] };
 }
 
 // 06 scene opacity: fades in after 05 is covered and out as the bath floods back

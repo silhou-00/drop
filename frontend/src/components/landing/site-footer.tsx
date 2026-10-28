@@ -1,7 +1,9 @@
 // The landing's footer on plain paper: the logo and a one-line summary, four common questions
 // that open in place, the page links and the fine print. Links scroll through the landing's
 // smooth scroller. The legal pages do not exist yet, so those links lead back to the top.
+// "Sign in" opens the sign-in page.
 import type { MouseEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { useLanding } from "@/hooks/landing/use-scroll-timeline";
 
 const QUESTIONS = [
@@ -26,7 +28,6 @@ const LINKS = [
     { label: "Privacy", href: "#top" },
     { label: "Terms", href: "#top" },
     { label: "Safety", href: "#top" },
-    { label: "Sign in", href: "#claim-band" },
 ];
 
 export function SiteFooter() {
@@ -72,6 +73,7 @@ export function SiteFooter() {
                                 {link.label}
                             </a>
                         ))}
+                        <Link to="/sign-in">Sign in</Link>
                     </div>
                     <div className="container">
                         <p className="legal">Sample notes and coordinates are examples.</p>

@@ -1,7 +1,9 @@
 // The landing's floating nav: the logo, "Sign in" and "Claim your link". The glass pill darkens
 // while it floats over the dark ground and turns solid paper once the bath has lifted off for
-// the claim. Links scroll through the landing's smooth scroller, so they glide like the wheel.
+// the claim. In-page links scroll through the landing's smooth scroller, so they glide like the
+// wheel; "Sign in" opens the sign-in page.
 import { useRef, type MouseEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { groundAt } from "@/lib/landing/timeline";
 import { useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
 
@@ -56,9 +58,9 @@ export function LandingNav() {
                     </div>
                     <div className="row">
                         <div className="container">
-                            <a className="btn btn-ghost" href="#claim-band" onClick={handleAnchor}>
+                            <Link className="btn btn-ghost" to="/sign-in">
                                 Sign in
-                            </a>
+                            </Link>
                         </div>
                         <div className="container nav-claim">
                             <a className="btn btn-ink" href="#claim-band" onClick={handleClaim}>

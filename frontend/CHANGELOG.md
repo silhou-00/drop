@@ -2,6 +2,10 @@
 
 ## October 29, 2026
 
+**Landing:**
+
+- The landing is quieter: the beat counter pill, the hero's coordinates, place chip, distance tag and age line are gone, and "Sign in" in the nav and footer now opens the sign-in page. The developer tweak panel is hidden.
+
 **Auth and profiles:**
 
 - People can sign in with an emailed six-digit code, claim their link with a live name check and the 18 or older confirmation, and see and copy their link on a simple home page. The landing's claim step now takes a free name on to sign-in instead of saying sign-up opens soon.

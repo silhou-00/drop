@@ -1,8 +1,8 @@
 // Beat 01, the hero. On load the three headline lines rise through their masks, a red drop
-// falls into its own region of the bath and the veins rush out from where it lands, with a
-// small "about 150 m" tag beside it. The copy and the call to action sit off axis below. As
-// the page scrolls, the headline lines and the side copy slide off to alternating sides.
-// The drop and the tag live in the landing's scene layer, so they are exported separately.
+// falls into its own region of the bath and the veins rush out from where it lands. The copy
+// and the call to action sit off axis below. As the page scrolls, the headline lines and the
+// side copy slide off to alternating sides. The drop lives in the landing's scene layer, so
+// it is exported separately.
 import { useEffect, useRef, type CSSProperties } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useExitGroup, useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
@@ -34,17 +34,8 @@ export function Hero() {
             <div className="sub-section">
                 {/* corner meta */}
                 <div className="placement meta-top">
-                    <div className="container">
-                        <span className="meta">14.656° N, 121.066° E</span>
-                    </div>
                     <div className="container num-c">
                         <span className="num">01 / 07</span>
-                    </div>
-                    <div className="container chip-c">
-                        <span className="chip">
-                            <i />
-                            Pinned to a place, never to a person
-                        </span>
                     </div>
                 </div>
 
@@ -107,20 +98,16 @@ export function Hero() {
                             </a>
                         </div>
                     </div>
-                    <div className="container">
-                        <p className="fine">Free, for people 18 and over.</p>
-                    </div>
                 </div>
             </div>
         </section>
     );
 }
 
-// the falling drop and its distance tag, in the scene layer
+// the falling drop, in the scene layer
 export function HeroScene() {
     const { reduced, tokens, runtime, invalidate } = useLanding();
     const dropRef = useRef<HTMLDivElement>(null);
-    const tagRef = useRef<HTMLDivElement>(null);
     const { dropAt, fall, impactFrac } = tokens.load;
 
     // the drop falls, and the ink starts where it lands
@@ -146,24 +133,14 @@ export function HeroScene() {
         };
     }, [reduced, dropAt, fall, impactFrac, runtime, invalidate]);
 
-    useTimelineFrame(({ L, S, changed, relaid }) => {
+    useTimelineFrame(({ L, relaid }) => {
         const drop = dropRef.current;
-        const tag = tagRef.current;
 
-        if (!drop || !tag) {
+        if (!drop || !relaid) {
             return;
         }
 
-        if (relaid) {
-            const at = `translate3d(${L.baseS[0]}px,${L.baseS[1]}px,0)`;
-
-            drop.style.transform = at;
-            tag.style.transform = at;
-        }
-
-        if (changed) {
-            tag.classList.toggle("on", runtime.impactAt !== null && S.hero < 0.25);
-        }
+        drop.style.transform = `translate3d(${L.baseS[0]}px,${L.baseS[1]}px,0)`;
     });
 
     return (
@@ -175,9 +152,6 @@ export function HeroScene() {
                         <ellipse cx="10.5" cy="25" rx="3" ry="5" fill="#fff" opacity=".45" />
                     </svg>
                 </i>
-            </div>
-            <div className="container obj tag" ref={tagRef}>
-                <span>about 150 m</span>
             </div>
         </div>
     );
