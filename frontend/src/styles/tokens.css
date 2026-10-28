@@ -1,0 +1,106 @@
+/* Design tokens for the Drop web app, taken from the design sheet (rev 6, Marbled Bath).
+   Every colour, type size, wrapper spacing value and app layout width is defined here once,
+   for light and dark. Dark follows the device setting unless the root element carries
+   data-theme="light" or data-theme="dark", which wins. index.css maps these into Tailwind. */
+
+:root {
+    color-scheme: light;
+
+    /* palette, light */
+    --ground: #edf2f4;
+    --paper: #ffffff;
+    --ink: #0a0a0a;
+    --ink-2: #3c474d;
+    --accent-fill: #ff3131;
+    --accent-ink: #b3001b;
+    --on-accent: #0a0a0a;
+    --accent-soft: #dfa9aa;
+    --ice: #f5fdff;
+    --hair: rgba(10, 10, 10, 0.1);
+
+    /* type families */
+    --family-display: "Unbounded", system-ui, sans-serif;
+    --family-body: "Onest", system-ui, sans-serif;
+    --family-meta: "Azeret Mono", ui-monospace, monospace;
+
+    /* type scale: floor at 360px wide, ceiling near 1280px */
+    --type-display: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+    --type-heading: clamp(1.6rem, 1.3rem + 1.5vw, 2.5rem);
+    --type-subheading: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    --type-message-large: clamp(1.5rem, 1.25rem + 1.3vw, 2.1rem);
+    --type-message: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+    --type-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --type-caption: clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+    --type-mono: 0.875rem;
+
+    /* wrapper levels: one padding and gap per level, section values change per band */
+    --section-padding: 14px 18px;
+    --section-gap: 14px;
+    --sub-section-padding: 0;
+    --sub-section-gap: 10px;
+    --placement-padding: 0;
+    --placement-gap: 8px;
+    --container-padding: 0;
+    --container-gap: 0;
+
+    /* app layout: rail width (rail plus its 12px inset and gap) and content width */
+    --rail-w: 0px;
+    --content-max: 100%;
+}
+
+/* tablet, 768 to 1279 (1024 included) */
+@media (min-width: 48rem) {
+    :root {
+        --section-padding: 20px 24px;
+        --section-gap: 16px;
+        --rail-w: 104px;
+        --content-max: 640px;
+    }
+}
+
+/* laptop and desktop, 1280 to 1919 */
+@media (min-width: 80rem) {
+    :root {
+        --section-padding: 28px 32px;
+        --section-gap: 20px;
+        --rail-w: 244px;
+        --content-max: 1120px;
+    }
+}
+
+/* full HD and wider */
+@media (min-width: 120rem) {
+    :root {
+        --section-padding: 32px 40px;
+        --section-gap: 24px;
+        --content-max: 1280px;
+    }
+}
+
+/* palette, dark: from the device setting */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --ground: #0b0c0f;
+        --paper: #16181c;
+        --ink: #f5fdff;
+        --ink-2: #b4bec3;
+        --accent-ink: #ff6b6b;
+        --accent-soft: #6e3637;
+        --ice: #46505a;
+        --hair: rgba(245, 253, 255, 0.12);
+    }
+}
+
+/* palette, dark: forced by data-theme */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0b0c0f;
+    --paper: #16181c;
+    --ink: #f5fdff;
+    --ink-2: #b4bec3;
+    --accent-ink: #ff6b6b;
+    --accent-soft: #6e3637;
+    --ice: #46505a;
+    --hair: rgba(245, 253, 255, 0.12);
+}

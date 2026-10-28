@@ -3,8 +3,8 @@
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 
 const PAGES = [
-    { to: "/playground/ascii-logo", title: "ASCII logo", note: "The animated logo: hover to melt, press to ripple." },
     { to: "/playground/goo", title: "Goo", note: "The gooey filter: drag one blob into another." },
+    { to: "/playground/marble", title: "Marble", note: "The marbled bath behind the app, every value on a slider." },
     { to: "/playground/motion", title: "Motion", note: "Every motion token side by side, with replay." },
 ] as const;
 

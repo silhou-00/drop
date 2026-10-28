@@ -1,5 +1,11 @@
 # Frontend Changelog
 
+## October 28, 2026
+
+**Design system:**
+
+- The app takes on the approved Drop look: its light and dark colours, three typefaces, text sizes, spacing per screen size, the new movement set, and a slowly drifting marbled background with a still picture for reduced motion. The text-art logo is replaced by the vector logo.
+
 ## October 27, 2026
 
 **Design foundation:**

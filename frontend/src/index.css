@@ -1,17 +1,86 @@
+/* Global styles for the Drop web app. Loads Tailwind, the shadcn base, the self-hosted
+   fonts and the design tokens, then maps the tokens into Tailwind theme names and the
+   shadcn colour variables. Also defines the four wrapper level classes the pages use. */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource/unbounded/latin-500.css";
+@import "@fontsource/unbounded/latin-700.css";
+@import "@fontsource/unbounded/latin-800.css";
+@import "@fontsource/onest/latin-400.css";
+@import "@fontsource/onest/latin-500.css";
+@import "@fontsource/onest/latin-600.css";
+@import "@fontsource/onest/latin-700.css";
+@import "@fontsource/azeret-mono/latin-600.css";
+@import "@fontsource/azeret-mono/latin-700.css";
+@import "./styles/tokens.css";
 
 /* Tailwind's own container utility has stepped max-widths; the wrapper level
    named container below must stay fluid, so the utility is never generated */
 @source not inline("container");
 
-@custom-variant dark (&:is(.dark *));
+/* dark follows the device setting unless data-theme on the root says otherwise */
+@custom-variant dark {
+    &:where([data-theme="dark"], [data-theme="dark"] *) {
+        @slot;
+    }
 
+    @media (prefers-color-scheme: dark) {
+        &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+            @slot;
+        }
+    }
+}
+
+/* Drop tokens as Tailwind names */
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: "Geist Variable", sans-serif;
+    --breakpoint-3xl: 120rem;
+    --font-sans: var(--family-body);
+    --font-heading: var(--family-display);
+    --font-display: var(--family-display);
+    --font-mono: var(--family-meta);
+    --color-ground: var(--ground);
+    --color-paper: var(--paper);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-accent-fill: var(--accent-fill);
+    --color-accent-ink: var(--accent-ink);
+    --color-on-accent: var(--on-accent);
+    --color-accent-soft: var(--accent-soft);
+    --color-ice: var(--ice);
+    --color-hair: var(--hair);
+    --container-content: var(--content-max);
+    --spacing-rail: var(--rail-w);
+    --text-display: var(--type-display);
+    --text-display--line-height: 1.02;
+    --text-display--letter-spacing: -0.02em;
+    --text-display--font-weight: 700;
+    --text-heading: var(--type-heading);
+    --text-heading--line-height: 1.04;
+    --text-heading--letter-spacing: -0.02em;
+    --text-heading--font-weight: 700;
+    --text-subheading: var(--type-subheading);
+    --text-subheading--line-height: 1.1;
+    --text-subheading--letter-spacing: -0.01em;
+    --text-subheading--font-weight: 700;
+    --text-message-large: var(--type-message-large);
+    --text-message-large--line-height: 1.25;
+    --text-message-large--letter-spacing: -0.01em;
+    --text-message-large--font-weight: 500;
+    --text-message: var(--type-message);
+    --text-message--line-height: 1.35;
+    --text-message--font-weight: 500;
+    --text-body: var(--type-body);
+    --text-body--line-height: 1.5;
+    --text-caption: var(--type-caption);
+    --text-caption--line-height: 1.35;
+    --text-caption--font-weight: 600;
+    --text-mono: var(--type-mono);
+    --text-mono--font-weight: 600;
+}
+
+/* shadcn colour names, read by the generated components */
+@theme inline {
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -52,73 +121,40 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* shadcn variables point at the Drop tokens, so light and dark follow them */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --background: var(--ground);
+    --foreground: var(--ink);
+    --card: var(--paper);
+    --card-foreground: var(--ink);
+    --popover: var(--paper);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--paper);
+    --secondary-foreground: var(--ink);
+    --muted: var(--ground);
+    --muted-foreground: var(--ink-2);
+    --accent: var(--ground);
+    --accent-foreground: var(--ink);
+    --destructive: var(--accent-ink);
+    --border: var(--hair);
+    --input: var(--hair);
+    --ring: var(--ink-2);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar: var(--paper);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--ink);
+    --sidebar-primary-foreground: var(--paper);
+    --sidebar-accent: var(--ground);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--hair);
+    --sidebar-ring: var(--ink-2);
 }
 
 @layer base {
@@ -133,35 +169,13 @@
     }
 }
 
-/* Type scale: every size scales between a floor and a ceiling with the viewport */
-@theme {
-    --text-display: clamp(2.5rem, 5vw + 1rem, 6rem);
-    --text-heading: clamp(1.75rem, 2.5vw + 1rem, 3.25rem);
-    --text-subheading: clamp(1.25rem, 1vw + 1rem, 1.75rem);
-    --text-body: clamp(1rem, 0.25vw + 0.95rem, 1.125rem);
-    --text-caption: clamp(0.8125rem, 0.15vw + 0.78rem, 0.875rem);
-}
-
-/* Wrapper level spacing: one padding and gap per level, never typed on a wrapper */
-:root {
-    --section-padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 4vw, 3rem);
-    --section-gap: clamp(1.5rem, 3vw, 3rem);
-    --section-max-width: 90rem;
-    --sub-section-padding: 0;
-    --sub-section-gap: clamp(1rem, 2vw, 2rem);
-    --placement-padding: 0;
-    --placement-gap: clamp(0.5rem, 1.5vw, 1rem);
-    --container-padding: 0;
-    --container-gap: 0.5rem;
-}
-
 @layer components {
     .section {
         display: flex;
         flex-direction: column;
         gap: var(--section-gap);
         width: 100%;
-        max-width: var(--section-max-width);
+        max-width: var(--content-max);
         margin-inline: auto;
         padding: var(--section-padding);
     }

@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
-import { Route as PlaygroundAsciiLogoRouteImport } from './routes/playground/ascii-logo'
 import { Route as PlaygroundGooRouteImport } from './routes/playground/goo'
+import { Route as PlaygroundMarbleRouteImport } from './routes/playground/marble'
 import { Route as PlaygroundMotionRouteImport } from './routes/playground/motion'
 
 const IndexRoute = IndexRouteImport.update({
@@ -25,14 +25,14 @@ const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
   path: '/playground/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlaygroundAsciiLogoRoute = PlaygroundAsciiLogoRouteImport.update({
-  id: '/playground/ascii-logo',
-  path: '/playground/ascii-logo',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PlaygroundGooRoute = PlaygroundGooRouteImport.update({
   id: '/playground/goo',
   path: '/playground/goo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundMarbleRoute = PlaygroundMarbleRouteImport.update({
+  id: '/playground/marble',
+  path: '/playground/marble',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaygroundMotionRoute = PlaygroundMotionRouteImport.update({
@@ -43,23 +43,23 @@ const PlaygroundMotionRoute = PlaygroundMotionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/playground/ascii-logo': typeof PlaygroundAsciiLogoRoute
   '/playground/goo': typeof PlaygroundGooRoute
+  '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
   '/playground/': typeof PlaygroundIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/playground/ascii-logo': typeof PlaygroundAsciiLogoRoute
   '/playground/goo': typeof PlaygroundGooRoute
+  '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
   '/playground': typeof PlaygroundIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/playground/ascii-logo': typeof PlaygroundAsciiLogoRoute
   '/playground/goo': typeof PlaygroundGooRoute
+  '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
   '/playground/': typeof PlaygroundIndexRoute
 }
@@ -67,30 +67,30 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/playground/ascii-logo'
     | '/playground/goo'
+    | '/playground/marble'
     | '/playground/motion'
     | '/playground/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/playground/ascii-logo'
     | '/playground/goo'
+    | '/playground/marble'
     | '/playground/motion'
     | '/playground'
   id:
     | '__root__'
     | '/'
-    | '/playground/ascii-logo'
     | '/playground/goo'
+    | '/playground/marble'
     | '/playground/motion'
     | '/playground/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PlaygroundAsciiLogoRoute: typeof PlaygroundAsciiLogoRoute
   PlaygroundGooRoute: typeof PlaygroundGooRoute
+  PlaygroundMarbleRoute: typeof PlaygroundMarbleRoute
   PlaygroundMotionRoute: typeof PlaygroundMotionRoute
   PlaygroundIndexRoute: typeof PlaygroundIndexRoute
 }
@@ -111,18 +111,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaygroundIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/playground/ascii-logo': {
-      id: '/playground/ascii-logo'
-      path: '/playground/ascii-logo'
-      fullPath: '/playground/ascii-logo'
-      preLoaderRoute: typeof PlaygroundAsciiLogoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/playground/goo': {
       id: '/playground/goo'
       path: '/playground/goo'
       fullPath: '/playground/goo'
       preLoaderRoute: typeof PlaygroundGooRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/marble': {
+      id: '/playground/marble'
+      path: '/playground/marble'
+      fullPath: '/playground/marble'
+      preLoaderRoute: typeof PlaygroundMarbleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playground/motion': {
@@ -137,8 +137,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PlaygroundAsciiLogoRoute: PlaygroundAsciiLogoRoute,
   PlaygroundGooRoute: PlaygroundGooRoute,
+  PlaygroundMarbleRoute: PlaygroundMarbleRoute,
   PlaygroundMotionRoute: PlaygroundMotionRoute,
   PlaygroundIndexRoute: PlaygroundIndexRoute,
 }

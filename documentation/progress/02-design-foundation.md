@@ -6,6 +6,8 @@
 
 Technical detail: [frontend](../technical/frontend.md).
 
+> **Note:** Module 03 (design system) removed the animated text-art logo and its body typeface. The approved design uses the vector logo instead. See [03 Design System](03-design-system.md).
+
 ## Goal
 
 Give the web app a shared set of visual building blocks, and a way to tune every visual value by eye in the browser, before the first real pages are designed. Nothing used only for tuning may reach the version people actually visit.
