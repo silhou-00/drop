@@ -15,6 +15,13 @@
             "when": 1793229313928,
             "tag": "0001_brainy_garia",
             "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "7",
+            "when": 1793232842184,
+            "tag": "0002_drops",
+            "breakpoints": true
         }
     ]
 }

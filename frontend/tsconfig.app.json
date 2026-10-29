@@ -8,7 +8,6 @@
         "allowArbitraryExtensions": true,
         "skipLibCheck": true,
         "paths": {
-            "@/lib/tweaks/use-tweaks": ["./src/lib/tweaks/use-tweaks.dev.ts"],
             "@/*": ["./src/*"]
         },
 

@@ -1,6 +1,10 @@
 // Central config. Reads the environment once at boot, validates it, and exports a
 // frozen config object. A missing or malformed variable stops the server at startup.
+import path from "node:path";
 import { z } from "zod";
+
+// the tiles folder at the drop-app root unless TILES_DIR says otherwise
+const DEFAULT_TILES_DIR = path.resolve(import.meta.dirname, "../../../tiles");
 
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -10,6 +14,12 @@ const envSchema = z.object({
     BETTER_AUTH_URL: z.url(),
     RESEND_API_KEY: z.string().startsWith("re_"),
     EMAIL_FROM: z.string().min(1),
+    SENDER_KEY_SECRET: z.string().min(32),
+    LOCATIONIQ_API_KEY: z.string().regex(/^pk\./),
+    TILES_DIR: z
+        .string()
+        .optional()
+        .transform((value) => path.resolve(value || DEFAULT_TILES_DIR)),
 });
 
 const parsed = envSchema.safeParse(process.env);

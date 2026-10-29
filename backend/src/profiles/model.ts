@@ -51,6 +51,13 @@ export const RESERVED_USERNAMES: readonly string[] = [
     "support",
     "static",
     "assets",
+    "brand",
+    "landing",
+    "marble",
+    "favicon.svg",
+    "icons.svg",
+    "index.html",
+    "robots.txt",
 ];
 
 export const USERNAME_INVALID_MESSAGE = "Use 3 to 30 letters, numbers, dots or underscores.";

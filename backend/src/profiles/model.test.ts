@@ -41,6 +41,13 @@ describe("usernameSchema", () => {
         expect(firstMessage(usernameSchema.safeParse("privacy"))).toBe(USERNAME_RESERVED_MESSAGE);
     });
 
+    it("rejects the names the frontend serves as files or folders", () => {
+        for (const name of ["brand", "landing", "marble", "favicon.svg", "icons.svg", "index.html", "robots.txt"]) {
+            expect(RESERVED_USERNAMES).toContain(name);
+            expect(usernameSchema.safeParse(name).success).toBe(false);
+        }
+    });
+
     it("never lets a reserved name through", () => {
         for (const name of RESERVED_USERNAMES) {
             expect(usernameSchema.safeParse(name).success).toBe(false);

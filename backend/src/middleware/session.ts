@@ -10,6 +10,7 @@ export type AppEnv = {
     Variables: {
         user: AuthSession["user"] | null;
         session: AuthSession["session"] | null;
+        deviceId: string;
     };
 };
 

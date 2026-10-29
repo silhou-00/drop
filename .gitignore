@@ -9,3 +9,6 @@ dist
 # impeccable (installed design skill, local only)
 .claude/
 .impeccable/
+
+# map files served at /tiles
+/tiles/

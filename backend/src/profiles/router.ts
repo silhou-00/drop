@@ -35,6 +35,9 @@ export function createProfileRouter(service: ProfileService) {
     router.get("/profiles/:username", async (c) => {
         const profile = await service.getPublicProfile(c.req.param("username"));
 
+        // the response sets the device cookie, so it must not be cached
+        c.header("Cache-Control", "no-store");
+
         return c.json({ data: profile, error: null });
     });
 

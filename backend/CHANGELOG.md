@@ -2,6 +2,10 @@
 
 ## October 29, 2026
 
+**Send page:**
+
+- Anyone can now send an anonymous drop to a public link, with an optional location that is rounded to a neighbourhood sized area and given a place name. Sending is limited per visitor, per device and per recipient. Shared links show a preview with the person's name, and the map files are served by the app itself.
+
 **Auth and profiles:**
 
 - People can now sign in with a six-digit email code, claim a link name with an 18 or older confirmation, view and update their own profile, and anyone can look up a public profile. The server also sends security headers and limits how fast sign-in codes can be requested.

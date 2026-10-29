@@ -4,6 +4,7 @@
 
 **Landing:**
 
+- The developer tweak panel and the screen-size badge are removed for good, along with the slider library behind them.
 - The landing is quieter: the beat counter pill, the hero's coordinates, place chip, distance tag and age line are gone, and "Sign in" in the nav and footer now opens the sign-in page. The developer tweak panel is hidden.
 
 **Auth and profiles:**

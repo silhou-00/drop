@@ -1,16 +1,12 @@
 // Rate limiter for the API. Counts requests per client IP in a fixed window held in
-// memory, so it resets on restart and is per instance. Old entries are pruned on a timer.
+// memory, so it resets on restart and is per instance.
 import { getConnInfo } from "@hono/node-server/conninfo";
 import type { MiddlewareHandler } from "hono";
+import { createFixedWindow } from "../shared/fixed-window.js";
 
 type Options = {
     limit?: number;
     windowMs?: number;
-};
-
-type Entry = {
-    count: number;
-    resetAt: number;
 };
 
 const DEFAULT_LIMIT = 60;
@@ -20,38 +16,20 @@ export function createRateLimiter({
     limit = DEFAULT_LIMIT,
     windowMs = DEFAULT_WINDOW_MS,
 }: Options = {}): MiddlewareHandler {
-    const entries = new Map<string, Entry>();
-
-    // prune expired entries
-    const timer = setInterval(() => {
-        const now = Date.now();
-
-        for (const [ip, entry] of entries) {
-            if (entry.resetAt <= now) {
-                entries.delete(ip);
-            }
-        }
-    }, windowMs);
-
-    timer.unref();
+    const window = createFixedWindow({ limit, windowMs });
 
     return async (c, next) => {
         const ip = getConnInfo(c).remote.address ?? "unknown";
-        const now = Date.now();
-        let entry = entries.get(ip);
 
-        if (!entry || entry.resetAt <= now) {
-            entry = { count: 0, resetAt: now + windowMs };
-            entries.set(ip, entry);
-        }
+        const state = window.peek(ip);
 
-        entry.count += 1;
-
-        if (entry.count > limit) {
-            c.header("Retry-After", String(Math.ceil((entry.resetAt - now) / 1000)));
+        if (!state.allowed) {
+            c.header("Retry-After", String(state.retryAfterSeconds));
 
             return c.json({ data: null, error: { code: "RATE_LIMITED", message: "Too many requests" } }, 429);
         }
+
+        window.hit(ip);
 
         await next();
     };

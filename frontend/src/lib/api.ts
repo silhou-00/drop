@@ -1,7 +1,9 @@
-// Shared fetch wrapper for the Drop API. Sends and reads JSON on the same origin with the
-// session cookie, unwraps the { data, error } envelope, and turns every failure into an
-// ApiError carrying the status, the error code and a message that is safe to show. A 429
-// reads Retry-After and becomes a plain "try again in" message. Error text is shown as text.
+// Shared fetch wrapper for the Drop API. Reads JSON on the same origin with the session
+// cookie and sends JSON when the body is a string. A FormData body gets no content type, so
+// the browser adds the multipart boundary itself. It unwraps the { data, error } envelope and
+// turns every failure into an ApiError carrying the status, the error code and a message that
+// is safe to show. A 429 reads Retry-After and becomes a plain "try again in" message. Error
+// text is shown as text.
 
 const NETWORK_MESSAGE = "Could not reach Drop. Check your connection and try again.";
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
@@ -41,7 +43,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
 
     headers.set("Accept", "application/json");
 
-    if (init.body !== undefined) {
+    if (typeof init.body === "string") {
         headers.set("Content-Type", "application/json");
     }
 
