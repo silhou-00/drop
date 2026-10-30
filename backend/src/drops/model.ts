@@ -1,6 +1,7 @@
-// Drop table and the input rules for sending a drop. The error messages are exported as
-// constants so the frontend can show the same text for the same failure. The send body
-// arrives as multipart text fields, so numbers are decimal strings until parsed here.
+// Drop table and the input rules for sending a drop. Every drop must carry a GPS
+// location. The error messages are exported as constants so the frontend can show the
+// same text for the same failure. The send body arrives as multipart text fields, so
+// numbers are decimal strings until parsed here.
 import { sql } from "drizzle-orm";
 import { boolean, char, check, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
@@ -15,8 +16,8 @@ export const drops = pgTable(
             .notNull()
             .references(() => profiles.id, { onDelete: "cascade" }),
         message: varchar("message", { length: 280 }).notNull(),
-        location: geographyPoint("location"),
-        locationSource: text("location_source", { enum: ["gps", "manual"] }),
+        location: geographyPoint("location").notNull(),
+        locationSource: text("location_source", { enum: ["gps"] }).notNull(),
         locationName: varchar("location_name", { length: 100 }),
         senderKey: char("sender_key", { length: 64 }).notNull(),
         deviceKey: char("device_key", { length: 64 }),
@@ -24,8 +25,7 @@ export const drops = pgTable(
         createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     },
     (table) => [
-        check("drops_location_source_check", sql`${table.locationSource} in ('gps', 'manual')`),
-        check("drops_location_pair_check", sql`(${table.location} is null) = (${table.locationSource} is null)`),
+        check("drops_location_source_check", sql`${table.locationSource} in ('gps')`),
         index("drops_recipient_created_idx").on(table.recipientId, table.createdAt.desc()),
         index("drops_location_gist").using("gist", table.location),
     ],
@@ -34,6 +34,7 @@ export const drops = pgTable(
 export const MESSAGE_MAX = 280;
 export const MESSAGE_MESSAGE = "Write a message up to 280 characters.";
 export const LOCATION_MESSAGE = "That location is not valid.";
+export const LOCATION_REQUIRED_MESSAGE = "Turn on your location to send a drop.";
 export const LINK_PAUSED_MESSAGE = "This link is not taking drops right now.";
 
 const COORDINATE_PATTERN = /^-?\d{1,3}(\.\d{1,15})?$/;
@@ -50,27 +51,20 @@ const messageSchema = z
         return length >= 1 && length <= MESSAGE_MAX && !value.includes("\u0000");
     }, MESSAGE_MESSAGE);
 
-// decimal string to number inside the allowed range
+// decimal string to number inside the allowed range, required
 function coordinate(max: number) {
     return z
-        .string(LOCATION_MESSAGE)
+        .string(LOCATION_REQUIRED_MESSAGE)
         .regex(COORDINATE_PATTERN, LOCATION_MESSAGE)
         .transform(Number)
-        .refine((value) => Math.abs(value) <= max, LOCATION_MESSAGE)
-        .optional();
+        .refine((value) => Math.abs(value) <= max, LOCATION_MESSAGE);
 }
 
-export const sendDropSchema = z
-    .strictObject({
-        message: messageSchema,
-        latitude: coordinate(LAT_MAX),
-        longitude: coordinate(LNG_MAX),
-        location_source: z.enum(["gps", "manual"], LOCATION_MESSAGE).optional(),
-    })
-    .refine((value) => {
-        const hasLat = value.latitude !== undefined;
-
-        return hasLat === (value.longitude !== undefined) && hasLat === (value.location_source !== undefined);
-    }, LOCATION_MESSAGE);
+export const sendDropSchema = z.strictObject({
+    message: messageSchema,
+    latitude: coordinate(LAT_MAX),
+    longitude: coordinate(LNG_MAX),
+    location_source: z.literal("gps", LOCATION_REQUIRED_MESSAGE),
+});
 
 export type SendDropInput = z.infer<typeof sendDropSchema>;

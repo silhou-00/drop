@@ -9,7 +9,7 @@ import { useLanding } from "@/hooks/landing/use-scroll-timeline";
 const QUESTIONS = [
     {
         q: "Do my friends need an account to send?",
-        a: "No. They open your link, write, pick a place, and drop it.",
+        a: "No. They open your link, write, share their location, and drop it.",
     },
     {
         q: "Can I find out who sent a note?",
@@ -17,7 +17,7 @@ const QUESTIONS = [
     },
     {
         q: "How exact is the place?",
-        a: "Rounded to about 150 m, and each note says whether it came from GPS or was picked by hand.",
+        a: "Rounded to about 150 m, and every note carries the sender's GPS location.",
     },
     {
         q: "What if a note is mean?",
@@ -50,7 +50,7 @@ export function SiteFooter() {
                         </div>
                         <div className="container">
                             <p className="legal foot-sum">
-                                Anonymous notes from real places. For people 18 and over. Places rounded to about 150 m.
+                                Anonymous notes from real places. Accessible by All. Places rounded to about 150 m.
                             </p>
                         </div>
                     </div>

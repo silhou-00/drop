@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
 import type { NewDropRow } from "./repository.js";
+import { LOCATION_REQUIRED_MESSAGE } from "./model.js";
 import { createDropService } from "./service.js";
 
 const keys = createKeyMaker("s".repeat(40));
@@ -43,17 +44,18 @@ function build({
     return { service, rows, lookups };
 }
 
+const gps = { latitude: "14.599512", longitude: "120.984222", location_source: "gps" };
 const base = { username: "maya", ip: "203.0.113.7", deviceId: "d".repeat(43) };
 
 describe("sendDrop", () => {
     it("answers 404 for an unknown or invalid name", async () => {
         await expect(
-            build({ recipient: null }).service.sendDrop({ ...base, fields: { message: "hi" } }),
+            build({ recipient: null }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({
             status: 404,
         });
         await expect(
-            build().service.sendDrop({ ...base, username: "ab", fields: { message: "hi" } }),
+            build().service.sendDrop({ ...base, username: "ab", fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({ status: 404 });
     });
 
@@ -79,7 +81,7 @@ describe("sendDrop", () => {
     });
 
     it("answers 422 with the first message", async () => {
-        await expect(build().service.sendDrop({ ...base, fields: { message: "" } })).rejects.toMatchObject({
+        await expect(build().service.sendDrop({ ...base, fields: { message: "", ...gps } })).rejects.toMatchObject({
             status: 422,
             code: "VALIDATION_ERROR",
             message: "Write a message up to 280 characters.",
@@ -90,7 +92,7 @@ describe("sendDrop", () => {
         const { service, rows } = build();
         const result = await service.sendDrop({
             ...base,
-            fields: { message: "hi", latitude: "14.599512", longitude: "120.984222", location_source: "gps" },
+            fields: { message: "hi", ...gps },
         });
 
         expect(result).toEqual({ delivered: true });
@@ -107,13 +109,24 @@ describe("sendDrop", () => {
         });
     });
 
-    it("stores a drop with no location and skips the place lookup", async () => {
-        const { service, rows, lookups } = build();
+    it("answers 422 with the location message when the location is missing, partial or manual", async () => {
+        const cases = [
+            { message: "hi" },
+            { message: "hi", latitude: "1" },
+            { message: "hi", latitude: "1", longitude: "2" },
+            { message: "hi", latitude: "1", longitude: "2", location_source: "manual" },
+        ];
 
-        await service.sendDrop({ ...base, fields: { message: "hi" } });
+        for (const fields of cases) {
+            const { service, rows } = build();
 
-        expect(rows[0]).toMatchObject({ location: null, locationSource: null, locationName: null });
-        expect(lookups).toHaveLength(0);
+            await expect(service.sendDrop({ ...base, fields })).rejects.toMatchObject({
+                status: 422,
+                code: "VALIDATION_ERROR",
+                message: LOCATION_REQUIRED_MESSAGE,
+            });
+            expect(rows).toHaveLength(0);
+        }
     });
 
     it("stores a null name when the place lookup has none", async () => {
@@ -121,7 +134,7 @@ describe("sendDrop", () => {
 
         await service.sendDrop({
             ...base,
-            fields: { message: "hi", latitude: "1", longitude: "2", location_source: "manual" },
+            fields: { message: "hi", ...gps },
         });
 
         expect(rows[0].locationName).toBeNull();
@@ -129,10 +142,10 @@ describe("sendDrop", () => {
 
     it("answers 409 when the pause lands at insert time, and 404 when the profile is gone", async () => {
         await expect(
-            build({ result: "paused" }).service.sendDrop({ ...base, fields: { message: "hi" } }),
+            build({ result: "paused" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({ status: 409, code: "LINK_PAUSED" });
         await expect(
-            build({ result: "missing" }).service.sendDrop({ ...base, fields: { message: "hi" } }),
+            build({ result: "missing" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({ status: 404 });
     });
 });

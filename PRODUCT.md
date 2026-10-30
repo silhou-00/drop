@@ -12,7 +12,7 @@ web
 
 ## Users
 
-- **Sender (no account).** A university student or young adult, 18 to 24, who taps a `drop.link/<username>`
+- **Sender (no account).** Typically a university student or young adult (anyone can send), who taps a `drop.link/<username>`
   link inside someone's Instagram or TikTok story. They arrive in that app's in-app browser, on a phone,
   usually mid-scroll, and want to say something anonymously in under a minute, with a clue about where
   they were.
@@ -20,8 +20,8 @@ web
   drops in an inbox, guess who sent each one from the place and photo, and post the best ones back to their
   story as a 9:16 card.
 - **Secondary:** creators and event organisers who want location-based audience interaction.
-- **Not served:** anyone under 18. Sign-up requires an 18+ age confirmation; marketing never targets high
-  schools.
+- **Not served:** no one is excluded by age. Drop is Accessible by All, and sign-up asks no age question.
+  This is an open risk to settle before launch (minors, privacy law, app store ratings).
 
 ## Product Purpose
 
@@ -105,7 +105,7 @@ place and a photo. The guess ("someone was at the library at 3pm... who?") is th
 3. **Sixty seconds from story tap to sent.** A sender with no account, in an in-app browser, finishes
    without friction or sign-up.
 4. **Every drop is shareable.** The story card carries the recipient's link, which is how the loop grows.
-5. **Safe by default for 18 to 24.** Block, report, pause and delete are always reachable, never hidden
+5. **Safe by default for everyone.** Block, report, pause and delete are always reachable, never hidden
    behind delight.
 
 ## Accessibility & Inclusion

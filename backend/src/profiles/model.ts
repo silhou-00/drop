@@ -17,7 +17,7 @@ export const profiles = pgTable("profiles", {
     acceptingDrops: boolean("accepting_drops").notNull().default(true),
     heatmapEnabled: boolean("heatmap_enabled").notNull().default(false),
     notifyEmail: boolean("notify_email").notNull().default(true),
-    ageConfirmedAt: timestamp("age_confirmed_at", { withTimezone: true }).notNull(),
+    ageConfirmedAt: timestamp("age_confirmed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -64,7 +64,6 @@ export const USERNAME_INVALID_MESSAGE = "Use 3 to 30 letters, numbers, dots or u
 export const USERNAME_RESERVED_MESSAGE = "That name is reserved.";
 export const USERNAME_TAKEN_MESSAGE = "That name is taken.";
 export const DISPLAY_NAME_MESSAGE = "Enter a display name up to 50 characters.";
-export const ADULT_CONFIRM_MESSAGE = "Confirm you are 18 or older.";
 export const UPDATE_EMPTY_MESSAGE = "Send at least one field to update.";
 
 const USERNAME_PATTERN = /^[a-z0-9_.]+$/;
@@ -90,7 +89,6 @@ export const displayNameSchema = z
 export const createProfileSchema = z.strictObject({
     username: usernameSchema,
     displayName: displayNameSchema,
-    confirmAdult: z.literal(true, ADULT_CONFIRM_MESSAGE),
 });
 
 export const updateProfileSchema = z

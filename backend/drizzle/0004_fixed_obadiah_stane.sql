@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ALTER COLUMN "age_confirmed_at" DROP NOT NULL;

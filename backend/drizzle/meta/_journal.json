@@ -22,6 +22,20 @@
             "when": 1793232842184,
             "tag": "0002_drops",
             "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "7",
+            "when": 1793354491441,
+            "tag": "0003_productive_norrin_radd",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "7",
+            "when": 1793355229992,
+            "tag": "0004_fixed_obadiah_stane",
+            "breakpoints": true
         }
     ]
 }

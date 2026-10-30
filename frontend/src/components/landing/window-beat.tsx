@@ -50,7 +50,7 @@ export function WindowBeat() {
                     <div className="container more">
                         <p className="small" data-fade="">
                             <i />
-                            Each drop says whether the place came from GPS or was picked by hand.
+                            Every drop carries the sender's GPS location.
                         </p>
                     </div>
                 </div>

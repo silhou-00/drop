@@ -4,8 +4,10 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
 const run = process.env.RUN_DB_TESTS === "1";
+const DB_TIMEOUT_MS = 30_000;
 
-describe.skipIf(!run)("createProfile against the database", () => {
+// round trips to Neon can exceed the 5 s default
+describe.skipIf(!run)("createProfile against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const userIds = ["db-test-user-a", "db-test-user-b"];
     const username = `dbtest_${Date.now().toString(36)}`;
 
@@ -33,7 +35,7 @@ describe.skipIf(!run)("createProfile against the database", () => {
 
         await db.insert(user).values(userIds.map((id) => ({ id, name: id, email: `${id}@example.invalid` })));
 
-        const input = { username, displayName: "Test", confirmAdult: true as const };
+        const input = { username, displayName: "Test" };
         const first = await service.createProfile(userIds[0], input);
 
         expect(first.username).toBe(username);

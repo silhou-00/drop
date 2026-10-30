@@ -52,10 +52,7 @@ export function createProfileRepository(db: NodePgDatabase) {
 
     async function insertProfile(input: InsertProfile): Promise<InsertResult> {
         try {
-            const rows = await db
-                .insert(profiles)
-                .values({ ...input, ageConfirmedAt: new Date() })
-                .returning();
+            const rows = await db.insert(profiles).values(input).returning();
 
             return { profile: rows[0] };
         } catch (error) {

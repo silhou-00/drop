@@ -1,7 +1,7 @@
 /* Styles for the public send page: the wider send card, the message box and its counter, the
-   place buttons and chosen-place row, the pin sheet with its map, and the sent mark. It builds
-   on the auth page styles (card, buttons, type) and is scoped under the same auth root. Every
-   value comes from tokens.css. The map itself stays light; the sheet follows light and dark. */
+   location button and GPS place row, the map plate with its centre pin and credits (kept for
+   the location map), and the sent mark. It builds on the auth page styles (card, buttons,
+   type) and is scoped under the same auth root. Every value comes from tokens.css. */
 
 /* card: the sender column is wider than the auth card */
 .auth-page .auth-card.send-card {
@@ -91,15 +91,6 @@
     color: var(--accent-ink);
 }
 
-/* two place buttons side by side, stacking when narrow */
-.auth-page .send-split {
-    align-items: stretch;
-}
-
-.auth-page .send-split > .container {
-    flex: 1 1 11rem;
-}
-
 .auth-page .auth-btn svg {
     flex: none;
     width: var(--send-icon-size);
@@ -157,7 +148,7 @@
     color: var(--ink-2);
 }
 
-/* round icon button: remove, close */
+/* round icon button: refresh the location */
 .auth-page .send-icon-btn {
     display: inline-flex;
     align-items: center;
@@ -178,66 +169,6 @@
 .auth-page .send-icon-btn svg {
     width: 1.1rem;
     height: 1.1rem;
-}
-
-/* pin sheet: bottom sheet on phones */
-.auth-page .send-sheet {
-    width: 100%;
-    max-width: 100%;
-    max-height: 100svh;
-    margin: auto 0 0;
-    padding: 0;
-    border: 0;
-    border-radius: var(--send-sheet-radius) var(--send-sheet-radius) 0 0;
-    background: var(--paper);
-    color: var(--ink);
-    animation: send-sheet-rise var(--send-sheet-enter) var(--landing-e-cubic) both;
-}
-
-.auth-page .send-sheet::backdrop {
-    background: var(--send-sheet-backdrop);
-}
-
-.auth-page .send-sheet-body {
-    max-width: none;
-}
-
-.auth-page .send-sheet-head {
-    flex-wrap: nowrap;
-    justify-content: space-between;
-}
-
-.auth-page .send-sheet-title {
-    font: 700 var(--type-subheading) / 1.1 var(--family-display);
-    letter-spacing: -0.01em;
-}
-
-.auth-page .send-sheet .send-icon-btn {
-    background: var(--ground);
-}
-
-@keyframes send-sheet-rise {
-    from {
-        transform: translateY(100%);
-    }
-}
-
-/* tablet and up: a centred dialog */
-@media (min-width: 48rem) {
-    .auth-page .send-sheet {
-        width: calc(100% - 48px);
-        max-width: var(--send-sheet-max);
-        margin: auto;
-        border-radius: var(--send-sheet-radius);
-        animation-name: send-sheet-pop;
-    }
-}
-
-@keyframes send-sheet-pop {
-    from {
-        opacity: 0;
-        transform: translateY(var(--auth-enter-distance));
-    }
 }
 
 /* map: a framed plate with a fixed pin at the centre */
@@ -304,11 +235,4 @@
 .auth-page h1[tabindex="-1"]:focus {
     outline: none;
     box-shadow: none;
-}
-
-/* reduced motion: the sheet fades in without travel */
-@media (prefers-reduced-motion: reduce) {
-    .auth-page .send-sheet {
-        animation: auth-fade 200ms linear both;
-    }
 }

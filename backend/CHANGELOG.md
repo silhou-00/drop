@@ -1,5 +1,15 @@
 # Backend Changelog
 
+## October 30, 2026
+
+**Profiles:**
+
+- Anyone can claim a link; sign-up no longer asks for an age confirmation.
+
+**Send page:**
+
+- Every drop now carries the sender's GPS location, rounded to about 150 m.
+
 ## October 29, 2026
 
 **Send page:**

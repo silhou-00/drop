@@ -1,6 +1,6 @@
 // Claim page. A signed-in person without a profile picks their link name, with a live check
-// that it is valid and free, adds a display name, and confirms they are 18 or older. The name
-// picked on the landing arrives pre-filled. A taken name answered by the server shows on the
+// that it is valid and free, and adds a display name. Drop is open to everyone, so there is no
+// age question. The name picked on the landing arrives pre-filled. A taken name answered by the server shows on the
 // name field; anyone who already has a profile goes home. The route guard only spares a trip:
 // the server checks the session and every rule again on submit.
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -11,7 +11,6 @@ import { useOwnProfile } from "@/hooks/profiles/use-own-profile";
 import { useUsernameCheck } from "@/hooks/profiles/use-username-check";
 import { getSession } from "@/lib/auth/client";
 import {
-    ADULT_CONFIRM_MESSAGE,
     DISPLAY_NAME_MAX,
     DISPLAY_NAME_MESSAGE,
     USERNAME_MAX,
@@ -21,7 +20,7 @@ import {
     usernameFromSearch,
 } from "@/lib/profiles/model";
 
-type FieldErrors = { name?: string; displayName?: string; adult?: string };
+type FieldErrors = { name?: string; displayName?: string };
 
 export const Route = createFileRoute("/claim")({
     validateSearch: usernameFromSearch,
@@ -40,10 +39,8 @@ function ClaimPage() {
     const { create, pending, error, clearError } = useCreateProfile();
     const nameRef = useRef<HTMLInputElement>(null);
     const displayNameRef = useRef<HTMLInputElement>(null);
-    const adultRef = useRef<HTMLInputElement>(null);
     const [name, setName] = useState(suggested ?? "");
     const [displayName, setDisplayName] = useState("");
-    const [adult, setAdult] = useState(false);
     const [submittedName, setSubmittedName] = useState("");
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const check = useUsernameCheck(name);
@@ -95,10 +92,6 @@ function ClaimPage() {
             errors.displayName = DISPLAY_NAME_MESSAGE;
         }
 
-        if (!adult) {
-            errors.adult = ADULT_CONFIRM_MESSAGE;
-        }
-
         setFieldErrors(errors);
 
         if (errors.name) {
@@ -113,12 +106,6 @@ function ClaimPage() {
             return;
         }
 
-        if (errors.adult) {
-            adultRef.current?.focus();
-
-            return;
-        }
-
         if (!nameCheck.ok) {
             return;
         }
@@ -128,7 +115,6 @@ function ClaimPage() {
         const profile = await create({
             username: nameCheck.value,
             displayName: displayName.trim(),
-            confirmAdult: true,
         });
 
         if (profile) {
@@ -258,29 +244,6 @@ function ClaimPage() {
                             </p>
                         </div>
 
-                        <div className="container">
-                            <label className="auth-check" htmlFor="claim-adult">
-                                <input
-                                    id="claim-adult"
-                                    type="checkbox"
-                                    name="confirmAdult"
-                                    checked={adult}
-                                    ref={adultRef}
-                                    aria-invalid={fieldErrors.adult ? true : undefined}
-                                    aria-describedby="claim-adult-msg"
-                                    onChange={(event) => {
-                                        setAdult(event.target.checked);
-                                        setFieldErrors((current) => ({ ...current, adult: undefined }));
-                                    }}
-                                />
-                                I am 18 or older
-                            </label>
-                        </div>
-                        <div className="container">
-                            <p id="claim-adult-msg" className="auth-error" role="alert">
-                                {fieldErrors.adult ?? ""}
-                            </p>
-                        </div>
                         <div className="container">
                             <p className="auth-note">
                                 By claiming a link you agree to the Terms of Service and the Privacy Policy.

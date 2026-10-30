@@ -61,7 +61,7 @@ function send(app: Hono<AppEnv>, method: string, body?: unknown) {
     });
 }
 
-const createBody = { username: "maya", displayName: "Maya", confirmAdult: true };
+const createBody = { username: "maya", displayName: "Maya" };
 
 describe("GET /profiles/:username", () => {
     it("returns only the public fields", async () => {
@@ -139,14 +139,10 @@ describe("/me/profile", () => {
         expect(json.error.code).toBe("PROFILE_EXISTS");
     });
 
-    it("POST returns 422 without the adult confirmation", async () => {
-        const res = await send(buildApp(fakeService()), "POST", { username: "maya", displayName: "Maya" });
+    it("POST returns 422 for a body still carrying the old confirmAdult field", async () => {
+        const res = await send(buildApp(fakeService()), "POST", { ...createBody, confirmAdult: true });
 
         expect(res.status).toBe(422);
-        expect(await res.json()).toEqual({
-            data: null,
-            error: { code: "VALIDATION_ERROR", message: "Confirm you are 18 or older." },
-        });
     });
 
     it("POST returns 422 for a body that is not JSON", async () => {

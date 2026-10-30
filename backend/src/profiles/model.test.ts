@@ -2,7 +2,6 @@
 // update bodies, including the exact error messages the frontend mirrors.
 import { describe, expect, it } from "vitest";
 import {
-    ADULT_CONFIRM_MESSAGE,
     DISPLAY_NAME_MESSAGE,
     RESERVED_USERNAMES,
     USERNAME_INVALID_MESSAGE,
@@ -69,22 +68,17 @@ describe("displayNameSchema", () => {
 });
 
 describe("createProfileSchema", () => {
-    const valid = { username: "Maya", displayName: "Maya Cruz", confirmAdult: true };
+    const valid = { username: "Maya", displayName: "Maya Cruz" };
 
     it("accepts a valid body", () => {
         expect(createProfileSchema.parse(valid)).toEqual({
             username: "maya",
             displayName: "Maya Cruz",
-            confirmAdult: true,
         });
     });
 
-    it("rejects confirmAdult false or missing", () => {
-        const no = createProfileSchema.safeParse({ ...valid, confirmAdult: false });
-        const missing = createProfileSchema.safeParse({ username: "maya", displayName: "Maya" });
-
-        expect(firstMessage(no)).toBe(ADULT_CONFIRM_MESSAGE);
-        expect(firstMessage(missing)).toBe(ADULT_CONFIRM_MESSAGE);
+    it("rejects the removed confirmAdult field", () => {
+        expect(createProfileSchema.safeParse({ ...valid, confirmAdult: true }).success).toBe(false);
     });
 
     it("rejects unknown fields", () => {

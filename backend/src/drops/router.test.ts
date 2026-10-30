@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { createDeviceCookie } from "../middleware/device-cookie.js";
 import type { AppEnv } from "../middleware/session.js";
 import { AppError, errorHandler } from "../shared/errors.js";
+import { LOCATION_REQUIRED_MESSAGE } from "./model.js";
 import { createDropRouter } from "./router.js";
 import type { DropService, SendDropRequest } from "./service.js";
 
@@ -102,6 +103,20 @@ describe("POST /profiles/:username/drops", () => {
         const res = await post(build(ok), { body: form });
 
         expect(res.status).toBe(413);
+    });
+
+    it("passes a 422 location message through in the envelope", async () => {
+        const res = await post(
+            build(async () => {
+                throw new AppError(422, "VALIDATION_ERROR", LOCATION_REQUIRED_MESSAGE);
+            }),
+        );
+
+        expect(res.status).toBe(422);
+        expect(await res.json()).toEqual({
+            data: null,
+            error: { code: "VALIDATION_ERROR", message: LOCATION_REQUIRED_MESSAGE },
+        });
     });
 
     it("sets Retry-After when the service answers 429", async () => {

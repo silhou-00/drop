@@ -1,5 +1,5 @@
 // Public send page at drop.link/<name>. Anyone can write the owner an anonymous drop here,
-// with an optional place. A name with capitals is sent on to its lowercase form. The page
+// with its GPS place. A name with capitals is sent on to its lowercase form. The page
 // shows loading, a friendly not-found (also for invalid or reserved names), a load error, a
 // paused link (no form), the form, and the sent confirmation. Static pages such as /sign-in
 // and /claim rank above this route. The server checks every rule again on send.

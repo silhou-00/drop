@@ -13,12 +13,12 @@ frontend/
 │   │                         landing palette and spacing (`--on-dark-*`, `--landing-*`)
 │   ├── styles/landing.css    landing page styles, all scoped under `.landing`
 │   ├── styles/auth.css       auth page styles (card, fields, buttons), all scoped under `.auth-page`
-│   ├── styles/send.css       send page styles (form, place summary, pin sheet, map), scoped under `.auth-page`
+│   ├── styles/send.css       send page styles (form, GPS place row, map plate kept for the location map), scoped under `.auth-page`
 │   ├── routes/               file-based routes (TanStack Router)
 │   │   ├── __root.tsx        root layout with the outlet; lazy-loads the dev tools in dev only
 │   │   ├── index.tsx         landing page: Lenis, the frame loop, beats, claim dialog, scrollbar
 │   │   ├── sign-in.tsx       email, then six-digit code; `?username=` carried on to /claim
-│   │   ├── claim.tsx         guarded: link name (live check), display name, 18+ confirmation
+│   │   ├── claim.tsx         guarded: link name (live check), display name
 │   │   ├── home.tsx          guarded placeholder until the inbox: link text, copy, sign out
 │   │   ├── $username.tsx     public send page at /<name>; ranks below the static routes
 │   │   └── playground/       dev-only pages: index, goo, marble, motion
@@ -28,7 +28,7 @@ frontend/
 │   │   ├── goo/              goo-filter.tsx: `<GooFilter id>` SVG filter, `<Goo id>` wrapper
 │   │   ├── marble/           marble-background.tsx: still plus live marble canvas behind a zone
 │   │   ├── auth/             auth-shell.tsx: marble (content zone), logo bar, centred main
-│   │   ├── drops/            drop-form.tsx, location-sheet.tsx, location-map.tsx, sent-card.tsx
+│   │   ├── drops/            drop-form.tsx, location-map.tsx (not mounted), sent-card.tsx
 │   │   ├── landing/          bath-plate, hero, window-beat, dive-beat, lens-beat, phone-track,
 │   │   │                     kept-quiet, claim, claim-iris, landing-nav, site-footer
 │   │   └── layout/           scroll-hairline.tsx: page scrollbar for fine pointers
@@ -105,7 +105,7 @@ The live shader stayed on through every port pass. The remaining script gap to t
 - **Routes.** `/sign-in` (`validateSearch: usernameFromSearch`), `/claim` (same search; `beforeLoad` redirects to `/sign-in` with the username when `getSession()` is null), `/home` (`beforeLoad` redirects to `/sign-in`). `usernameFromSearch` returns `{ username: undefined }` for an invalid value, because the router merges the raw root search under the validated one. Guards are for user experience; the server checks the session on every request.
 - **Auth client** (`lib/auth/client.ts`): `createAuthClient` from `better-auth/react` with `baseURL: window.location.origin`, `basePath: "/api/auth"`, `plugins: [emailOTPClient()]`. `sendCode(email)` calls `emailOtp.sendVerificationOtp({ type: "sign-in" })`, `verifyCode(email, otp)` calls `signIn.emailOtp`, then `signOut()`, `getSession()` (data or null), `useSession`. Failures become `ApiError`; a 429 reads `X-Retry-After` into `rateLimitMessage`.
 - **Fetch wrapper** (`lib/api.ts`): `apiRequest<T>(path, init)` sends `Content-Type: application/json` only when `init.body` is a string, so a `FormData` body gets no content type and the browser adds the multipart boundary. It uses `credentials: "same-origin"`, unwraps `{ data, error }`, throws `ApiError(status, code, message)`. 429 reads `Retry-After` ("Too many tries. Try again in N seconds."). Network failure is status 0, `NETWORK_ERROR`. 5xx messages are replaced with a generic one. Aborts rethrow the `AbortError`.
-- **Profile model** (`lib/profiles/model.ts`): `RESERVED_USERNAMES` and the six message constants copied from `backend/src/profiles/model.ts`; `checkUsername` (trim, lowercase, 3 to 30 of `[a-z0-9_.]`, not reserved), `checkDisplayName` (trimmed, 1 to 50), `usernameFromSearch`; types `PublicProfile`, `OwnProfile`, `CreateProfileInput`, `UpdateProfileInput`. Must stay in step with the backend file.
+- **Profile model** (`lib/profiles/model.ts`): `RESERVED_USERNAMES` and the five message constants copied from `backend/src/profiles/model.ts`; `checkUsername` (trim, lowercase, 3 to 30 of `[a-z0-9_.]`, not reserved), `checkDisplayName` (trimmed, 1 to 50), `usernameFromSearch`; types `PublicProfile`, `OwnProfile`, `CreateProfileInput`, `UpdateProfileInput`. Must stay in step with the backend file.
 - **Profile calls** (`lib/profiles/api.ts`): `getPublicProfile(username, signal?)`, `getOwnProfile(signal?)`, `createProfile(input)`, `updateOwnProfile(input)`.
 - **Hooks.** `useUsernameCheck(input)` returns `{ status, message, username }` with status `idle | checking | available | taken | invalid`: the client rule first (no request), then `GET /api/v1/profiles/:username` after 350ms (404 available, 200 taken), aborting the previous request; other failures give `idle` with the error message. `useOwnProfile()` returns `loading | ready | missing (404) | signed-out (401) | error`. `useCreateProfile()` returns `{ create, pending, error, clearError }`; a ref lock allows one request at a time and stays shut after success.
 - **Sign-in.** Email checked against a simple pattern (max 254). After sending: "If that email can sign in, a code is on its way."; resend locked 60s with an `m:ss` countdown. The code input is `inputmode="numeric"`, `autocomplete="one-time-code"`, digits only, cut to 6 (no `maxLength`, so a pasted "123 456" survives). Every verify failure other than 429 or network shows "That code did not work. Check it or send a new one." After verify, `GET /me/profile` 200 goes to `/home`, anything else to `/claim` (which checks again).
@@ -116,21 +116,20 @@ The live shader stayed on through every port pass. The remaining script gap to t
 ## Send page
 
 - **Route.** `/$username` (`routes/$username.tsx`), ranked below `/sign-in`, `/claim` and `/home`. `beforeLoad` redirects a name with capitals to its lowercase form (`replace`). The page sets `document.title` to "Send <display name> an anonymous drop" and restores it on leave. It renders inside `AuthShell` as one `.auth-card`. States: loading, not found (also for invalid or reserved names, with no request), load error (message in `role="alert"`), paused (no form, `LINK_PAUSED_MESSAGE`, link home), form, sent. `safeAvatarUrl` shows an avatar only when it is `https:` or a same-origin path starting with a single `/`; otherwise the first letter of the display name is shown.
-- **Rules** (`lib/drops/model.ts`): `MESSAGE_MAX` 280, `MESSAGE_MESSAGE`, `LOCATION_MESSAGE` and `LINK_PAUSED_MESSAGE` are copied from `backend/src/drops/model.ts` and kept in step with it. `validateDraft(draft)` returns `{ ok: true }` or `{ ok: false, message }`: the message trimmed, 1 to 280 code points, no NUL; a location needs both coordinates in range and a source of `gps` or `manual`. `formatCoordinate` gives a 6 decimal string, never exponent form. Types `LocationSource`, `DropLocation`, `DropDraft`.
-- **Call** (`lib/drops/api.ts`): `sendDrop(username, draft)` posts `FormData` (`message`, and `latitude`, `longitude`, `location_source` only when a place is set) to `/api/v1/profiles/<name>/drops` and resolves `{ delivered: true }`.
+- **Rules** (`lib/drops/model.ts`): `MESSAGE_MAX` 280, `MESSAGE_MESSAGE`, `LOCATION_MESSAGE`, `LOCATION_REQUIRED_MESSAGE` and `LINK_PAUSED_MESSAGE` are copied from `backend/src/drops/model.ts` and kept in step with it. `validateDraft(draft)` returns `{ ok: true }` or `{ ok: false, message }`: the message trimmed, 1 to 280 code points, no NUL; a location is required (missing gives `LOCATION_REQUIRED_MESSAGE`), needs both coordinates in range, and a source of `gps` (any other source gives `LOCATION_REQUIRED_MESSAGE`). `formatCoordinate` gives a 6 decimal string, never exponent form. Types `LocationSource`, `DropLocation`, `DropDraft`.
+- **Call** (`lib/drops/api.ts`): `sendDrop(username, draft)` posts `FormData` (`message`, `latitude`, `longitude`, `location_source`, always) to `/api/v1/profiles/<name>/drops` and resolves `{ delivered: true }`.
 - **Hooks.**
     - `usePublicProfile(username)` returns `{ status, profile, error }` with status `loading | ready | not-found | error`. It lowercases the name and checks it with `checkUsername` first (a bad name is `not-found` with no request), then reads the public profile, which also sets the device cookie the send needs. The request aborts when the name changes or the page leaves. A 404 is `not-found`; other failures are `error` with the message.
     - `useSendDrop(username)` returns `{ status, error, paused, send, reset }` with status `idle | sending | sent | error`. `send(draft)` runs `validateDraft` first (a failure is a 422 `ApiError`, with no request), holds a ref lock so a second call while one is in flight does nothing, and sets `paused` on a 409 `LINK_PAUSED`. `reset` returns to `idle`.
     - `useGeolocation()` returns `{ status, position, request, reset }` with status `idle | locating | ready | denied | unavailable | timeout`, and `position` of `{ latitude, longitude, accuracy }` or null. Nothing is asked until `request()` runs. It uses high accuracy, a 10 s timeout and a 60 s maximum age. The position stays in memory only, and results arriving after unmount are ignored.
 - **Components** (`components/drops/`).
-    - `DropForm({ displayName, sending, error, onSend })`: textarea with a live code point count, "Use my location" and "Place a pin" buttons, a summary of the chosen place (source, coordinates to 3 decimals, "Rounded to about 150 m", a remove button), the error in a `role="alert"` slot, and the send button, disabled while sending. `LocationSheet` is loaded with `lazy()`, so it is fetched only when the sender first taps "Place a pin". The chosen place is held in memory only.
-    - `LocationSheet({ start, onConfirm, onClose })`: a native modal `dialog`. Escape closes it, a tap on the backdrop closes it, Tab wraps inside it, and focus returns to the opener. The map mounts only after the dialog is open, so it measures its real size. It starts on the GPS position or the existing pin at zoom 15, otherwise on Metro Manila (14.5995, 120.9842) at zoom 12. "Use this spot" returns the centre of the map.
-    - `LocationMap({ initialCenter, initialZoom, onCenterChange })`: `react-map-gl/maplibre` over `maplibre-gl`, with `maxBounds` [116.9, 4.6, 126.6, 21.1], zoom 5 to 15, rotation and pitch off, the default attribution control off, and a fixed centre pin drawn over the map. The centre is reported on `onMoveEnd`.
+    - `DropForm({ displayName, sending, error, onSend })`: textarea with a live code point count, a "Turn on location" button ("Finding you" while locating, "Try again" after a failure), and, once there is a fix, the GPS place row ("From your GPS", coordinates to 3 decimals, "Rounded to about 150 m", a refresh button). Denied, timeout and unavailable each show their own help text in a polite live region. Send stays disabled until there is a GPS fix, and the reason ("Turn on your location to send.") or the send error shows in a `role="alert"` slot. The place is held in memory only. There is no map and no manual place.
+    - `LocationMap({ initialCenter, initialZoom, onCenterChange })`: kept but not mounted anywhere. `react-map-gl/maplibre` over `maplibre-gl`, with `maxBounds` [116.9, 4.6, 126.6, 21.1], zoom 5 to 15, rotation and pitch off, the default attribution control off, and a fixed centre marker drawn over the map. The centre is reported on `onMoveEnd`.
     - `SentCard({ displayName, onSendAnother })`: the result card. Focus moves to its heading on mount.
 - **Map setup.** Everything loads from the same origin, so the CSP needs no extra source.
     - `buildMapStyle(window.location.origin)` (`lib/map/style.ts`) returns a MapLibre style: `glyphs` `<origin>/tiles/fonts/{fontstack}/{range}.pbf`, `sprite` `<origin>/tiles/sprites/v4/light`, and a vector source `pmtiles://<origin>/tiles/philippines.pmtiles`. The layers come from `@protomaps/basemaps` (`layers`, `namedFlavor("light")`) with colours taken from the Drop palette (`MARBLE_PIGMENTS.light`, paper and ink-2), labels in English.
     - Worker and protocol: `location-map.tsx` calls `maplibregl.setWorkerUrl(workerUrl)` with the worker file imported through `maplibre-gl/dist/maplibre-gl-worker.mjs?url`, and `maplibregl.addProtocol("pmtiles", new Protocol().tile)`, both once when the chunk loads. The MapLibre stylesheet is imported in the same file.
-    - Lazy chunk: only `location-map.tsx` and `lib/map/style.ts` import the map libraries, and only the lazy `LocationSheet` imports `location-map.tsx`, so they split into their own chunk and the worker is a separate file.
+    - Not in the bundle: only `location-map.tsx` and `lib/map/style.ts` import the map libraries, and nothing imports `location-map.tsx`, so the map code and its worker are not built.
     - Attribution: `attributionControl` is off. `.send-map-credit` shows three links in the corner: OpenStreetMap copyright, Protomaps, and "Search by LocationIQ.com" (required by the LocationIQ free plan). Each opens in a new tab with `rel="noopener noreferrer"`.
 - **Styles.** `styles/send.css` (imported by the route) is scoped under `.auth-page` and reuses the `auth-*` classes from `auth.css`. Tokens are `--send-*` in `styles/tokens.css`; see [design.md](design.md).
 
@@ -138,11 +137,11 @@ The live shader stayed on through every port pass. The remaining script gap to t
 
 Production build, gzipped.
 
-| Chunk                                                         | Size     | Loaded                                   |
-| ------------------------------------------------------------- | -------- | ---------------------------------------- |
-| Initial JS                                                    | 132.7 KB | Every page (budget 150 KB)               |
-| Map chunk (MapLibre, react-map-gl, pmtiles, Protomaps layers) | 319 KB   | Lazy, when the sender taps "Place a pin" |
-| MapLibre worker                                               | 146.9 KB | Lazy, started by the map                 |
+| Chunk      | Size     | Loaded                     |
+| ---------- | -------- | -------------------------- |
+| Initial JS | 132.7 KB | Every page (budget 150 KB) |
+
+The map chunk and the MapLibre worker are not built while nothing mounts the location map.
 
 ### Setting up the tiles folder
 

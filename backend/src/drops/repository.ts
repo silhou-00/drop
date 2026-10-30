@@ -9,8 +9,8 @@ import { drops } from "./model.js";
 export type NewDropRow = {
     recipientId: string;
     message: string;
-    location: LngLat | null;
-    locationSource: "gps" | "manual" | null;
+    location: LngLat;
+    locationSource: "gps";
     locationName: string | null;
     senderKey: string;
     deviceKey: string;

@@ -62,22 +62,15 @@ export function createDropService({ findRecipient, drops, limiter, keys, lookupP
         const input = parsed.data;
 
         // rounded location and place name
-        let location: { lng: number; lat: number } | null = null;
-        let locationName: string | null = null;
-
-        if (input.latitude !== undefined && input.longitude !== undefined) {
-            const cell = snapToGrid(input.latitude, input.longitude);
-
-            location = { lng: cell.lng, lat: cell.lat };
-            locationName = await lookupPlaceName(cell);
-        }
+        const cell = snapToGrid(input.latitude, input.longitude);
+        const locationName = await lookupPlaceName(cell);
 
         // insert
         const result = await drops.insertDrop({
             recipientId: recipient.id,
             message: input.message,
-            location,
-            locationSource: location ? (input.location_source ?? null) : null,
+            location: { lng: cell.lng, lat: cell.lat },
+            locationSource: "gps",
             locationName,
             senderKey,
             deviceKey,

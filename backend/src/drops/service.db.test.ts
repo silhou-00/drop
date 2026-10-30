@@ -5,8 +5,10 @@ import { eq, sql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
 const run = process.env.RUN_DB_TESTS === "1";
+const DB_TIMEOUT_MS = 30_000;
 
-describe.skipIf(!run)("sending a drop against the database", () => {
+// round trips to Neon can exceed the 5 s default
+describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const userId = "db-test-drop-user";
     const username = `dbdrop_${Date.now().toString(36)}`;
     const cellKey = `test:${Date.now()}`;
@@ -74,6 +76,13 @@ describe.skipIf(!run)("sending a drop against the database", () => {
 
         expect(await repo.insertDrop(row)).toBe("paused");
         expect(await repo.insertDrop({ ...row, recipientId: "00000000-0000-0000-0000-000000000000" })).toBe("missing");
+
+        // the database refuses a drop without a location
+        await expect(
+            db.execute(
+                sql`insert into drops (recipient_id, message, sender_key) values (${recipientId}, 'x', ${"a".repeat(64)})`,
+            ),
+        ).rejects.toThrow();
 
         // 48 hour cache window
         const places = createPlaceRepository(db);

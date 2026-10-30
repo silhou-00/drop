@@ -1,6 +1,6 @@
 // Beat 06, "Kept quiet on purpose". The heading stays put while an index of five safety facts
 // steps through the pinned frame, one open at a time with a red tick under it. Beside the index
-// (above it on phones) the bath acts out the open fact in its window: an 18+ stamp, the 150 m
+// (above it on phones) the bath acts out the open fact in its window: an "All" stamp, the 150 m
 // ring drawn to the map's scale, a note deleted by a silent block, a reported note, and a
 // photo whose location is struck out. Then the bath floods back to full screen and the index
 // slides away. The acted scenes live in the scene layer, so they are exported separately.
@@ -10,7 +10,7 @@ import { keptQuietOpacity } from "@/lib/landing/timeline";
 import { useExitGroup, useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
 
 const FACTS = [
-    { title: "Adults only", detail: "Drop is for people 18 and over." },
+    { title: "Accessible by All", detail: "Anyone can claim a link and send a drop." },
     { title: "Areas, not spots", detail: "Places are rounded to about 150 m." },
     { title: "Silent block", detail: "Blocking deletes the note. Nobody is told." },
     { title: "Moderated", detail: "Reports go to moderators." },
@@ -209,8 +209,8 @@ export function KeptQuietScene() {
             <div className="container obj kq-plate" ref={boxRef}>
                 <div className="kq-s s0" ref={stateRef(0)}>
                     <div className="stamp">
-                        <b>18+</b>
-                        <span>adults only</span>
+                        <b>All</b>
+                        <span>accessible by all</span>
                     </div>
                 </div>
                 <div

@@ -4,8 +4,17 @@
 
 **Send page:**
 
+- Senders now share their GPS location to send a drop; placing a pin by hand is gone.
 - Anyone can open a person's link and send them an anonymous drop with a message and an optional place, taken from their phone location or a pin placed on a map. A confirmation follows, with a way to send another or claim their own link.
 - Links that do not exist, fail to load or are paused each get a plain page, and the map loads only when a sender asks for it.
+
+**Profiles:**
+
+- Claiming a link no longer asks for an age confirmation.
+
+**Landing:**
+
+- The page now says Drop is accessible by all, and describes places as coming from the sender's GPS location.
 
 ## October 29, 2026
 

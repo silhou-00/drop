@@ -44,7 +44,6 @@ export const USERNAME_INVALID_MESSAGE = "Use 3 to 30 letters, numbers, dots or u
 export const USERNAME_RESERVED_MESSAGE = "That name is reserved.";
 export const USERNAME_TAKEN_MESSAGE = "That name is taken.";
 export const DISPLAY_NAME_MESSAGE = "Enter a display name up to 50 characters.";
-export const ADULT_CONFIRM_MESSAGE = "Confirm you are 18 or older.";
 export const UPDATE_EMPTY_MESSAGE = "Send at least one field to update.";
 
 export const USERNAME_MAX = 30;
@@ -66,7 +65,7 @@ export type OwnProfile = PublicProfile & {
     createdAt: string;
 };
 
-export type CreateProfileInput = { username: string; displayName: string; confirmAdult: true };
+export type CreateProfileInput = { username: string; displayName: string };
 
 export type UpdateProfileInput = {
     displayName?: string;

@@ -8,13 +8,13 @@ Technical detail: [backend](../technical/backend.md), [frontend](../technical/fr
 
 ## Goal
 
-Let a person sign in and claim their own link. Signing in uses a six-digit code sent to their email. After signing in, they choose a link name and a display name and confirm they are 18 or older. Anyone can then look up a public profile by link name.
+Let a person sign in and claim their own link. Signing in uses a six-digit code sent to their email. After signing in, they choose a link name and a display name. Anyone can then look up a public profile by link name.
 
 ## What Was Built
 
 - Sign-in by email code. The server sends a six-digit code that works for five minutes and allows three wrong tries.
 - A sign-in session that lasts seven days and is kept in a cookie the page's scripts cannot read.
-- Creating a profile: link name, display name, and the 18 or older confirmation, with the time of confirmation saved.
+- Creating a profile: link name and display name. The sign-up no longer asks for an age confirmation; confirmation dates saved earlier are kept.
 - One profile per account, and one account per link name. The database itself settles two people claiming the same name at the same moment.
 - Reading and updating your own profile: display name, pausing the link, the map heat view, and email notifications.
 - A public profile lookup that shows only the display name, the avatar slot (empty for now) and whether the link accepts drops.
@@ -23,7 +23,7 @@ Let a person sign in and claim their own link. Signing in uses a six-digit code 
 - Security headers on every response, including a content policy the current web app runs under with no violations.
 - Automated tests for the input rules and the profile routes, and a database test that proves a duplicate link name is refused.
 - A sign-in page in two steps: an email, then the six-digit code. Pasting the code works, a new code can be asked for once a minute with the wait shown, and a different email can be used.
-- A claim page: the link name is checked as it is typed (format, reserved names, already taken), then a display name and the 18 or older box. A name taken in the meantime shows on the name field.
+- A claim page: the link name is checked as it is typed (format, reserved names, already taken), then a display name. A name taken in the meantime shows on the name field.
 - A simple home page with the person's link, a copy button, their display name and sign out. The inbox replaces it in a later module.
 - The landing's claim step now checks the name the same way and takes a free name on to sign-in, where it is carried through to the claim page. The "sign-up opens soon" message is gone.
 - Pages that need a signed-in person send everyone else to sign-in, and people are sent to claim or home depending on whether they already have a profile.
@@ -43,12 +43,13 @@ Let a person sign in and claim their own link. Signing in uses a six-digit code 
 - **One message for every failed code.** A wrong code, an expired code and too many tries all read the same, and the page never says whether an email has an account.
 - **The link is shown as text only.** It is built from the checked name, never turned into a clickable address from server data. Copy puts the full address on the clipboard.
 - **Page checks are for convenience.** The pages check the session before showing, but the server checks it again on every request.
+- **October 30, 2026: the age confirmation was removed when the audience changed to Accessible by All; see 07 Open Items.**
 
 ## Security Pass
 
 **Server**
 
-- Is every input checked against a strict shape? Yes. Create and update bodies reject unknown fields and enforce length and type limits. The link name in the public lookup is validated, and invalid names answer 404. Bodies on the profile routes are capped at 4 KB.
+- Is every input checked against a strict shape? Yes. Create and update bodies reject unknown fields and enforce length and type limits. Sign-up no longer takes an age confirmation, and a body that still sends one is rejected as an unknown field. The link name in the public lookup is validated, and invalid names answer 404. Bodies on the profile routes are capped at 4 KB.
 - Do protected endpoints check who is calling? Yes. Own-profile routes need a signed-in user, checked on the server for every request. Each action uses the signed-in user's id, never an id from the request.
 - Are queries safe from injection? Yes, all queries go through the query builder with bound values.
 - Are state-dependent writes checked inside the transaction? The only such write is claiming a link name, and it relies on the database's unique rules rather than a check-then-write, so races are settled by the database.

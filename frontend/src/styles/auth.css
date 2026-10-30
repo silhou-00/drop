@@ -207,23 +207,6 @@
     box-shadow: none;
 }
 
-/* checkbox row */
-.auth-page .auth-check {
-    display: flex;
-    align-items: center;
-    gap: var(--placement-gap);
-    min-height: 44px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.auth-page .auth-check input {
-    width: 1.25rem;
-    height: 1.25rem;
-    accent-color: var(--ink);
-    cursor: pointer;
-}
-
 /* buttons: the black pill and the paper pill from the design sheet */
 .auth-page .auth-btn {
     display: inline-flex;

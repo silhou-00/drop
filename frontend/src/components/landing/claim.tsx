@@ -83,7 +83,7 @@ export function Claim() {
                         </form>
                     </div>
                     <div className="container">
-                        <p className="fine">Free, for people 18 and over.</p>
+                        <p className="fine">Free, for everyone.</p>
                     </div>
                 </div>
             </div>
