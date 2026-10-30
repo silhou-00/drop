@@ -40,6 +40,12 @@ describe("usernameSchema", () => {
         expect(firstMessage(usernameSchema.safeParse("privacy"))).toBe(USERNAME_RESERVED_MESSAGE);
     });
 
+    it("rejects the names of signed-in app pages", () => {
+        for (const name of ["inbox", "map", "settings"]) {
+            expect(firstMessage(usernameSchema.safeParse(name))).toBe(USERNAME_RESERVED_MESSAGE);
+        }
+    });
+
     it("rejects the names the frontend serves as files or folders", () => {
         for (const name of ["brand", "landing", "marble", "favicon.svg", "icons.svg", "index.html", "robots.txt"]) {
             expect(RESERVED_USERNAMES).toContain(name);

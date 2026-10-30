@@ -14,6 +14,7 @@ export const RESERVED_USERNAMES: readonly string[] = [
     "home",
     "inbox",
     "settings",
+    "map",
     "playground",
     "help",
     "about",
