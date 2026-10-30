@@ -184,6 +184,22 @@ The map files live in `drop-app/tiles/` (git-ignored; `TILES_DIR` can point else
 
 The bounding box matches `MAX_BOUNDS` in `drop-map.tsx`. A missing folder gives a one-line warning at backend boot and plain 404s for map files. Endpoint details are in [backend.md](backend.md).
 
+## Sharing
+
+The story card: a drop's owner makes a 1080 by 1920 PNG from the drop page. Progress notes are in [12-sharing.md](../progress/12-sharing.md).
+
+- **Files.** `lib/share/model.ts` (constants, layout, colours, types), `lib/share/render.ts` (canvas drawing), `hooks/share/use-story-card.ts`, `components/share/share-sheet.tsx`, `styles/share.css`. `routes/inbox.$id.tsx` holds the "Share to story" button (`aria-expanded`, `aria-controls="share-panel"`) in its own row above Mark unread and Delete, and loads `ShareSheet` with `React.lazy` inside `Suspense`. Closing returns focus to the button.
+- **Constants** (`lib/share/model.ts`). Card 1080 by 1920 (`CARD_WIDTH`, `CARD_HEIGHT`), `STORY_FILE_NAME` `drop-story.png`, `STORY_FILE_TYPE` `image/png`, `STORY_LOGO_PATH` `/brand/logo.svg`, `DOWNLOAD_LOCK_MS` 800, `PLACE_SOURCE_LABEL` `GPS`. `STORY_COLORS` is the light palette plus the hero marble pigments, because the card is always light. `STORY_LAYOUT` holds every position and size. Types `StoryOptions` (`{ includePhoto, includePlace }`) and `StoryInput` (`{ message, placeName, photo, link }`).
+- **Drawing** (`renderStoryCard(input, options)` returns a PNG `Blob`). Waits for the logo (loaded once per page; a failed load draws the card without it) and the brand fonts. Draws wavy marble lines for the ground, the logo, the message on a paper card, the photo cover-fit in a ring-framed circle when `includePhoto` and a photo are present, the place pill (pin, name, `GPS`) when `includePlace` and a name exist, and the link on a black pill. The message shrinks from 52 to 30 px to fit; past that the last line is cut with an ellipsis. The photo circle shrinks between 420 and 220 px. The place name (40 to 26 px) and link (38 to 24 px) shrink, then end with an ellipsis. Text wraps by grapheme, and emoji fall back to system emoji fonts. The message is drawn as canvas text only.
+- **Hook** `useStoryCard(source, options)`. `source` is `{ id, message, placeName, hasPhoto, link }`; `options` is `{ includePhoto, includePlace }`. Returns `{ previewUrl, ready, busy, photoAvailable, error, share, save }`.
+    - The photo is loaded once per drop from `dropPhotoPath(id)` (same origin). A failed load leaves the card without it and `photoAvailable` false.
+    - The card is rebuilt on every change. Each blob URL is revoked when replaced and when the panel closes.
+    - `share()` uses `navigator.share({ files })` when `navigator.canShare` accepts the file, and otherwise saves like `save()`. `save()` clicks a temporary download link. A ref lock stops a second call; a save keeps the lock for `DOWNLOAD_LOCK_MS`. An `AbortError` (cancelled share) shows no error.
+    - Messages: build failure "The image could not be made. Close this and try again."; share failure "Sharing did not work. Use Save image instead."
+- **Component** `ShareSheet({ item, link, onClose })`. An in-page region (`#share-panel`) with a heading that takes focus on open, a close button, the preview, switches for photo (shown only when `photoAvailable`) and place (shown only when the drop has a place name), Share and Save image buttons (off until `ready` and while `busy`), the error in a live region, and the hint "In Instagram or TikTok, long-press the image to save it." Escape closes it. The link is `drop.link/<username>`, built from a username that passed `checkUsername`, and is drawn as text only.
+- **Styles.** `styles/share.css`, scoped under `.auth-page`, with `--share-*` tokens in `styles/tokens.css`; see [design.md](design.md).
+- **Bundle** (gzipped). The panel is a lazy chunk of about 5 KB, fetched when it opens. Initial JS: `/inbox/$id` 135.15 KB, `/$username` 134.69 KB, both under the 150 KB budget.
+
 ## Scrollbar
 
 - `ScrollHairline({ lenis, source? })` renders only for `(hover: hover) and (pointer: fine)`; touch keeps the native bar. While shown, `html.sb-on` hides the native bar.

@@ -1,0 +1,118 @@
+/* Styles for the story share panel on a drop's page: the panel itself, its heading and close
+   button, the 9:16 preview held to a phone-sized height, the option switches and the waiting
+   text. It builds on the auth and inbox styles (buttons, notes, the action row) and is scoped
+   under the same auth root. Every value comes from tokens.css. */
+
+/* panel */
+.auth-page .share-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sub-section-gap);
+    padding: var(--share-panel-padding);
+    border: 1px solid var(--hair);
+    border-radius: var(--share-panel-radius);
+    background: var(--ground);
+}
+
+.auth-page .share-head {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.auth-page .share-title {
+    font: 700 var(--share-fs-title) / 1.1 var(--family-display);
+    letter-spacing: -0.01em;
+    border-radius: 8px;
+}
+
+.auth-page .share-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--share-close-size);
+    height: var(--share-close-size);
+    border: 1px solid var(--hair);
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.auth-page .share-close svg {
+    width: 1.25em;
+    height: 1.25em;
+}
+
+/* preview: 9:16 at any width, never taller than the token */
+.auth-page .share-stage {
+    justify-content: center;
+}
+
+.auth-page .share-frame {
+    position: relative;
+    inline-size: min(100%, calc(var(--share-preview-max-h) * 9 / 16));
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: var(--share-preview-radius);
+    background: var(--paper);
+    box-shadow: var(--share-preview-shadow);
+}
+
+.auth-page .share-preview {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+}
+
+.auth-page .share-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* switches: the text and a track with a knob */
+.auth-page .share-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--placement-gap);
+    min-height: 44px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-page .share-switch-input {
+    position: relative;
+    flex: none;
+    width: var(--share-switch-w);
+    height: var(--share-switch-h);
+    margin: 0;
+    border-radius: 999px;
+    background: var(--hair);
+    appearance: none;
+    cursor: pointer;
+    transition: background-color 140ms var(--landing-e-cubic);
+}
+
+.auth-page .share-switch-input::before {
+    content: "";
+    position: absolute;
+    top: var(--share-switch-inset);
+    left: var(--share-switch-inset);
+    width: var(--share-switch-knob);
+    height: var(--share-switch-knob);
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: 0 1px 3px rgba(10, 10, 10, 0.25);
+    transition: transform 140ms var(--landing-e-cubic);
+}
+
+.auth-page .share-switch-input:checked {
+    background: var(--accent-fill);
+}
+
+.auth-page .share-switch-input:checked::before {
+    transform: translateX(calc(var(--share-switch-w) - var(--share-switch-knob) - var(--share-switch-inset) * 2));
+}

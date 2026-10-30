@@ -275,3 +275,24 @@
         --inbox-map-h: clamp(18rem, 44svh, 26rem);
     }
 }
+
+/* share: the story panel on a drop's page, its 9:16 preview and the option switches */
+:root {
+    --share-panel-padding: 16px;
+    --share-panel-radius: 16px;
+    --share-preview-max-h: min(62svh, 40rem);
+    --share-preview-radius: 14px;
+    --share-preview-shadow: 0 8px 28px -12px rgba(10, 10, 10, 0.3);
+    --share-fs-title: clamp(1rem, 0.95rem + 0.3vw, 1.2rem);
+    --share-close-size: 44px;
+    --share-switch-w: 52px;
+    --share-switch-h: 32px;
+    --share-switch-knob: 24px;
+    --share-switch-inset: 4px;
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --share-panel-padding: 20px;
+    }
+}

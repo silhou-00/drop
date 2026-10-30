@@ -4,8 +4,10 @@
 // and delete it after an in-page confirm, which returns to the inbox. A malformed id shows the
 // not-found view without a request, and so does someone else's drop, because the server answers
 // both the same way. The route guard only spares a trip; the server checks every request.
+// Share opens an in-page panel that makes a 9:16 story image; its code loads only when opened,
+// and the link on it is built from the owner's username after it passes the username rule.
 import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Envelope, EnvelopeOpen, MapPin, Trash } from "@phosphor-icons/react";
+import { ArrowLeft, Envelope, EnvelopeOpen, MapPin, ShareFat, Trash } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { DeleteConfirm } from "@/components/drops/delete-confirm";
@@ -13,11 +15,16 @@ import { PhotoReveal } from "@/components/drops/photo-reveal";
 import { useDeleteDrop } from "@/hooks/drops/use-delete-drop";
 import { useDrop } from "@/hooks/drops/use-drop";
 import { useMarkRead } from "@/hooks/drops/use-mark-read";
+import { useOwnProfile } from "@/hooks/profiles/use-own-profile";
 import { getSession } from "@/lib/auth/client";
 import { fullTime, relativeTime } from "@/lib/drops/helper";
+import { checkUsername } from "@/lib/profiles/model";
 import "@/styles/inbox.css";
 
 const DropMap = lazy(() => import("@/components/drops/drop-map").then((module) => ({ default: module.DropMap })));
+const ShareSheet = lazy(() =>
+    import("@/components/share/share-sheet").then((module) => ({ default: module.ShareSheet })),
+);
 
 export const Route = createFileRoute("/inbox/$id")({
     beforeLoad: async () => {
@@ -56,11 +63,16 @@ function DropPage() {
     const drop = useDrop(id);
     const read = useMarkRead();
     const removal = useDeleteDrop();
+    const own = useOwnProfile();
     const markedRef = useRef("");
+    const shareRef = useRef<HTMLButtonElement>(null);
     const [confirming, setConfirming] = useState(false);
+    const [sharing, setSharing] = useState(false);
     const { state, update } = drop;
     const item = state.status === "ready" ? state.item : null;
     const opensUnread = item !== null && !item.is_read;
+    const check = own.status === "ready" ? checkUsername(own.profile.username) : null;
+    const link = check?.ok ? `drop.link/${check.value}` : "";
 
     // an ended session goes back to sign-in
     useEffect(() => {
@@ -93,6 +105,12 @@ function DropPage() {
         if (changed) {
             update(changed);
         }
+    }
+
+    // closing the share panel puts focus back on its button
+    function handleCloseShare() {
+        setSharing(false);
+        shareRef.current?.focus();
     }
 
     async function handleDelete() {
@@ -231,39 +249,80 @@ function DropPage() {
                         }}
                     />
                 ) : (
-                    // actions
-                    <div className="placement inbox-actions">
-                        <div className="container">
-                            <button
-                                className="auth-btn auth-btn-paper"
-                                type="button"
-                                disabled={busy}
-                                onClick={() => {
-                                    void handleToggleRead();
-                                }}
+                    <>
+                        {link ? (
+                            // share
+                            <div className="placement auth-stack">
+                                <div className="container">
+                                    <button
+                                        className="auth-btn auth-btn-ink"
+                                        type="button"
+                                        ref={shareRef}
+                                        aria-expanded={sharing}
+                                        aria-controls={sharing ? "share-panel" : undefined}
+                                        onClick={() => {
+                                            setSharing((open) => !open);
+                                        }}
+                                    >
+                                        <ShareFat weight="bold" aria-hidden="true" />
+                                        Share to story
+                                    </button>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {sharing && link ? (
+                            <Suspense
+                                fallback={
+                                    // share loading
+                                    <div className="placement auth-stack">
+                                        <div className="container">
+                                            <p className="auth-status" role="status">
+                                                Loading
+                                            </p>
+                                        </div>
+                                    </div>
+                                }
                             >
-                                {item.is_read ? (
-                                    <Envelope weight="bold" aria-hidden="true" />
-                                ) : (
-                                    <EnvelopeOpen weight="bold" aria-hidden="true" />
-                                )}
-                                {item.is_read ? "Mark unread" : "Mark read"}
-                            </button>
+                                <ShareSheet item={item} link={link} onClose={handleCloseShare} />
+                            </Suspense>
+                        ) : null}
+
+                        {/* actions */}
+                        <div className="placement inbox-actions">
+                            <div className="container">
+                                <button
+                                    className="auth-btn auth-btn-paper"
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => {
+                                        void handleToggleRead();
+                                    }}
+                                >
+                                    {item.is_read ? (
+                                        <Envelope weight="bold" aria-hidden="true" />
+                                    ) : (
+                                        <EnvelopeOpen weight="bold" aria-hidden="true" />
+                                    )}
+                                    {item.is_read ? "Mark unread" : "Mark read"}
+                                </button>
+                            </div>
+                            <div className="container">
+                                <button
+                                    className="auth-btn auth-btn-paper"
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => {
+                                        setSharing(false);
+                                        setConfirming(true);
+                                    }}
+                                >
+                                    <Trash weight="bold" aria-hidden="true" />
+                                    Delete
+                                </button>
+                            </div>
                         </div>
-                        <div className="container">
-                            <button
-                                className="auth-btn auth-btn-paper"
-                                type="button"
-                                disabled={busy}
-                                onClick={() => {
-                                    setConfirming(true);
-                                }}
-                            >
-                                <Trash weight="bold" aria-hidden="true" />
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                    </>
                 )}
 
                 {read.error ? (

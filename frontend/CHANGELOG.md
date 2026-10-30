@@ -2,6 +2,10 @@
 
 ## October 30, 2026
 
+**Sharing:**
+
+- Drop owners can turn a drop into a story image, with or without the photo and place, and share or save it.
+
 **Inbox:**
 
 - People who have claimed a link now land on an inbox that lists their drops, newest first, with unread dots and a Load more button. Opening a drop shows its message, place and a small map, marks it read, and keeps the photo blurred until tapped. Drops can be marked unread or deleted after a confirm, and the old home address forwards to the inbox.

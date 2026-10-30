@@ -13,3 +13,4 @@
 | 09  | Moderation                                   | Deferred |                  |
 | 10  | [Inbox](10-inbox.md)                         | Done     | October 30, 2026 |
 | 11  | [Block and report](11-block-and-report.md)   | Dropped  | October 30, 2026 |
+| 12  | [Sharing](12-sharing.md)                     | Done     | October 30, 2026 |

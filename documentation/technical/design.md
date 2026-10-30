@@ -10,6 +10,7 @@ The design system as built: colour, type, spacing, layout widths, motion and the
 | Tailwind mapping of those variables, `3xl` breakpoint, shadcn variables      | `src/index.css`            | `@theme inline`, `@theme`, `:root`               |
 | Send page (`--send-*`)                                                       | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Inbox (`--inbox-*`)                                                          | `src/styles/tokens.css`    | CSS variables on `:root`                         |
+| Share panel (`--share-*`)                                                    | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Motion                                                                       | `src/lib/motion/tokens.ts` | `motionDefaults`, `landingMotion`                |
 | Marble                                                                       | `src/lib/marble/tokens.ts` | `marbleDefaults`, `MARBLE_PIGMENTS`, `MARBLE_GL` |
 
@@ -216,6 +217,24 @@ The signed-in pages at `/inbox` and `/inbox/<id>`. Styles in `src/styles/inbox.c
 | `--inbox-confirm-radius`  | `16px`                                                                | Delete step radius                |
 
 The map style (`src/lib/map/style.ts`) takes land from the light ground pigment, areas and water from mixes of ground and grey, roads from paper, and labels from ink-2.
+
+## Share panel
+
+The story panel on a drop's page. Styles in `src/styles/share.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. It builds on the inbox button, note and action row classes. The 9:16 preview is held to `--share-preview-max-h`. The story image itself is drawn on a canvas with fixed pixel values from `src/lib/share/model.ts`, always on the light palette.
+
+| Token                    | Value                                    | Used for           |
+| ------------------------ | ---------------------------------------- | ------------------ |
+| `--share-panel-padding`  | `16px`; from 48rem `20px`                | Panel padding      |
+| `--share-panel-radius`   | `16px`                                   | Panel radius       |
+| `--share-preview-max-h`  | `min(62svh, 40rem)`                      | Preview height cap |
+| `--share-preview-radius` | `14px`                                   | Preview radius     |
+| `--share-preview-shadow` | `0 8px 28px -12px rgba(10, 10, 10, 0.3)` | Preview shadow     |
+| `--share-fs-title`       | `clamp(1rem, 0.95rem + 0.3vw, 1.2rem)`   | Panel heading      |
+| `--share-close-size`     | `44px`                                   | Close button size  |
+| `--share-switch-w`       | `52px`                                   | Switch width       |
+| `--share-switch-h`       | `32px`                                   | Switch height      |
+| `--share-switch-knob`    | `24px`                                   | Switch knob size   |
+| `--share-switch-inset`   | `4px`                                    | Switch knob inset  |
 
 ## Scrollbar
 
