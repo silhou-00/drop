@@ -1,5 +1,5 @@
 // Tests for the inbox side of the drop service with an in-memory repository: ownership,
-// the shared 404, paging with the cursor, mark read, delete with its file (and a file
+// the shared 404, paging with the cursor, the filter and the unread count, mark read, delete with its file (and a file
 // failure that is swallowed), and the photo read.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
@@ -45,11 +45,15 @@ function build(initial: DropRow[], options: Options = {}) {
     const rows = [...initial];
     const removed: string[] = [];
     const read: string[] = [];
+    const filters: string[] = [];
     const drops: DropRepository = {
         insertDrop: async () => "inserted",
-        listForRecipient: async (profileId, limit, cursor) => {
+        listForRecipient: async (profileId, limit, cursor, filter) => {
+            filters.push(filter);
+
             const mine = rows
                 .filter((item) => item.recipientId === profileId)
+                .filter((item) => (filter === "unread" ? !item.isRead : filter === "photos" ? item.photoKey : true))
                 .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
             const start = cursor ? mine.findIndex((item) => item.id === cursor.id) + 1 : 0;
 
@@ -57,6 +61,9 @@ function build(initial: DropRow[], options: Options = {}) {
                 ...item,
                 cursorAt: item.createdAt.toISOString().replace("Z", "000Z"),
             }));
+        },
+        countUnread: async (profileId) => {
+            return rows.filter((item) => item.recipientId === profileId && !item.isRead).length;
         },
         findForRecipient: async (profileId, id) => {
             return rows.find((item) => item.recipientId === profileId && item.id === id) ?? null;
@@ -112,7 +119,7 @@ function build(initial: DropRow[], options: Options = {}) {
         newPhotoKey: () => PHOTO_KEY,
     });
 
-    return { service, removed, read };
+    return { service, removed, read, filters };
 }
 
 const query = (input: Record<string, string> = {}) => inboxQuerySchema.parse(input);
@@ -165,6 +172,40 @@ describe("inbox service", () => {
 
         expect(page.items).toHaveLength(3);
         expect(page.next_cursor).toBeNull();
+    });
+
+    it("passes the filter to the repository and defaults it to all", async () => {
+        const { service, filters } = build(rows);
+
+        await service.listInbox(USER, query());
+        await service.listInbox(USER, query({ filter: "unread" }));
+        await service.listInbox(USER, query({ filter: "photos" }));
+
+        expect(filters).toEqual(["all", "unread", "photos"]);
+    });
+
+    it("filters to unread drops and to drops with a photo", async () => {
+        const { service } = build(rows.map((item) => ({ ...item })));
+
+        await service.markRead(USER, DROP_C, true);
+
+        const unread = await service.listInbox(USER, query({ filter: "unread" }));
+        const photos = await service.listInbox(USER, query({ filter: "photos" }));
+
+        expect(unread.items.map((item) => item.id)).toEqual([DROP_B, DROP_A]);
+        expect(photos.items.map((item) => item.id)).toEqual([DROP_B]);
+    });
+
+    it("reports the caller's unread count whatever the filter", async () => {
+        const { service } = build(rows.map((item) => ({ ...item })));
+
+        expect((await service.listInbox(USER, query())).unread_count).toBe(3);
+        expect((await service.listInbox(USER, query({ filter: "photos" }))).unread_count).toBe(3);
+        expect((await service.listInbox(USER, query({ limit: "1" }))).unread_count).toBe(3);
+
+        await service.markRead(USER, DROP_A, true);
+
+        expect((await service.listInbox(USER, query({ filter: "unread" }))).unread_count).toBe(2);
     });
 
     it("answers the same 404 for a missing drop, another user's drop and a bad id", async () => {

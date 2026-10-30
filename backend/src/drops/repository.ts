@@ -1,12 +1,13 @@
 // Data access for drops. Insert a drop inside a transaction that locks the recipient's
 // profile row, so a pause that lands first is seen and the insert is refused. The inbox
-// queries list, read, mark and delete a drop; each one filters by recipient and id so a
-// drop that belongs to someone else is never matched.
-import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
+// queries list (optionally only unread or only with a photo), count the unread, read,
+// mark and delete a drop; each one filters by recipient and id so a drop that belongs to
+// someone else is never matched.
+import { and, count, desc, eq, getTableColumns, isNotNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { profiles } from "../profiles/model.js";
 import type { LngLat } from "../shared/db/geography.js";
-import { drops, type DropRow, type InboxCursor } from "./model.js";
+import { drops, type DropRow, type InboxCursor, type InboxFilter } from "./model.js";
 
 export type NewDropRow = {
     recipientId: string;
@@ -54,17 +55,30 @@ export function createDropRepository(db: NodePgDatabase) {
         profileId: string,
         limit: number,
         cursor: InboxCursor | undefined,
+        filter: InboxFilter,
     ): Promise<ListedDropRow[]> {
         const after = cursor
             ? sql`(${drops.createdAt}, ${drops.id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)`
             : undefined;
+        const narrow =
+            filter === "unread" ? eq(drops.isRead, false) : filter === "photos" ? isNotNull(drops.photoKey) : undefined;
 
         return db
             .select({ ...getTableColumns(drops), cursorAt: CURSOR_AT_SQL })
             .from(drops)
-            .where(and(eq(drops.recipientId, profileId), after))
+            .where(and(eq(drops.recipientId, profileId), narrow, after))
             .orderBy(desc(drops.createdAt), desc(drops.id))
             .limit(limit + 1);
+    }
+
+    // every unread drop of the recipient, whatever the list filter
+    async function countUnread(profileId: string): Promise<number> {
+        const rows = await db
+            .select({ total: count() })
+            .from(drops)
+            .where(and(eq(drops.recipientId, profileId), eq(drops.isRead, false)));
+
+        return rows[0]?.total ?? 0;
     }
 
     async function findForRecipient(profileId: string, id: string): Promise<DropRow | null> {
@@ -96,7 +110,7 @@ export function createDropRepository(db: NodePgDatabase) {
         return rows[0] ?? null;
     }
 
-    return { insertDrop, listForRecipient, findForRecipient, setRead, deleteForRecipient };
+    return { insertDrop, listForRecipient, countUnread, findForRecipient, setRead, deleteForRecipient };
 }
 
 export type DropRepository = ReturnType<typeof createDropRepository>;

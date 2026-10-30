@@ -1,10 +1,11 @@
 // Tests for the drop input rules: message length in code points, coordinates, the
 // required GPS location, unknown fields, multipart array values, the optional photo,
-// and the inbox query, cursor and read body.
+// and the inbox query (page size, filter, cursor) and read body.
 import { describe, expect, it } from "vitest";
 import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
 import {
     CURSOR_MESSAGE,
+    FILTER_MESSAGE,
     LIMIT_MESSAGE,
     LOCATION_MESSAGE,
     LOCATION_REQUIRED_MESSAGE,
@@ -148,6 +149,21 @@ describe("inboxQuerySchema", () => {
 
     it("rejects unknown query fields", () => {
         expect(inboxQuerySchema.safeParse({ sort: "id" }).success).toBe(false);
+        expect(inboxQuerySchema.safeParse({ filter: "all", sort: "id" }).success).toBe(false);
+    });
+
+    it("defaults the filter to all and accepts all, unread and photos", () => {
+        expect(inboxQuerySchema.parse({}).filter).toBe("all");
+
+        for (const filter of ["all", "unread", "photos"]) {
+            expect(inboxQuerySchema.parse({ filter }).filter).toBe(filter);
+        }
+    });
+
+    it("rejects any other filter with the filter message", () => {
+        for (const filter of ["pins", "", "UNREAD"]) {
+            expect(messageOf({ filter })).toBe(FILTER_MESSAGE);
+        }
     });
 });
 

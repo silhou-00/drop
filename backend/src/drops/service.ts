@@ -2,9 +2,9 @@
 // send limits, validate the input, clean the photo, round the location, look up a place
 // name, store the photo, then insert. Only the rounded cell centre ever reaches the
 // repository. A photo saved before a failed insert is removed again. The inbox side
-// resolves the signed-in user's profile first, then lists, reads, marks, deletes and
-// serves the photo of drops that belong to it. A drop that is missing, malformed or
-// someone else's gets the same 404.
+// resolves the signed-in user's profile first, then lists (with the filter and the
+// unread count), reads, marks, deletes and serves the photo of drops that belong to it.
+// A drop that is missing, malformed or someone else's gets the same 404.
 import { usernameSchema, type Profile } from "../profiles/model.js";
 import { AppError } from "../shared/errors.js";
 import { snapToGrid, type SnappedPoint } from "../shared/geo.js";
@@ -44,6 +44,7 @@ export type SendDropRequest = {
 export type InboxPage = {
     items: InboxItem[];
     next_cursor: string | null;
+    unread_count: number;
 };
 
 function notFound() {
@@ -166,15 +167,19 @@ export function createDropService({
         return parsed.data;
     }
 
-    async function listInbox(userId: string, { limit, cursor }: InboxQuery): Promise<InboxPage> {
+    async function listInbox(userId: string, { limit, cursor, filter }: InboxQuery): Promise<InboxPage> {
         const profileId = await ownProfileId(userId);
-        const rows = await drops.listForRecipient(profileId, limit, cursor);
+        const [rows, unreadCount] = await Promise.all([
+            drops.listForRecipient(profileId, limit, cursor, filter),
+            drops.countUnread(profileId),
+        ]);
         const page = rows.slice(0, limit);
         const last = page[page.length - 1];
 
         return {
             items: page.map(toInboxItem),
             next_cursor: rows.length > limit && last ? encodeCursor({ createdAt: last.cursorAt, id: last.id }) : null,
+            unread_count: unreadCount,
         };
     }
 

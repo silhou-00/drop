@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createSessionMiddleware, type AppEnv, type GetSession } from "../middleware/session.js";
 import { AppError, errorHandler } from "../shared/errors.js";
-import { CURSOR_MESSAGE, IS_READ_MESSAGE, LIMIT_MESSAGE, type InboxItem } from "./model.js";
+import { CURSOR_MESSAGE, FILTER_MESSAGE, IS_READ_MESSAGE, LIMIT_MESSAGE, type InboxItem } from "./model.js";
 import { createDropRouter } from "./router.js";
 import type { DropService } from "./service.js";
 
@@ -32,7 +32,7 @@ function notFound(): never {
 
 const service = {
     sendDrop: async () => ({ delivered: true as const }),
-    listInbox: async () => ({ items: [item], next_cursor: null }),
+    listInbox: async () => ({ items: [item], next_cursor: null, unread_count: 1 }),
     getDrop: async (_user: string, id: string) => (id === MINE ? item : notFound()),
     markRead: async (_user: string, id: string, isRead: boolean) =>
         id === MINE ? { ...item, is_read: isRead } : notFound(),
@@ -87,7 +87,10 @@ describe("GET /drops", () => {
 
         expect(res.status).toBe(200);
         expect(res.headers.get("Cache-Control")).toBe("no-store");
-        expect(await res.json()).toEqual({ data: { items: [item], next_cursor: null }, error: null });
+        expect(await res.json()).toEqual({
+            data: { items: [item], next_cursor: null, unread_count: 1 },
+            error: null,
+        });
     });
 
     it("answers 422 for a bad limit, a bad cursor and an unknown parameter", async () => {
@@ -98,6 +101,8 @@ describe("GET /drops", () => {
             ["limit=51", LIMIT_MESSAGE],
             ["limit=abc", LIMIT_MESSAGE],
             ["cursor=%21%21", CURSOR_MESSAGE],
+            ["filter=bad", FILTER_MESSAGE],
+            ["filter=", FILTER_MESSAGE],
         ]) {
             const res = await app.request(`/api/v1/drops?${query}`);
 

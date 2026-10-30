@@ -3,8 +3,10 @@
 // same text for the same failure. The optional photo is checked here for size only; the
 // photos slice reads the bytes. The send body arrives as multipart text fields, so
 // numbers are decimal strings until parsed here. The inbox rules live here too: the list
-// query, the opaque page cursor, the read flag body and the one serializer for the inbox
-// item. A malformed drop id is answered 404, not 422, so ids cannot be probed.
+// query with its page size, filter (all, unread or photos) and opaque page cursor, the
+// read flag body and the one serializer for the inbox item. The unread count that the
+// list reports is not part of the query, it is counted in the repository. A malformed
+// drop id is answered 404, not 422, so ids cannot be probed.
 import { sql } from "drizzle-orm";
 import { boolean, char, check, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
@@ -83,6 +85,11 @@ export type SendDropInput = z.infer<typeof sendDropSchema>;
 export const LIMIT_MESSAGE = "Choose a page size from 1 to 50.";
 export const CURSOR_MESSAGE = "That page link is not valid.";
 export const IS_READ_MESSAGE = "Send is_read as true or false.";
+export const FILTER_MESSAGE = "Choose a filter: all, unread or photos.";
+
+export const INBOX_FILTERS = ["all", "unread", "photos"] as const;
+
+export type InboxFilter = (typeof INBOX_FILTERS)[number];
 
 export const INBOX_LIMIT_DEFAULT = 20;
 export const INBOX_LIMIT_MAX = 50;
@@ -148,9 +155,13 @@ const cursorSchema = z
     })
     .optional();
 
+// which drops the list shows, default all
+const filterSchema = z.enum(INBOX_FILTERS, FILTER_MESSAGE).default("all");
+
 export const inboxQuerySchema = z.strictObject({
     limit: limitSchema,
     cursor: cursorSchema,
+    filter: filterSchema,
 });
 
 export type InboxQuery = z.infer<typeof inboxQuerySchema>;

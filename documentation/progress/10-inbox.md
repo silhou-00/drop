@@ -23,6 +23,7 @@ Let a person who has claimed a link read the drops sent to them. They see a list
 - A drop that does not exist, or belongs to someone else, shows the same "This drop is not here" page.
 - The map and its files load only on a drop's page, so the inbox list stays light.
 - The server answers the inbox routes with the safe caching rules, and each signed-in person has their own request limit.
+- The inbox list can show only unread drops or only drops with a photo, and it also reports how many drops are unread in total, so the app shell can show an unread badge.
 
 ## Decisions & Trade-offs
 

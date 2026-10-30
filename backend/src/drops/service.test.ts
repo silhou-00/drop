@@ -39,6 +39,7 @@ function build({
         findRecipient: async () => found,
         drops: {
             listForRecipient: async () => [],
+            countUnread: async () => 0,
             findForRecipient: async () => null,
             setRead: async () => null,
             deleteForRecipient: async () => null,

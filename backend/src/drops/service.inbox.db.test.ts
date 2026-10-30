@@ -1,6 +1,6 @@
 // Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
 // Checks the inbox queries for real: newest-first order, keyset paging across equal
-// timestamps, mark read, delete returning the photo key, and that a foreign recipient
+// timestamps, the unread and photo filters, the unread count, mark read, delete returning the photo key, and that a foreign recipient
 // can neither read, update nor delete. Cleans up its users (profiles and drops cascade).
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
@@ -134,6 +134,33 @@ describe.skipIf(!run)("inbox against the database", { timeout: DB_TIMEOUT_MS }, 
         expect(await repo.deleteForRecipient(strangerId, target.id)).toBeNull();
         expect((await repo.findForRecipient(strangerId, foreign.id))?.isRead).toBe(false);
         await expect(service.getDrop(OWNER, foreign.id)).rejects.toMatchObject({ status: 404 });
+
+        // filters and the unread count, scoped to the owner
+        const listIds = (filter: string, limit = "20", cursor?: string) => {
+            return service.listInbox(OWNER, inboxQuerySchema.parse({ filter, limit, cursor }));
+        };
+        const ownUnread = mine.filter((row) => row.id !== target.id);
+        const unreadPage = await listIds("unread");
+
+        expect(unreadPage.items.map((item) => item.id).sort()).toEqual(ownUnread.map((row) => row.id).sort());
+        expect(unreadPage.items.every((item) => !item.is_read)).toBe(true);
+        expect(unreadPage.unread_count).toBe(ownUnread.length);
+        expect((await listIds("all")).unread_count).toBe(ownUnread.length);
+        expect(await repo.countUnread(strangerId)).toBe(1);
+
+        const photoPage = await listIds("photos");
+
+        expect(photoPage.items.map((item) => item.id)).toEqual(mine.filter((row) => row.photoKey).map((row) => row.id));
+        expect(photoPage.unread_count).toBe(ownUnread.length);
+
+        // paging across the unread filter with the cursor
+        const firstUnread = await listIds("unread", "1");
+        const secondUnread = await listIds("unread", "1", firstUnread.next_cursor ?? undefined);
+        const pagedIds = [...firstUnread.items, ...secondUnread.items].map((item) => item.id);
+
+        expect(firstUnread.next_cursor).not.toBeNull();
+        expect(secondUnread.next_cursor).toBeNull();
+        expect(pagedIds.sort()).toEqual(ownUnread.map((row) => row.id).sort());
 
         // delete returns the photo key, then the drop is gone
         const withPhoto = mine.find((row) => row.photoKey)!;
