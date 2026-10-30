@@ -9,6 +9,7 @@ The design system as built: colour, type, spacing, layout widths, motion and the
 | Palette, type families, type scale, wrapper spacing, rail and content widths | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Tailwind mapping of those variables, `3xl` breakpoint, shadcn variables      | `src/index.css`            | `@theme inline`, `@theme`, `:root`               |
 | Send page (`--send-*`)                                                       | `src/styles/tokens.css`    | CSS variables on `:root`                         |
+| App shell (`--glass-*`, `--inverse-*`, `--app-*`)                            | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Inbox (`--inbox-*`)                                                          | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Share panel (`--share-*`)                                                    | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Motion                                                                       | `src/lib/motion/tokens.ts` | `motionDefaults`, `landingMotion`                |
@@ -60,26 +61,80 @@ shadcn variables point at these tokens: `background` ground, `foreground` ink, `
 | ------------------ | ------------- | --------------- | ----------- | ---------- | --------------- |
 | Mobile             | below 48rem   | 14px 18px       | 14px        | 0px        | 100%            |
 | Tablet             | 48rem (768)   | 20px 24px       | 16px        | 104px      | 640px           |
-| Laptop and desktop | 80rem (1280)  | 28px 32px       | 20px        | 244px      | 1120px          |
-| Full HD and wider  | 120rem (1920) | 32px 40px       | 24px        | 244px      | 1280px          |
+| Laptop and desktop | 80rem (1280)  | 28px 32px       | 20px        | 252px      | 1120px          |
+| Full HD and wider  | 120rem (1920) | 32px 40px       | 24px        | 260px      | 1280px          |
 
 Fixed at every band: sub-section gap 10px, placement gap 8px, container gap 0, all three paddings 0. `.section` is capped at `var(--content-max)`. Tailwind exposes `max-w-content` (`--container-content`), `w-rail` / `pl-rail` (`--spacing-rail`) and the `3xl:` breakpoint (120rem). Tailwind `lg` (1024) is not used.
 
 ## App layout
 
-**Specified, not built.** The values below come from the sheet; no page uses them yet. The inbox pages are a single centred column inside the auth shell, not this layout.
+Built in module 12b run A: the frame, the inbox and the drop page. The Map, My link and Settings pages are placeholders until run B. Styles are in `src/styles/app-shell.css`; the components are listed in [frontend.md](frontend.md).
 
-| Band                | Navigation                                  | Notes                                                                                                                                           |
-| ------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mobile              | Glass bottom tab bar, 72px                  |                                                                                                                                                 |
-| Tablet, 768 to 1279 | Glass icon rail, 80px                       | `--rail-w` 104 includes the 12px inset and gap                                                                                                  |
-| 1280 and up         | Labelled rail, 220px, link card at its foot | Rail, list and reading pane are full height, each 12px from top and bottom. List 420px at 1280, 560px at 1920. Reading content capped at 860px. |
+| Band                | Navigation                                                | Notes                                                                                                                                                            |
+| ------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mobile              | Glass bottom tab bar with a sliding bead                  | One column. The marbled bath shows behind the header only and fades out below it.                                                                                |
+| Tablet, 768 to 1279 | Glass icon rail, 80px wide                                | One column on a near-plain sheet, padded left by `--rail-w` (104px: the rail plus its inset and gap).                                                            |
+| 1280 and up         | Labelled rail, 220px wide, logo on top, link card at foot | List pane (`--app-list-w`, 420px, 560px from 120rem) docked to the rail, with a paper reading pane filling the rest. Reading content capped at `--app-read-max`. |
 
-- Selecting a drop pushes its URL, so deep links and Back work.
-- Map: full bleed at every band. Mobile: paper bottom sheet. Tablet: 380px floating panel. 1280 and up: full-height paper list panel, open by default, with a round collapse control carrying `aria-expanded`.
+- Selecting a drop pushes its URL, so deep links and Back work. On phones and tablets the list and an open drop take turns; from 80rem both show, with "Pick a drop to read it" in the pane until one is open.
+- Glass: `--glass-fill`, `--glass-edge`, `--glass-blur` (18px) and `--glass-saturate` (1.4) on the nav bar, and on the map controls. Below the bar a soft blur (`--app-bar-blur`, `--app-bar-fade`) keeps the labels readable over content.
+- Bath mask: `--app-mask-solid` (120px) and `--app-mask-clear` (300px) fade the bath out on phones; a drop's page uses the shorter `--app-mask-detail` (80px).
+- Bead: a lead and a slower trail bead melt through the goo filter. Duration and easing come from the `tabSpring` motion token; `--app-bead-lag` (1.6) sets the trail's delay. Under reduced motion the bead jumps without travel.
+- Active tab: the icon switches from bold to fill weight. The Inbox tab carries a count badge (`--app-count-size`, `--app-fs-count`), capped at `9+`.
+- Map (run B): full bleed at every band. Mobile: paper bottom sheet. Tablet: 380px floating panel. 1280 and up: full-height paper list panel, open by default, with a round collapse control carrying `aria-expanded`.
 - Sender: one focused column, at most 560px.
 - My link and settings: content held to 1120px.
 - Glass appears in at most 3 places per view.
+
+| Token                                                       | Value                                                                                   | Use                                                                      |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `--glass-fill`                                              | `rgba(255, 255, 255, 0.72)`; dark `rgba(16, 18, 22, 0.62)`                              | Glass surface                                                            |
+| `--glass-edge`                                              | `1px solid rgba(255, 255, 255, 0.7)`; dark `... 0.16)`                                  | Glass border                                                             |
+| `--inverse-fill`                                            | `#0a0a0a`; dark `#f5fdff`                                                               | Unread badge and pressed filter chip                                     |
+| `--inverse-ink`                                             | `#f5fdff`; dark `#0a0a0a`                                                               | Text on the inverse surface                                              |
+| `--app-patch-image`                                         | `comb-land-light.webp`; dark `comb-land-dark.webp`                                      | Marble patch in the empty states                                         |
+| `--rail-w`                                                  | `0px`; 48rem `104px`; 80rem `252px`; 120rem `260px`                                     | Left padding for the rail (the nav section's side padding plus the rail) |
+| `--app-nav-padding`                                         | `8px 6px`; 48rem `16px 8px`; 80rem `22px 14px`                                          | Nav bar padding                                                          |
+| `--app-nav-radius`                                          | `999px`; 48rem `28px`                                                                   | Nav bar radius                                                           |
+| `--app-nav-w`                                               | `auto`; 48rem `80px`; 80rem `220px`                                                     | Nav bar width                                                            |
+| `--app-tab-min`                                             | `56px`; 48rem `64px`; 80rem `52px`                                                      | Tab minimum size                                                         |
+| `--app-tab-radius`                                          | `999px`; 48rem `20px`; 80rem `999px`                                                    | Tab radius                                                               |
+| `--app-tab-icon`                                            | `22px`                                                                                  | Tab icon size                                                            |
+| `--app-tab-gap`                                             | `2px`; 80rem `14px`                                                                     | Gap between a tab's icon and label                                       |
+| `--app-tab-padding`                                         | `0`; 80rem `0 18px`                                                                     | Tab side padding                                                         |
+| `--app-fs-tab`                                              | `clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem)`; 80rem `clamp(0.95rem, 0.9rem + 0.1vw, 1rem)` | Tab label size                                                           |
+| `--app-logo-h`                                              | `32px`; 48rem `30px`; 80rem `52px`                                                      | Logo height                                                              |
+| `--app-bar-clearance`                                       | `96px`                                                                                  | Space under the content for the bottom bar                               |
+| `--app-bar-blur`                                            | `6px`                                                                                   | Blur under the bar                                                       |
+| `--app-bar-fade`                                            | `40px`                                                                                  | Height of the blur's fade                                                |
+| `--app-frame-inset`                                         | `12px`                                                                                  | Inset from the screen edge (skip link)                                   |
+| `--app-list-w`                                              | `100%`; 80rem `420px`; 120rem `560px`                                                   | List pane width                                                          |
+| `--app-read-max`                                            | `860px`                                                                                 | Reading content cap                                                      |
+| `--app-sheet-radius`                                        | `32px`                                                                                  | Sheet and reading pane radius                                            |
+| `--app-dock-radius`                                         | `28px`                                                                                  | Docked pane radius                                                       |
+| `--app-sheet-fill`                                          | `color-mix(in srgb, var(--ground) 94%, transparent)`                                    | Sheet fill                                                               |
+| `--app-ring-dot`                                            | `0 0 0 3px var(--paper), 0 0 0 5px var(--accent-soft)`                                  | Ring around the unread dot                                               |
+| `--app-chip-min-h`                                          | `44px`                                                                                  | Filter chip height                                                       |
+| `--app-chip-padding`                                        | `0 14px`                                                                                | Filter chip padding                                                      |
+| `--app-fs-chip`                                             | `clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem)`                                              | Filter chip text                                                         |
+| `--app-bead-dur`, `--app-bead-ease`                         | `420ms`, spring overshoot curve (overridden from `tabSpring`)                           | Bead travel                                                              |
+| `--app-bead-lag`                                            | `1.6`                                                                                   | Trail bead delay multiple                                                |
+| `--app-bead-inset`                                          | `6px`; 48rem `0px`                                                                      | Bead inset in its cell                                                   |
+| `--app-count-size`                                          | `18px`                                                                                  | Unread badge size                                                        |
+| `--app-fs-count`                                            | `0.6875rem`                                                                             | Unread badge text                                                        |
+| `--app-foot-padding`                                        | `14px`                                                                                  | Link card padding at the rail's foot                                     |
+| `--app-foot-radius`                                         | `20px`                                                                                  | Link card radius at the rail's foot                                      |
+| `--app-mask-solid`, `--app-mask-clear`, `--app-mask-detail` | `120px`, `300px`, `80px`                                                                | Bath fade on phones                                                      |
+| `--shadow-rest`, `--shadow-lift`                            | `0 4px 30px rgba(10, 10, 10, 0.08)`, `0 12px 32px -14px rgba(10, 10, 10, 0.18)`         | Resting and raised shadow                                                |
+
+Deviations from the comps:
+
+- Cards follow the later responsive comps: plain cards, no carousel.
+- The comp's "..." menu became a read or unread toggle, because block and report were dropped.
+- "Placed by hand" became a GPS badge, because every drop is placed by GPS.
+- No bell, and no Pins chip. Alerts arrive outside the app and their switch goes in Settings; the Inbox tab badge does the bell's job in the app.
+- The gooey tab bar and the glass map controls were rebuilt in the project's own code; nothing was copied and no package was added.
+- The unread badge fills only after the inbox has loaded once.
 
 ## Motion
 
@@ -182,39 +237,60 @@ The public page at `/<name>`. Styles in `src/styles/send.css`, scoped under `.au
 
 ## Inbox
 
-The signed-in pages at `/inbox` and `/inbox/<id>`. Styles in `src/styles/inbox.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. They sit in `AuthShell` and reuse the auth card, field, button and note classes. The list and the drop page are one column capped at `--inbox-max`. Light and dark follow the rest of the app, except the map, which always uses the light Drop palette.
+The list at `/inbox` and a drop at `/inbox/<id>`, inside the app frame. Styles in `src/styles/inbox.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. They build on the auth button, note and status classes and on the app shell. Light and dark follow the rest of the app, except the map, which always uses the light Drop palette.
 
 - **Wrapper levels.** Each part of the page is a section with sub-sections, placements and containers. The card is a link whose inner spans carry the same structure as inline text rows.
-- **Unread.** An unread card shows a dot (`--inbox-dot-size`) in `--accent-fill` and heavier place and message text. A read card shows neither.
-- **Photo.** A 4:5 box (`--inbox-photo-ratio`) with rounded corners. The image is blurred by `--inbox-photo-blur` under a veil of `--inbox-photo-veil` and a "Tap to view photo" label until it is activated, then shown clear. A failed load shows text in the same box.
-- **Map.** Height `--inbox-map-h`, rounded by `--inbox-map-radius`, with the credit links in a small corner label on `--inbox-credit-bg` and `--inbox-credit-ink`. The drop's area is a circle of about 150 m in `--accent-fill`, the only colour on a map drawn in the grey marble pigments. While the map chunk loads, a placeholder holds the same height.
+- **Heading and chips.** The title with an "N new" count, then the All, Unread and Photos pill chips (`--app-chip-min-h`, pressed state shown by `--inverse-fill`). On phones the logo sits above the title.
+- **Cards.** Paper cards grouped under Today and Earlier, with a `--inbox-item-border` border and `--inbox-item-radius` corners. Each shows the message (`--inbox-fs-card`, `--inbox-item-lines` lines), a place badge, a Photo badge and a compact age. An unread card has a red dot (`--inbox-dot-size`) ringed by `--app-ring-dot`. The open drop's card is marked active.
+- **Empty states.** A marble patch (`--app-patch-image`, `--inbox-patch-w`, `--inbox-patch-ratio`) with the card pinned to its foot; the stage is at least `--inbox-empty-min-h` tall.
+- **Drop page.** A bar with a back button (hidden from 80rem, where the list is beside it), the day and time, and a round read toggle. The message sits large (`--inbox-fs-read`) in a padded card (`--inbox-message-padding`). Below: the place and GPS badges, then the media row: the map and the photo stacked on phones, side by side from 48rem. From 80rem the drop fills the paper reading pane, its body scrolls and its actions stay pinned.
+- **Photo.** A circle, `--inbox-photo-w` wide, ringed by `--inbox-photo-ring` (`--inbox-photo-ring-w` thick). It is blurred by `--inbox-photo-blur` under a veil of `--inbox-photo-veil` and a "Tap to view photo" label until tapped, then clear. A second tap opens the whole photo uncropped in a 4:5 frame (`--inbox-photo-ratio`, `--inbox-photo-radius`) across the media row. A failed load shows text.
+- **Map.** A plate with ratio `--inbox-map-ratio` and radius `--inbox-map-radius`. Glass buttons (`--inbox-map-ctl` size, `--inbox-map-ctl-gap`, `--inbox-map-ctl-inset`, `--inbox-map-ctl-radius`) zoom in, zoom out and recentre. An "About 150 m" label (`--inbox-map-label-padding`) and the credit links sit in the corners on `--inbox-credit-bg` and `--inbox-credit-ink`. The drop's area is a circle of about 150 m in `--accent-fill`, the only colour on a map drawn in the grey marble pigments. While the map chunk loads, a placeholder holds the same shape.
+- **Actions.** A "Share to story" pill (the ink button) and a round delete button (`--inbox-iconbtn`, `--inbox-icon`).
 - **Delete step.** An in-page panel (`--inbox-confirm-padding`, `--inbox-confirm-radius`) with Delete and Cancel side by side. It is not a modal.
 
-| Token                     | Value                                                                 | Use                               |
-| ------------------------- | --------------------------------------------------------------------- | --------------------------------- |
-| `--inbox-max`             | `40rem` (640px)                                                       | Column width cap                  |
-| `--inbox-item-padding`    | `16px 18px`; from 48rem `18px 22px`                                   | Drop card padding                 |
-| `--inbox-item-gap`        | `8px`                                                                 | Gap inside a drop card            |
-| `--inbox-item-radius`     | `18px`                                                                | Drop card radius                  |
-| `--inbox-item-shadow`     | `0 2px 18px rgba(10, 10, 10, 0.06)`                                   | Drop card shadow                  |
-| `--inbox-item-lines`      | `3`                                                                   | Message lines shown on a card     |
-| `--inbox-dot-size`        | `10px`                                                                | Unread dot                        |
-| `--inbox-badge-padding`   | `4px 10px`                                                            | Badge padding                     |
-| `--inbox-badge-icon`      | `0.95rem`                                                             | Badge icon size                   |
-| `--inbox-fs-heading`      | `clamp(1.1rem, 1rem + 0.5vw, 1.4rem)`                                 | Section heading                   |
-| `--inbox-fs-detail-title` | `clamp(0.8rem, 0.75rem + 0.2vw, 0.9rem)`                              | Drop page title                   |
-| `--inbox-mark-size`       | `1.5rem`                                                              | Read toggle icon                  |
-| `--inbox-place-min`       | `12rem`                                                               | Minimum width of the place block  |
-| `--inbox-map-h`           | `clamp(14rem, 40svh, 22rem)`; from 48rem `clamp(18rem, 44svh, 26rem)` | Map height                        |
-| `--inbox-map-radius`      | `16px`                                                                | Map frame radius                  |
-| `--inbox-credit-bg`       | `rgba(255, 255, 255, 0.86)`                                           | Credit label background           |
-| `--inbox-credit-ink`      | `#3c474d`                                                             | Credit label ink                  |
-| `--inbox-photo-ratio`     | `4 / 5`                                                               | Photo box shape                   |
-| `--inbox-photo-radius`    | `16px`                                                                | Photo box radius                  |
-| `--inbox-photo-blur`      | `28px`                                                                | Blur before the photo is revealed |
-| `--inbox-photo-veil`      | `rgba(10, 10, 10, 0.28)`                                              | Veil over the blurred photo       |
-| `--inbox-confirm-padding` | `16px`                                                                | Delete step padding               |
-| `--inbox-confirm-radius`  | `16px`                                                                | Delete step radius                |
+| Token                       | Value                                                                          | Use                               |
+| --------------------------- | ------------------------------------------------------------------------------ | --------------------------------- |
+| `--inbox-item-padding`      | `16px 18px`; from 48rem `18px 20px`                                            | Drop card padding                 |
+| `--inbox-item-gap`          | `10px`                                                                         | Gap inside a drop card            |
+| `--inbox-item-radius`       | `22px`                                                                         | Drop card radius                  |
+| `--inbox-item-border`       | `2px`                                                                          | Drop card border                  |
+| `--inbox-item-lines`        | `3`                                                                            | Message lines shown on a card     |
+| `--inbox-fs-card`           | `clamp(1.0625rem, 1rem + 0.3vw, 1.2rem)`                                       | Card message                      |
+| `--inbox-fs-badge`          | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.85rem)`                                    | Badge text                        |
+| `--inbox-fs-read`           | `clamp(1.35rem, 1.2rem + 1vw, 1.6rem)`; from 48rem `var(--type-message-large)` | Drop message                      |
+| `--inbox-badge-min-h`       | `30px`                                                                         | Badge height                      |
+| `--inbox-badge-padding`     | `0 10px`                                                                       | Badge padding                     |
+| `--inbox-badge-icon`        | `0.95rem`                                                                      | Badge icon size                   |
+| `--inbox-dot-size`          | `10px`                                                                         | Unread dot                        |
+| `--inbox-iconbtn`           | `44px`                                                                         | Round icon button                 |
+| `--inbox-icon`              | `20px`                                                                         | Icon size in round buttons        |
+| `--inbox-empty-min-h`       | `clamp(18rem, 50svh, 26rem)`                                                   | Empty stage height                |
+| `--inbox-empty-inset`       | `14px`                                                                         | Empty card inset                  |
+| `--inbox-empty-padding`     | `18px`                                                                         | Empty card padding                |
+| `--inbox-patch-w`           | `clamp(10rem, 14vw, 14rem)`                                                    | Marble patch width                |
+| `--inbox-patch-ratio`       | `11 / 8`                                                                       | Marble patch shape                |
+| `--inbox-patch-radius`      | `24px`                                                                         | Marble patch radius               |
+| `--inbox-message-padding`   | `20px 18px`                                                                    | Drop message card padding         |
+| `--inbox-map-ratio`         | `16 / 10`; from 48rem `4 / 3`                                                  | Map plate shape                   |
+| `--inbox-map-radius`        | `22px`                                                                         | Map plate radius                  |
+| `--inbox-map-ctl`           | `44px`                                                                         | Map button size                   |
+| `--inbox-map-ctl-gap`       | `2px`                                                                          | Gap between map buttons           |
+| `--inbox-map-ctl-inset`     | `10px`                                                                         | Map button group inset            |
+| `--inbox-map-ctl-radius`    | `16px`                                                                         | Map button group radius           |
+| `--inbox-map-label-padding` | `4px 10px`                                                                     | "About 150 m" label padding       |
+| `--inbox-credit-bg`         | `rgba(255, 255, 255, 0.86)`                                                    | Credit label background           |
+| `--inbox-credit-ink`        | `#3c474d`                                                                      | Credit label ink                  |
+| `--inbox-photo-w`           | `62%`; from 48rem `100%`                                                       | Photo circle width                |
+| `--inbox-photo-ring`        | `0 0 0 6px var(--paper), 0 0 0 9px var(--accent-soft)`                         | Photo ring                        |
+| `--inbox-photo-ring-w`      | `9px`                                                                          | Photo ring thickness              |
+| `--inbox-photo-ratio`       | `4 / 5`                                                                        | Full photo frame shape            |
+| `--inbox-photo-radius`      | `22px`                                                                         | Full photo frame radius           |
+| `--inbox-photo-blur`        | `28px`                                                                         | Blur before the photo is revealed |
+| `--inbox-photo-veil`        | `rgba(10, 10, 10, 0.28)`                                                       | Veil over the blurred photo       |
+| `--inbox-media-gap`         | `18px`                                                                         | Gap between map and photo         |
+| `--inbox-confirm-padding`   | `16px`                                                                         | Delete step padding               |
+| `--inbox-confirm-radius`    | `22px`                                                                         | Delete step radius                |
 
 The map style (`src/lib/map/style.ts`) takes land from the light ground pigment, areas and water from mixes of ground and grey, roads from paper, and labels from ink-2.
 

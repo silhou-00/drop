@@ -1,8 +1,9 @@
 // Setting a drop read or unread. A lock held in a ref means a double tap sends one request. On
-// success the kept inbox list takes the changed drop, so going back shows the new state, and
-// the page gets the item the server answered with. The last failure is kept as text to show.
+// success the shared inbox store takes the changed drop and moves the unread count, so the list,
+// the "new" badge and the Inbox tab update at once, and the page gets the item the server
+// answered with. The last failure is kept as text to show.
 import { useRef, useState } from "react";
-import { patchInboxItem } from "@/hooks/drops/use-inbox";
+import { applyReadChange } from "@/hooks/drops/inbox-store";
 import { ApiError } from "@/lib/api";
 import { setDropRead } from "@/lib/drops/api";
 import type { InboxItem } from "@/lib/drops/model";
@@ -15,7 +16,7 @@ export function useMarkRead() {
     const [error, setError] = useState("");
 
     // resolves with the updated drop, or null when it failed or one was already in flight
-    async function mark(id: string, isRead: boolean): Promise<InboxItem | null> {
+    async function mark(id: string, isRead: boolean, wasRead: boolean): Promise<InboxItem | null> {
         if (lockRef.current) {
             return null;
         }
@@ -27,7 +28,7 @@ export function useMarkRead() {
         try {
             const item = await setDropRead(id, isRead);
 
-            patchInboxItem(item);
+            applyReadChange(item, wasRead);
 
             return item;
         } catch (caught) {

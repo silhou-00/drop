@@ -1,5 +1,11 @@
 # Frontend Changelog
 
+## October 31, 2026
+
+**App shell:**
+
+- Signed-in pages share a new frame with a tab bar or side rail, an unread badge, inbox filters, a side-by-side reading view on wide screens, and a restyled drop page.
+
 ## October 30, 2026
 
 **Sharing:**

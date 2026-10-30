@@ -18,6 +18,13 @@
     --ice: #f5fdff;
     --hair: rgba(10, 10, 10, 0.1);
 
+    /* app surfaces, light */
+    --glass-fill: rgba(255, 255, 255, 0.72);
+    --glass-edge: 1px solid rgba(255, 255, 255, 0.7);
+    --inverse-fill: #0a0a0a;
+    --inverse-ink: #f5fdff;
+    --app-patch-image: url(/marble/comb-land-light.webp);
+
     /* type families */
     --family-display: "Unbounded", system-ui, sans-serif;
     --family-body: "Onest", system-ui, sans-serif;
@@ -43,7 +50,7 @@
     --container-padding: 0;
     --container-gap: 0;
 
-    /* app layout: rail width (rail plus its 12px inset and gap) and content width */
+    /* app layout: rail width (the nav section's side padding plus the rail) and content width */
     --rail-w: 0px;
     --content-max: 100%;
 }
@@ -63,7 +70,7 @@
     :root {
         --section-padding: 28px 32px;
         --section-gap: 20px;
-        --rail-w: 244px;
+        --rail-w: 252px;
         --content-max: 1120px;
     }
 }
@@ -73,6 +80,7 @@
     :root {
         --section-padding: 32px 40px;
         --section-gap: 24px;
+        --rail-w: 260px;
         --content-max: 1280px;
     }
 }
@@ -89,6 +97,11 @@
         --accent-soft: #6e3637;
         --ice: #46505a;
         --hair: rgba(245, 253, 255, 0.12);
+        --glass-fill: rgba(16, 18, 22, 0.62);
+        --glass-edge: 1px solid rgba(255, 255, 255, 0.16);
+        --inverse-fill: #f5fdff;
+        --inverse-ink: #0a0a0a;
+        --app-patch-image: url(/marble/comb-land-dark.webp);
     }
 }
 
@@ -103,6 +116,11 @@
     --accent-soft: #6e3637;
     --ice: #46505a;
     --hair: rgba(245, 253, 255, 0.12);
+    --glass-fill: rgba(16, 18, 22, 0.62);
+    --glass-edge: 1px solid rgba(255, 255, 255, 0.16);
+    --inverse-fill: #f5fdff;
+    --inverse-ink: #0a0a0a;
+    --app-patch-image: url(/marble/comb-land-dark.webp);
 }
 
 /* landing: the dark ground's own palette, which stays dark while the page is forced light */
@@ -242,37 +260,132 @@
     --send-photo-radius: 12px;
 }
 
-/* inbox: the link card and the drop list in one column, the drop page with its map and photo */
+/* app shell: the glass nav (bottom bar, then icon rail, then labelled rail), the panes and
+   the shared surfaces; glass, shadows and the bead timing are the same in every band */
 :root {
-    --inbox-max: 40rem;
-    --inbox-item-padding: 16px 18px;
-    --inbox-item-gap: 8px;
-    --inbox-item-radius: 18px;
-    --inbox-item-shadow: 0 2px 18px rgba(10, 10, 10, 0.06);
-    --inbox-item-lines: 3;
-    --inbox-dot-size: 10px;
-    --inbox-badge-padding: 4px 10px;
-    --inbox-badge-icon: 0.95rem;
-    --inbox-fs-heading: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
-    --inbox-fs-detail-title: clamp(0.8rem, 0.75rem + 0.2vw, 0.9rem);
-    --inbox-mark-size: 1.5rem;
-    --inbox-place-min: 12rem;
-    --inbox-map-h: clamp(14rem, 40svh, 22rem);
-    --inbox-map-radius: 16px;
-    --inbox-credit-bg: rgba(255, 255, 255, 0.86);
-    --inbox-credit-ink: #3c474d;
-    --inbox-photo-ratio: 4 / 5;
-    --inbox-photo-radius: 16px;
-    --inbox-photo-blur: 28px;
-    --inbox-photo-veil: rgba(10, 10, 10, 0.28);
-    --inbox-confirm-padding: 16px;
-    --inbox-confirm-radius: 16px;
+    --glass-blur: 18px;
+    --glass-saturate: 1.4;
+    --shadow-rest: 0 4px 30px rgba(10, 10, 10, 0.08);
+    --shadow-lift: 0 12px 32px -14px rgba(10, 10, 10, 0.18);
+    --app-nav-padding: 8px 6px;
+    --app-nav-radius: 999px;
+    --app-nav-w: auto;
+    --app-tab-min: 56px;
+    --app-tab-radius: 999px;
+    --app-tab-icon: 22px;
+    --app-tab-gap: 2px;
+    --app-tab-padding: 0;
+    --app-fs-tab: clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem);
+    --app-logo-h: 32px;
+    --app-bar-clearance: 96px;
+    --app-bar-blur: 6px;
+    --app-bar-fade: 40px;
+    --app-frame-inset: 12px;
+    --app-list-w: 100%;
+    --app-read-max: 860px;
+    --app-sheet-radius: 32px;
+    --app-dock-radius: 28px;
+    --app-sheet-fill: color-mix(in srgb, var(--ground) 94%, transparent);
+    --app-ring-dot: 0 0 0 3px var(--paper), 0 0 0 5px var(--accent-soft);
+    --app-chip-min-h: 44px;
+    --app-chip-padding: 0 14px;
+    --app-fs-chip: clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem);
+    --app-bead-dur: 420ms;
+    --app-bead-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --app-bead-lag: 1.6;
+    --app-bead-inset: 6px;
+    --app-count-size: 18px;
+    --app-fs-count: 0.6875rem;
+    --app-foot-padding: 14px;
+    --app-foot-radius: 20px;
+    --app-mask-solid: 120px;
+    --app-mask-clear: 300px;
+    --app-mask-detail: 80px;
 }
 
 @media (min-width: 48rem) {
     :root {
-        --inbox-item-padding: 18px 22px;
-        --inbox-map-h: clamp(18rem, 44svh, 26rem);
+        --app-nav-padding: 16px 8px;
+        --app-nav-radius: 28px;
+        --app-nav-w: 80px;
+        --app-tab-min: 64px;
+        --app-tab-radius: 20px;
+        --app-logo-h: 30px;
+        --app-bead-inset: 0px;
+    }
+}
+
+@media (min-width: 80rem) {
+    :root {
+        --app-nav-padding: 22px 14px;
+        --app-nav-w: 220px;
+        --app-tab-min: 52px;
+        --app-tab-radius: 999px;
+        --app-fs-tab: clamp(0.95rem, 0.9rem + 0.1vw, 1rem);
+        --app-tab-gap: 14px;
+        --app-tab-padding: 0 18px;
+        --app-logo-h: 52px;
+        --app-list-w: 420px;
+    }
+}
+
+@media (min-width: 120rem) {
+    :root {
+        --app-list-w: 560px;
+    }
+}
+
+/* inbox: the list with its chips, cards and empty states, and a drop's page with its map,
+   photo and actions */
+:root {
+    --inbox-item-padding: 16px 18px;
+    --inbox-item-gap: 10px;
+    --inbox-item-radius: 22px;
+    --inbox-item-border: 2px;
+    --inbox-item-lines: 3;
+    --inbox-fs-card: clamp(1.0625rem, 1rem + 0.3vw, 1.2rem);
+    --inbox-fs-badge: clamp(0.8125rem, 0.8rem + 0.1vw, 0.85rem);
+    --inbox-fs-read: clamp(1.35rem, 1.2rem + 1vw, 1.6rem);
+    --inbox-badge-min-h: 30px;
+    --inbox-badge-padding: 0 10px;
+    --inbox-badge-icon: 0.95rem;
+    --inbox-dot-size: 10px;
+    --inbox-iconbtn: 44px;
+    --inbox-icon: 20px;
+    --inbox-empty-min-h: clamp(18rem, 50svh, 26rem);
+    --inbox-empty-inset: 14px;
+    --inbox-empty-padding: 18px;
+    --inbox-patch-w: clamp(10rem, 14vw, 14rem);
+    --inbox-patch-ratio: 11 / 8;
+    --inbox-patch-radius: 24px;
+    --inbox-message-padding: 20px 18px;
+    --inbox-map-ratio: 16 / 10;
+    --inbox-map-radius: 22px;
+    --inbox-map-ctl: 44px;
+    --inbox-map-ctl-gap: 2px;
+    --inbox-map-ctl-inset: 10px;
+    --inbox-map-ctl-radius: 16px;
+    --inbox-map-label-padding: 4px 10px;
+    --inbox-credit-bg: rgba(255, 255, 255, 0.86);
+    --inbox-credit-ink: #3c474d;
+    --inbox-photo-w: 62%;
+    --inbox-photo-ring: 0 0 0 6px var(--paper), 0 0 0 9px var(--accent-soft);
+    --inbox-photo-ring-w: 9px;
+    --inbox-photo-ratio: 4 / 5;
+    --inbox-photo-radius: 22px;
+    --inbox-photo-blur: 28px;
+    --inbox-photo-veil: rgba(10, 10, 10, 0.28);
+    --inbox-media-gap: 18px;
+    --inbox-confirm-padding: 16px;
+    --inbox-confirm-radius: 22px;
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --inbox-item-padding: 18px 20px;
+        --inbox-map-ratio: 4 / 3;
+        --inbox-photo-w: 100%;
+        --inbox-fs-read: var(--type-message-large);
     }
 }
 

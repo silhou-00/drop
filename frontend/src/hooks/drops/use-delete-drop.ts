@@ -1,9 +1,9 @@
 // Deleting a drop for good. A lock held in a ref means a double tap sends one request, and it
-// stays shut after success because the page moves on. On success the drop leaves the kept inbox
-// list. A 404 means it is already gone, so it counts as deleted too. Other failures are kept as
-// text to show.
+// stays shut after success because the page moves on. On success the drop leaves the shared
+// inbox store, and an unread one lowers the unread count. A 404 means it is already gone, so it
+// counts as deleted too. Other failures are kept as text to show.
 import { useRef, useState } from "react";
-import { removeInboxItem } from "@/hooks/drops/use-inbox";
+import { applyRemoval } from "@/hooks/drops/inbox-store";
 import { ApiError } from "@/lib/api";
 import { deleteDrop } from "@/lib/drops/api";
 
@@ -15,7 +15,7 @@ export function useDeleteDrop() {
     const [error, setError] = useState("");
 
     // resolves true once the drop is gone, false when it failed or was already deleting
-    async function remove(id: string): Promise<boolean> {
+    async function remove(id: string, wasUnread: boolean): Promise<boolean> {
         if (lockRef.current) {
             return false;
         }
@@ -36,7 +36,7 @@ export function useDeleteDrop() {
             }
         }
 
-        removeInboxItem(id);
+        applyRemoval(id, wasUnread);
 
         return true;
     }

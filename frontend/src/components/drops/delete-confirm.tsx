@@ -1,6 +1,7 @@
-// The in-page step before a drop is deleted. It asks once, plainly, with Delete and Cancel side
-// by side, and moves focus to Cancel when it appears so a stray Enter does not delete. While
-// the delete runs both buttons are off. The page owns the delete; a failure shows as text here.
+// The in-page step before a drop is deleted. It takes the place of the action row and asks
+// once, plainly, with Delete and Cancel side by side, and moves focus to Cancel when it appears
+// so a stray Enter does not delete. While the delete runs both buttons are off. The page owns
+// the delete; a failure shows as text here.
 import { Trash } from "@phosphor-icons/react";
 import { useEffect, useRef } from "react";
 
@@ -19,7 +20,7 @@ export function DeleteConfirm({ pending, error, onConfirm, onCancel }: DeleteCon
     }, []);
 
     return (
-        <div className="inbox-confirm" role="group" aria-labelledby="inbox-confirm-title">
+        <div className="sub-section inbox-confirm" role="group" aria-labelledby="inbox-confirm-title">
             {/* question */}
             <div className="placement auth-stack">
                 <div className="container">
@@ -36,7 +37,7 @@ export function DeleteConfirm({ pending, error, onConfirm, onCancel }: DeleteCon
 
             {/* answers */}
             <div className="placement inbox-actions">
-                <div className="container">
+                <div className="container inbox-grow">
                     <button className="auth-btn inbox-btn-danger" type="button" disabled={pending} onClick={onConfirm}>
                         {pending ? (
                             <span className="auth-spin" aria-hidden="true" />
@@ -46,7 +47,7 @@ export function DeleteConfirm({ pending, error, onConfirm, onCancel }: DeleteCon
                         {pending ? "Deleting" : "Delete"}
                     </button>
                 </div>
-                <div className="container">
+                <div className="container inbox-grow">
                     <button
                         className="auth-btn auth-btn-paper"
                         type="button"

@@ -1,51 +1,49 @@
-// One drop in the inbox list. The whole card links to the drop's page. It shows an unread dot,
-// the place name (or "Place unknown"), a relative time with the full time in a time element, the
-// start of the message clamped to a few lines, and badges for the GPS place and for a photo.
-// The message is rendered as text only.
+// One drop in the inbox list. The whole card is one link to the drop's page that keeps the
+// current filter in the address. It shows the start of the message clamped to three lines,
+// then a badge for the place (left out when the drop has no place name), a badge when there
+// is a photo, a short age with the full time in a time element, and a ringed red dot when the
+// drop is unread. The open drop's card is marked active by the router. Text only.
 import { Link } from "@tanstack/react-router";
 import { Image, MapPin } from "@phosphor-icons/react";
-import { fullTime, relativeTime } from "@/lib/drops/helper";
+import { fullTime, shortAgo } from "@/lib/drops/helper";
 import type { InboxItem } from "@/lib/drops/model";
 
 export function InboxCard({ item }: { item: InboxItem }) {
-    const place = item.location.name ?? "Place unknown";
-    const full = fullTime(item.created_at);
+    const unread = !item.is_read;
 
     return (
         <Link
             className="inbox-card"
             to="/inbox/$id"
             params={{ id: item.id }}
-            data-unread={item.is_read ? undefined : "true"}
+            search={(prev) => prev}
+            data-unread={unread ? "true" : undefined}
         >
-            {/* place and time */}
-            <span className="inbox-card-top">
-                {item.is_read ? null : (
-                    <span className="inbox-dot">
-                        <span className="inbox-sr">Unread. </span>
-                    </span>
-                )}
-                <span className="inbox-card-place">{place}</span>
-                <time className="inbox-card-time" dateTime={item.created_at} title={full}>
-                    {relativeTime(item.created_at)}
-                </time>
-            </span>
+            {unread ? <span className="inbox-sr">Unread. </span> : null}
 
             {/* message */}
             <span className="inbox-card-message">{item.message}</span>
 
-            {/* badges */}
-            <span className="inbox-badges">
-                <span className="inbox-badge">
-                    <MapPin weight="fill" aria-hidden="true" />
-                    GPS place
-                </span>
+            {/* place, photo and age */}
+            <span className="inbox-card-meta">
+                {item.location.name ? (
+                    <span className="inbox-badge">
+                        <MapPin className="inbox-pin" weight="fill" aria-hidden="true" />
+                        {item.location.name}
+                    </span>
+                ) : null}
                 {item.has_photo ? (
                     <span className="inbox-badge">
                         <Image weight="fill" aria-hidden="true" />
                         Photo
                     </span>
                 ) : null}
+                <span className="inbox-ago">
+                    {unread ? <span className="inbox-dot" aria-hidden="true" /> : null}
+                    <time dateTime={item.created_at} title={fullTime(item.created_at)}>
+                        {shortAgo(item.created_at)}
+                    </time>
+                </span>
             </span>
         </Link>
     );

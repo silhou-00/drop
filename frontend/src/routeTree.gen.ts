@@ -11,15 +11,20 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsernameRouteImport } from './routes/$username'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as InboxIndexRouteImport } from './routes/inbox.index'
-import { Route as InboxIdRouteImport } from './routes/inbox.$id'
+import { Route as AppInboxRouteImport } from './routes/_app.inbox'
+import { Route as AppMapRouteImport } from './routes/_app.map'
+import { Route as AppMyLinkRouteImport } from './routes/_app.my-link'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
 import { Route as PlaygroundGooRouteImport } from './routes/playground/goo'
 import { Route as PlaygroundMarbleRouteImport } from './routes/playground/marble'
 import { Route as PlaygroundMotionRouteImport } from './routes/playground/motion'
+import { Route as AppInboxIndexRouteImport } from './routes/_app.inbox.index'
+import { Route as AppInboxIdRouteImport } from './routes/_app.inbox.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,6 +34,10 @@ const IndexRoute = IndexRouteImport.update({
 const UsernameRoute = UsernameRouteImport.update({
   id: '/$username',
   path: '/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimRoute = ClaimRouteImport.update({
@@ -46,15 +55,25 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InboxIndexRoute = InboxIndexRouteImport.update({
-  id: '/inbox/',
-  path: '/inbox/',
-  getParentRoute: () => rootRouteImport,
+const AppInboxRoute = AppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AppRoute,
 } as any)
-const InboxIdRoute = InboxIdRouteImport.update({
-  id: '/inbox/$id',
-  path: '/inbox/$id',
-  getParentRoute: () => rootRouteImport,
+const AppMapRoute = AppMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyLinkRoute = AppMyLinkRouteImport.update({
+  id: '/my-link',
+  path: '/my-link',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
 } as any)
 const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
   id: '/playground/',
@@ -76,6 +95,16 @@ const PlaygroundMotionRoute = PlaygroundMotionRouteImport.update({
   path: '/playground/motion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppInboxIndexRoute = AppInboxIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppInboxRoute,
+} as any)
+const AppInboxIdRoute = AppInboxIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppInboxRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,12 +112,16 @@ export interface FileRoutesByFullPath {
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
-  '/inbox/$id': typeof InboxIdRoute
+  '/inbox': typeof AppInboxRouteWithChildren
+  '/map': typeof AppMapRoute
+  '/my-link': typeof AppMyLinkRoute
+  '/settings': typeof AppSettingsRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
-  '/inbox/': typeof InboxIndexRoute
   '/playground/': typeof PlaygroundIndexRoute
+  '/inbox/$id': typeof AppInboxIdRoute
+  '/inbox/': typeof AppInboxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,26 +129,34 @@ export interface FileRoutesByTo {
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
-  '/inbox/$id': typeof InboxIdRoute
+  '/map': typeof AppMapRoute
+  '/my-link': typeof AppMyLinkRoute
+  '/settings': typeof AppSettingsRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
-  '/inbox': typeof InboxIndexRoute
   '/playground': typeof PlaygroundIndexRoute
+  '/inbox/$id': typeof AppInboxIdRoute
+  '/inbox': typeof AppInboxIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/_app': typeof AppRouteWithChildren
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
-  '/inbox/$id': typeof InboxIdRoute
+  '/_app/inbox': typeof AppInboxRouteWithChildren
+  '/_app/map': typeof AppMapRoute
+  '/_app/my-link': typeof AppMyLinkRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
-  '/inbox/': typeof InboxIndexRoute
   '/playground/': typeof PlaygroundIndexRoute
+  '/_app/inbox/$id': typeof AppInboxIdRoute
+  '/_app/inbox/': typeof AppInboxIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,12 +166,16 @@ export interface FileRouteTypes {
     | '/claim'
     | '/home'
     | '/sign-in'
-    | '/inbox/$id'
+    | '/inbox'
+    | '/map'
+    | '/my-link'
+    | '/settings'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
-    | '/inbox/'
     | '/playground/'
+    | '/inbox/$id'
+    | '/inbox/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,38 +183,45 @@ export interface FileRouteTypes {
     | '/claim'
     | '/home'
     | '/sign-in'
-    | '/inbox/$id'
+    | '/map'
+    | '/my-link'
+    | '/settings'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
-    | '/inbox'
     | '/playground'
+    | '/inbox/$id'
+    | '/inbox'
   id:
     | '__root__'
     | '/'
     | '/$username'
+    | '/_app'
     | '/claim'
     | '/home'
     | '/sign-in'
-    | '/inbox/$id'
+    | '/_app/inbox'
+    | '/_app/map'
+    | '/_app/my-link'
+    | '/_app/settings'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
-    | '/inbox/'
     | '/playground/'
+    | '/_app/inbox/$id'
+    | '/_app/inbox/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
+  AppRoute: typeof AppRouteWithChildren
   ClaimRoute: typeof ClaimRoute
   HomeRoute: typeof HomeRoute
   SignInRoute: typeof SignInRoute
-  InboxIdRoute: typeof InboxIdRoute
   PlaygroundGooRoute: typeof PlaygroundGooRoute
   PlaygroundMarbleRoute: typeof PlaygroundMarbleRoute
   PlaygroundMotionRoute: typeof PlaygroundMotionRoute
-  InboxIndexRoute: typeof InboxIndexRoute
   PlaygroundIndexRoute: typeof PlaygroundIndexRoute
 }
 
@@ -187,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/$username'
       fullPath: '/$username'
       preLoaderRoute: typeof UsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim': {
@@ -210,19 +269,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inbox/': {
-      id: '/inbox/'
+    '/_app/inbox': {
+      id: '/_app/inbox'
       path: '/inbox'
-      fullPath: '/inbox/'
-      preLoaderRoute: typeof InboxIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/inbox/$id': {
-      id: '/inbox/$id'
-      path: '/inbox/$id'
-      fullPath: '/inbox/$id'
-      preLoaderRoute: typeof InboxIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_app/map': {
+      id: '/_app/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AppMapRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/my-link': {
+      id: '/_app/my-link'
+      path: '/my-link'
+      fullPath: '/my-link'
+      preLoaderRoute: typeof AppMyLinkRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/playground/': {
       id: '/playground/'
@@ -252,20 +325,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaygroundMotionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/inbox/': {
+      id: '/_app/inbox/'
+      path: '/'
+      fullPath: '/inbox/'
+      preLoaderRoute: typeof AppInboxIndexRouteImport
+      parentRoute: typeof AppInboxRoute
+    }
+    '/_app/inbox/$id': {
+      id: '/_app/inbox/$id'
+      path: '/$id'
+      fullPath: '/inbox/$id'
+      preLoaderRoute: typeof AppInboxIdRouteImport
+      parentRoute: typeof AppInboxRoute
+    }
   }
 }
+
+interface AppInboxRouteChildren {
+  AppInboxIdRoute: typeof AppInboxIdRoute
+  AppInboxIndexRoute: typeof AppInboxIndexRoute
+}
+
+const AppInboxRouteChildren: AppInboxRouteChildren = {
+  AppInboxIdRoute: AppInboxIdRoute,
+  AppInboxIndexRoute: AppInboxIndexRoute,
+}
+
+const AppInboxRouteWithChildren = AppInboxRoute._addFileChildren(
+  AppInboxRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppInboxRoute: typeof AppInboxRouteWithChildren
+  AppMapRoute: typeof AppMapRoute
+  AppMyLinkRoute: typeof AppMyLinkRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppInboxRoute: AppInboxRouteWithChildren,
+  AppMapRoute: AppMapRoute,
+  AppMyLinkRoute: AppMyLinkRoute,
+  AppSettingsRoute: AppSettingsRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
+  AppRoute: AppRouteWithChildren,
   ClaimRoute: ClaimRoute,
   HomeRoute: HomeRoute,
   SignInRoute: SignInRoute,
-  InboxIdRoute: InboxIdRoute,
   PlaygroundGooRoute: PlaygroundGooRoute,
   PlaygroundMarbleRoute: PlaygroundMarbleRoute,
   PlaygroundMotionRoute: PlaygroundMotionRoute,
-  InboxIndexRoute: InboxIndexRoute,
   PlaygroundIndexRoute: PlaygroundIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,30 +1,10 @@
-/* Styles for the inbox and a drop's page: the wider card, the drop list and its cards with the
-   unread dot and badges, the message, place and time on a drop's page, the map plate with its
-   credits, the blurred photo and its reveal label, the action row and the delete confirm. It
-   builds on the auth page styles (card, buttons, type) and is scoped under the same auth root.
-   Every value comes from tokens.css. The content column is capped at --inbox-max. */
-
-/* column: cards and lists share one width */
-.auth-page .auth-card.inbox-wide {
-    max-width: var(--inbox-max);
-}
-
-.auth-page .inbox-section > .sub-section {
-    width: 100%;
-    max-width: var(--inbox-max);
-    margin-inline: auto;
-}
-
-.auth-page .inbox-grow {
-    flex: 1 1 auto;
-}
-
-.auth-page .auth-btn svg,
-.auth-page .inbox-back svg {
-    flex: none;
-    width: 1.25em;
-    height: 1.25em;
-}
+/* Styles for the inbox and a drop's page. The list: its heading with the "N new" count, the
+   filter chips, the day groups and the paper cards with their badges and ringed unread dot,
+   the empty stage over a marble patch, and the "Pick a drop" pane. A drop's page: its bar,
+   the large message, the place and GPS badges, the map plate with its glass controls and the
+   circled photo that opens full size, then the actions and the delete confirm. From laptops
+   up the drop sits in the paper reading pane with its body scrolling and its actions pinned.
+   It builds on the auth and app shell styles and every value comes from tokens.css. */
 
 /* screen reader text */
 .auth-page .inbox-sr {
@@ -36,27 +16,63 @@
     white-space: nowrap;
 }
 
-/* list heading and the panels for loading, empty and failed */
-.auth-page .inbox-heading {
-    font: 700 var(--inbox-fs-heading) / 1.1 var(--family-display);
-    letter-spacing: -0.01em;
+/* list heading: the title with its count, then the chips */
+.auth-page .inbox-title-row {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.auth-page .inbox-panel {
-    padding: var(--inbox-item-padding);
-    border-radius: var(--inbox-item-radius);
+.auth-page .inbox-title {
+    font: 700 var(--type-heading) / 1.04 var(--family-display);
+    letter-spacing: -0.02em;
+}
+
+.auth-page .inbox-new {
+    color: var(--ink);
+    font: 600 var(--type-caption) / 1 var(--family-body);
+    white-space: nowrap;
+}
+
+.auth-page .inbox-chips {
+    flex-wrap: nowrap;
+}
+
+.auth-page .inbox-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--app-chip-min-h);
+    padding: var(--app-chip-padding);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
     background: var(--paper);
-    box-shadow: var(--inbox-item-shadow);
+    color: var(--ink);
+    font: 600 var(--app-fs-chip) / 1 var(--family-body);
+    cursor: pointer;
+    transition: background-color 140ms var(--landing-e-cubic);
 }
 
-.auth-page .inbox-empty-title {
+.auth-page .inbox-chip[aria-pressed="true"] {
+    border-color: var(--inverse-fill);
+    background: var(--inverse-fill);
+    color: var(--inverse-ink);
+}
+
+/* day groups and cards */
+.auth-page .inbox-group-title {
     font: 700 var(--type-subheading) / 1.1 var(--family-display);
 }
 
-/* drop list */
-.auth-page .inbox-list {
-    list-style: none;
+.auth-page .inbox-cards {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
     margin: 0;
+    list-style: none;
+}
+
+.auth-page .inbox-cards > .container {
+    width: 100%;
 }
 
 .auth-page .inbox-card {
@@ -64,15 +80,16 @@
     flex-direction: column;
     gap: var(--inbox-item-gap);
     padding: var(--inbox-item-padding);
-    border: 1px solid transparent;
+    border: var(--inbox-item-border) solid transparent;
     border-radius: var(--inbox-item-radius);
     background: var(--paper);
-    box-shadow: var(--inbox-item-shadow);
+    box-shadow: var(--shadow-rest);
     color: var(--ink);
     text-decoration: none;
     transition:
         transform 140ms var(--landing-e-cubic),
-        border-color 140ms var(--landing-e-cubic);
+        border-color 140ms var(--landing-e-cubic),
+        box-shadow 140ms var(--landing-e-cubic);
 }
 
 .auth-page .inbox-card:active {
@@ -82,51 +99,18 @@
 @media (hover: hover) {
     .auth-page .inbox-card:hover {
         border-color: var(--hair);
+        box-shadow: var(--shadow-lift);
     }
 }
 
-.auth-page .inbox-card-top {
-    display: flex;
-    align-items: center;
-    gap: var(--inbox-item-gap);
-    min-width: 0;
-}
-
-.auth-page .inbox-dot {
-    flex: none;
-    width: var(--inbox-dot-size);
-    height: var(--inbox-dot-size);
-    border-radius: 50%;
-    background: var(--accent-fill);
-}
-
-.auth-page .inbox-card-place {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    font-size: var(--type-caption);
-    font-weight: 600;
-    color: var(--ink-2);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.auth-page .inbox-card[data-unread="true"] .inbox-card-place {
-    color: var(--ink);
-}
-
-.auth-page .inbox-card-time,
-.auth-page .inbox-time {
-    flex: none;
-    font: 600 var(--type-mono) var(--family-meta);
-    color: var(--ink-2);
-    white-space: nowrap;
+.auth-page .inbox-card[data-status="active"] {
+    border-color: var(--ink);
 }
 
 .auth-page .inbox-card-message {
     display: -webkit-box;
     overflow: hidden;
-    font: 500 var(--type-message) / 1.35 var(--family-body);
+    font: 500 var(--inbox-fs-card) / 1.35 var(--family-body);
     overflow-wrap: anywhere;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: var(--inbox-item-lines);
@@ -137,88 +121,184 @@
     font-weight: 600;
 }
 
-.auth-page .inbox-badges {
+.auth-page .inbox-card-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--inbox-item-gap);
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--placement-gap);
+    min-width: 0;
 }
 
+/* one line; a long place name ends in an ellipsis */
 .auth-page .inbox-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
     padding: var(--inbox-badge-padding);
+    overflow: hidden;
     border-radius: 999px;
     background: var(--ground);
-    color: var(--ink-2);
-    font-size: var(--type-caption);
-    font-weight: 600;
+    color: var(--ink);
+    font: 600 var(--inbox-fs-badge) / var(--inbox-badge-min-h) var(--family-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .auth-page .inbox-badge svg {
+    display: inline-block;
     width: var(--inbox-badge-icon);
     height: var(--inbox-badge-icon);
+    margin-inline-end: 4px;
+    vertical-align: -0.15em;
 }
 
-/* a drop's page */
-.auth-page .inbox-back {
+/* one meta row: the place badge truncates, the rest keep their size */
+.auth-page .inbox-card-meta > * {
+    flex: none;
+}
+
+.auth-page .inbox-card-meta > .inbox-badge:has(> .inbox-pin) {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.auth-page .inbox-pin {
+    color: var(--accent-fill);
+}
+
+.auth-page .inbox-ago {
     display: inline-flex;
     align-items: center;
     gap: var(--placement-gap);
-    min-height: 44px;
-    border-radius: 12px;
-    color: var(--ink);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
-
-.auth-page .inbox-detail-title {
-    font: 600 var(--inbox-fs-detail-title) var(--family-meta);
-    letter-spacing: 0.06em;
+    margin-left: auto;
     color: var(--ink-2);
-    text-transform: uppercase;
+    font: 600 var(--type-mono) var(--family-meta);
+    white-space: nowrap;
 }
 
-.auth-page .inbox-message {
-    font: 500 var(--type-message-large) / 1.25 var(--family-body);
+.auth-page .inbox-dot {
+    flex: none;
+    width: var(--inbox-dot-size);
+    height: var(--inbox-dot-size);
+    border-radius: 50%;
+    background: var(--accent-fill);
+    box-shadow: var(--app-ring-dot);
+}
+
+/* empty: a marble stage with the card pinned to its foot */
+.auth-page .inbox-empty {
+    justify-content: flex-end;
+    min-height: var(--inbox-empty-min-h);
+    padding: var(--inbox-empty-inset);
+    border-radius: var(--inbox-item-radius);
+    background: var(--app-patch-image) center / cover no-repeat var(--ground);
+}
+
+.auth-page .inbox-empty-card {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: var(--inbox-empty-padding);
+    border-radius: var(--inbox-item-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .inbox-empty-title {
+    font: 700 var(--type-subheading) / 1.1 var(--family-display);
+}
+
+.auth-page .inbox-empty-copy {
+    color: var(--ink-2);
+    font-size: var(--type-body);
+}
+
+.auth-page .inbox-btn-large {
+    font-size: var(--type-body);
+}
+
+.auth-page .inbox-cta-icon {
+    color: var(--accent-fill);
+}
+
+/* the reading pane before a drop is picked */
+.auth-page .inbox-pick {
+    flex: 1;
+    justify-content: center;
+}
+
+.auth-page .inbox-center {
+    justify-content: center;
+    text-align: center;
+}
+
+.auth-page .inbox-patch {
+    width: var(--inbox-patch-w);
+    aspect-ratio: var(--inbox-patch-ratio);
+    border-radius: var(--inbox-patch-radius);
+    background: var(--app-patch-image) center / cover no-repeat var(--ground);
+}
+
+/* a drop's page: bar, message and badges */
+.auth-page .drop-view {
+    flex: 1;
+    min-height: 0;
+}
+
+.auth-page .drop-bar-row {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.auth-page .drop-when {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
+}
+
+.auth-page .drop-time {
+    color: var(--ink-2);
+    font: 500 var(--type-caption) / 1.2 var(--family-body);
+    text-align: center;
+}
+
+.auth-page .drop-missing {
+    font: 700 var(--type-heading) / 1.04 var(--family-display);
+    letter-spacing: -0.02em;
+}
+
+.auth-page .drop-message-card {
+    padding: var(--inbox-message-padding);
+    border-radius: var(--inbox-item-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .drop-message {
+    font: 500 var(--inbox-fs-read) / 1.25 var(--family-body);
     letter-spacing: -0.01em;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
 
-.auth-page .inbox-meta {
-    align-items: flex-start;
+/* media: map and photo stacked on phones, side by side from tablets */
+.auth-page .drop-media {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--inbox-media-gap);
+    align-items: start;
 }
 
-/* the place takes the row; the time moves to its own line when there is no room */
-.auth-page .inbox-meta > .inbox-grow {
-    flex: 1 1 var(--inbox-place-min);
+.auth-page .drop-photo {
+    align-items: center;
+    padding: var(--inbox-photo-ring-w);
 }
 
-.auth-page .inbox-meta > .container:last-child {
-    margin-inline-start: auto;
-}
-
-.auth-page .inbox-meta-mark {
-    display: inline-flex;
-    color: var(--accent-fill);
-}
-
-.auth-page .inbox-meta-mark svg {
-    width: var(--inbox-mark-size);
-    height: var(--inbox-mark-size);
-}
-
-.auth-page .inbox-place {
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-/* map: a framed plate with the credits in the corner */
+/* map: a framed plate with glass controls, a distance label and the credits */
 .auth-page .inbox-map {
     position: relative;
-    height: var(--inbox-map-h);
+    aspect-ratio: var(--inbox-map-ratio);
     overflow: hidden;
     border-radius: var(--inbox-map-radius);
     background: var(--ground);
@@ -231,6 +311,52 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.auth-page .inbox-map-ctl {
+    position: absolute;
+    top: var(--inbox-map-ctl-inset);
+    right: var(--inbox-map-ctl-inset);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--inbox-map-ctl-gap);
+    overflow: hidden;
+    border: var(--glass-edge);
+    border-radius: var(--inbox-map-ctl-radius);
+    background: var(--glass-fill);
+    box-shadow: var(--shadow-rest);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.auth-page .inbox-map-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--inbox-map-ctl);
+    height: var(--inbox-map-ctl);
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.auth-page .inbox-map-btn svg {
+    width: var(--inbox-icon);
+    height: var(--inbox-icon);
+}
+
+.auth-page .inbox-map-label {
+    position: absolute;
+    top: var(--inbox-map-ctl-inset);
+    left: var(--inbox-map-ctl-inset);
+    z-index: 1;
+    padding: var(--inbox-map-label-padding);
+    border-radius: 999px;
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+    font: 600 var(--type-mono) var(--family-meta);
 }
 
 .auth-page .inbox-map-credit {
@@ -247,7 +373,7 @@
     border-radius: 8px;
     background: var(--inbox-credit-bg);
     color: var(--inbox-credit-ink);
-    font: 500 0.6875rem / 1.3 var(--family-body);
+    font: 500 var(--app-fs-count) / 1.3 var(--family-body);
 }
 
 .auth-page .inbox-map-credit a {
@@ -256,35 +382,41 @@
     text-underline-offset: 2px;
 }
 
-/* photo: a 4:5 box, blurred until revealed */
+/* photo: a ringed circle behind a blur, then the whole photo in a 4:5 frame */
 .auth-page .inbox-photo {
     position: relative;
     display: block;
-    width: 100%;
-    aspect-ratio: var(--inbox-photo-ratio);
+    width: var(--inbox-photo-w);
+    aspect-ratio: 1;
     overflow: hidden;
     padding: 0;
-    border: 0;
-    border-radius: var(--inbox-photo-radius);
+    border-radius: 50%;
     background: var(--ground);
-    isolation: isolate;
-}
-
-.auth-page button.inbox-photo {
+    box-shadow: var(--inbox-photo-ring);
     cursor: pointer;
+    isolation: isolate;
 }
 
 .auth-page .inbox-photo-img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 
-.auth-page .inbox-photo[data-hidden="true"] .inbox-photo-img {
-    object-fit: cover;
+.auth-page .inbox-photo[data-stage="hidden"] .inbox-photo-img {
     filter: blur(var(--inbox-photo-blur));
     transform: scale(1.15);
+}
+
+.auth-page .inbox-photo[data-stage="full"] {
+    aspect-ratio: var(--inbox-photo-ratio);
+    border-radius: var(--inbox-photo-radius);
+    box-shadow: none;
+}
+
+.auth-page .inbox-photo[data-stage="full"] .inbox-photo-img {
+    object-fit: contain;
 }
 
 .auth-page .inbox-photo-label {
@@ -310,23 +442,53 @@
     color: var(--ink-2);
 }
 
-/* actions and the delete confirm */
+/* actions, round icon buttons and the delete confirm */
 .auth-page .inbox-actions {
     flex-wrap: nowrap;
+    align-items: center;
 }
 
 .auth-page .inbox-actions > .container {
     flex: 1 1 0;
 }
 
+.auth-page .drop-actions .inbox-actions > .container {
+    flex: none;
+}
+
+.auth-page .drop-actions .inbox-actions > .inbox-grow {
+    flex: 1 1 auto;
+}
+
+.auth-page .inbox-iconbtn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--inbox-iconbtn);
+    height: var(--inbox-iconbtn);
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.auth-page .inbox-iconbtn svg {
+    width: var(--inbox-icon);
+    height: var(--inbox-icon);
+}
+
+.auth-page .inbox-iconbtn:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
 .auth-page .inbox-confirm {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sub-section-gap);
     padding: var(--inbox-confirm-padding);
     border: 1px solid var(--accent-soft);
     border-radius: var(--inbox-confirm-radius);
-    background: var(--ground);
+    background: var(--paper);
 }
 
 .auth-page .inbox-confirm-title {
@@ -336,4 +498,59 @@
 .auth-page .inbox-btn-danger {
     background: var(--accent-fill);
     color: var(--on-accent);
+}
+
+/* tablet and up: the logo moves to the rail and the map sits beside the photo */
+@media (min-width: 48rem) {
+    .auth-page .inbox-mobile-logo {
+        display: none;
+    }
+
+    .auth-page .drop-media {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    }
+
+    .auth-page .drop-media:not(:has(.drop-photo)) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .auth-page .drop-photo:has([data-stage="full"]) {
+        grid-column: 1 / -1;
+    }
+}
+
+/* laptop and up: the drop fills the paper pane, its body scrolls and the actions stay put */
+@media (min-width: 80rem) {
+    .auth-page .drop-back {
+        visibility: hidden;
+    }
+
+    .auth-page .app-pane-read .drop-view {
+        overflow: hidden;
+    }
+
+    .auth-page .app-pane-read .drop-view .placement {
+        width: 100%;
+        max-width: var(--app-read-max);
+        margin-inline: auto;
+    }
+
+    .auth-page .app-pane-read .drop-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: thin;
+    }
+
+    .auth-page .app-pane-read .drop-message-card {
+        padding: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .auth-page .app-pane-read .drop-actions {
+        margin-top: auto;
+        padding-top: var(--section-gap);
+        border-top: 1px solid var(--hair);
+    }
 }

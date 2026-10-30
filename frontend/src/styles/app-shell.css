@@ -1,0 +1,444 @@
+/* Styles for the signed-in app frame: the marbled bath behind it, the skip link, the glass nav
+   with its red bead and unread count, the main area and the panes the pages sit in, and the
+   few shared pieces the app pages use (title, card, button row). Phones first: a bottom tab
+   bar and one column; from 768px an icon rail and one column on a near-plain sheet; from
+   1280px a labelled rail docked to a list pane, with a paper reading pane filling the rest
+   of the screen. It builds on the auth root (type, buttons, focus ring) and every value
+   comes from tokens.css. */
+
+/* root and bath; on phones the bath shows behind the header only */
+.app-page {
+    isolation: isolate;
+}
+
+.app-page .app-bath {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    -webkit-mask-image: linear-gradient(#000 0, #000 var(--app-mask-solid), transparent var(--app-mask-clear));
+    mask-image: linear-gradient(#000 0, #000 var(--app-mask-solid), transparent var(--app-mask-clear));
+}
+
+.app-page:has(.drop-view) .app-bath {
+    -webkit-mask-image: linear-gradient(#000 0, transparent var(--app-mask-detail));
+    mask-image: linear-gradient(#000 0, transparent var(--app-mask-detail));
+}
+
+/* skip link: off screen until focused */
+.app-page .app-skip {
+    position: fixed;
+    top: var(--app-frame-inset);
+    left: var(--app-frame-inset);
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--auth-button-min-h);
+    padding: var(--auth-button-padding);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 600;
+    transform: translateY(-200%);
+}
+
+.app-page .app-skip:focus-visible {
+    transform: none;
+}
+
+/* main: the page's own content, clear of the tab bar */
+.app-page .app-main {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding-bottom: var(--app-bar-clearance);
+}
+
+.app-page .app-main:focus-visible {
+    box-shadow: none;
+}
+
+.app-page .app-panes,
+.app-page .app-sheet {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+}
+
+.app-page .app-pane-list,
+.app-page .app-pane-read {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-page .app-pane-read {
+    flex: 1;
+}
+
+/* nav: a glass tab bar fixed at the bottom, over a soft blur */
+.app-page .app-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    max-width: none;
+    margin: 0;
+}
+
+.app-page .app-nav::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--app-bar-fade) * -1) 0 0;
+    z-index: -1;
+    -webkit-backdrop-filter: blur(var(--app-bar-blur));
+    backdrop-filter: blur(var(--app-bar-blur));
+    -webkit-mask-image: linear-gradient(transparent, #000 var(--app-bar-fade));
+    mask-image: linear-gradient(transparent, #000 var(--app-bar-fade));
+    pointer-events: none;
+}
+
+.app-page .app-nav-bar {
+    width: var(--app-nav-w);
+    padding: var(--app-nav-padding);
+    border: var(--glass-edge);
+    border-radius: var(--app-nav-radius);
+    background: var(--glass-fill);
+    box-shadow: var(--shadow-rest);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.app-page .app-nav-logo,
+.app-page .app-nav-foot {
+    display: none;
+}
+
+/* logo: one image per theme, swapped by the colour setting */
+.app-page .app-logo {
+    display: block;
+    width: auto;
+    height: var(--app-logo-h);
+}
+
+.app-page .app-logo-dark {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .app-page .app-logo-light {
+        display: none;
+    }
+
+    :root:not([data-theme="light"]) .app-page .app-logo-dark {
+        display: block;
+    }
+}
+
+:root[data-theme="dark"] .app-page .app-logo-light {
+    display: none;
+}
+
+:root[data-theme="dark"] .app-page .app-logo-dark {
+    display: block;
+}
+
+/* tabs: four equal cells; the bead layer sits under them */
+.app-page .app-nav-tabs {
+    position: relative;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.app-page .app-nav-list {
+    position: relative;
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    list-style: none;
+}
+
+.app-page .app-nav-item {
+    display: flex;
+}
+
+.app-page .app-tab {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--app-tab-gap);
+    min-height: var(--app-tab-min);
+    border-radius: var(--app-tab-radius);
+    color: var(--ink);
+    font: 600 var(--app-fs-tab) / 1.1 var(--family-body);
+    text-decoration: none;
+}
+
+.app-page .app-tab[data-status="active"] {
+    color: var(--on-accent);
+}
+
+.app-page .app-tab-icon {
+    position: relative;
+    display: inline-flex;
+}
+
+.app-page .app-tab-icon svg {
+    width: var(--app-tab-icon);
+    height: var(--app-tab-icon);
+}
+
+.app-page .app-tab-count {
+    position: absolute;
+    top: calc(var(--app-count-size) / -3);
+    left: calc(100% - var(--app-count-size) / 3);
+    min-width: var(--app-count-size);
+    height: var(--app-count-size);
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--inverse-fill);
+    color: var(--inverse-ink);
+    font: 700 var(--app-fs-count) / var(--app-count-size) var(--family-body);
+    text-align: center;
+}
+
+/* bead: a lead and a slower trail melt together through the goo filter */
+.app-page .app-nav-beads {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+}
+
+.app-page .app-nav-goo {
+    position: absolute;
+    inset: 0;
+}
+
+.app-page .app-bead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 25%;
+    height: 100%;
+    transform: translateX(calc(var(--nav-index) * 100%));
+    transition: transform var(--app-bead-dur) var(--app-bead-ease);
+}
+
+.app-page .app-bead::before {
+    content: "";
+    position: absolute;
+    inset: 0 var(--app-bead-inset);
+    border-radius: var(--app-tab-radius);
+    background: var(--accent-fill);
+}
+
+.app-page .app-bead-trail {
+    transition-duration: calc(var(--app-bead-dur) * var(--app-bead-lag));
+}
+
+.app-page .app-nav-beads[data-on="false"] {
+    display: none;
+}
+
+/* shared page pieces: title, card and a row of buttons */
+.app-page .app-title {
+    font: 700 var(--type-heading) / 1.04 var(--family-display);
+    letter-spacing: -0.02em;
+}
+
+.app-page .app-card {
+    padding: var(--auth-card-padding);
+    border-radius: var(--app-sheet-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.app-page .app-row {
+    flex-wrap: nowrap;
+}
+
+.app-page .app-row > .container {
+    flex: 1 1 0;
+}
+
+.app-page .auth-btn svg {
+    flex: none;
+    width: 1.25em;
+    height: 1.25em;
+}
+
+/* tablet: icon rail on the left, one column on a near-plain sheet */
+@media (min-width: 48rem) {
+    .app-page .app-bath,
+    .app-page:has(.drop-view) .app-bath {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .app-page .app-main {
+        padding: var(--app-frame-inset);
+        padding-left: var(--rail-w);
+    }
+
+    .app-page .app-panes,
+    .app-page .app-sheet {
+        max-width: var(--content-max);
+        margin-inline: auto;
+        border-radius: var(--app-sheet-radius);
+        background: var(--app-sheet-fill);
+    }
+
+    .app-page .app-nav {
+        top: 0;
+        right: auto;
+        width: auto;
+        padding: var(--app-frame-inset);
+    }
+
+    .app-page .app-nav::before {
+        content: none;
+    }
+
+    .app-page .app-nav-bar {
+        flex: 1;
+    }
+
+    .app-page .app-nav-logo {
+        display: flex;
+        justify-content: center;
+    }
+
+    .app-page .app-nav-list {
+        grid-template-columns: minmax(0, 1fr);
+        grid-auto-rows: var(--app-tab-min);
+        gap: var(--placement-gap);
+        align-content: start;
+    }
+
+    .app-page .app-bead {
+        width: 100%;
+        height: var(--app-tab-min);
+        transform: translateY(calc(var(--nav-index) * (var(--app-tab-min) + var(--placement-gap))));
+    }
+}
+
+/* laptop and up: labelled rail docked to the list pane; the panes fill the screen */
+@media (min-width: 80rem) {
+    .app-page .app-main {
+        flex: none;
+        height: 100svh;
+        padding-left: calc(var(--app-frame-inset) + var(--app-nav-w));
+        overflow: hidden;
+    }
+
+    .app-page .app-nav {
+        padding-right: 0;
+    }
+
+    .app-page .app-nav-bar {
+        border-right: 0;
+        border-radius: var(--app-dock-radius) 0 0 var(--app-dock-radius);
+    }
+
+    .app-page .app-nav-logo {
+        justify-content: flex-start;
+    }
+
+    .app-page .app-logo {
+        margin-inline-start: var(--app-tab-gap);
+    }
+
+    .app-page .app-tab {
+        position: relative;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: var(--app-tab-padding);
+    }
+
+    .app-page .app-tab-icon {
+        position: static;
+    }
+
+    .app-page .app-tab-count {
+        top: 50%;
+        right: var(--app-foot-padding);
+        left: auto;
+        transform: translateY(-50%);
+    }
+
+    .app-page .app-nav-foot {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        margin-top: auto;
+        padding: var(--app-foot-padding);
+        border-radius: var(--app-foot-radius);
+        background: var(--paper);
+    }
+
+    .app-page .app-foot-label {
+        font-size: var(--type-caption);
+        color: var(--ink-2);
+    }
+
+    .app-page .app-foot-link {
+        font: 600 var(--type-mono) var(--family-meta);
+        overflow-wrap: anywhere;
+    }
+
+    .app-page .app-panes {
+        display: grid;
+        grid-template-columns: minmax(0, var(--app-list-w)) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+        gap: var(--sub-section-gap);
+        max-width: none;
+        min-height: 0;
+        margin: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .app-page .app-pane-list,
+    .app-page .app-sheet {
+        min-height: 0;
+        overflow: auto;
+        border-left: 1px solid var(--hair);
+        border-radius: 0 var(--app-dock-radius) var(--app-dock-radius) 0;
+        background: var(--app-sheet-fill);
+        scrollbar-width: thin;
+    }
+
+    .app-page .app-sheet {
+        max-width: none;
+        margin: 0;
+    }
+
+    .app-page .app-pane-read {
+        min-height: 0;
+        overflow: hidden;
+        border-radius: var(--app-sheet-radius);
+        background: var(--paper);
+        box-shadow: var(--shadow-rest);
+    }
+
+    .app-page .app-pane-read > .section {
+        flex: 1;
+        min-height: 0;
+        max-width: none;
+    }
+}
+
+/* reduced motion: the bead jumps without travel */
+@media (prefers-reduced-motion: reduce) {
+    .app-page .app-bead,
+    .app-page .app-bead-trail {
+        transition: none;
+    }
+}

@@ -1,9 +1,16 @@
 # Backend Changelog
 
+## October 31, 2026
+
+**Profiles:**
+
+- The name map is now reserved for the app's map page.
+
 ## October 30, 2026
 
 **Inbox:**
 
+- The inbox can be filtered to unread drops or drops with photos, and reports how many drops are unread.
 - A photo whose file is missing now answers "not found" instead of a server error.
 - Signed-in people can now list their drops page by page, open one, mark it read or unread, delete it, and view its photo, all limited to their own drops.
 
