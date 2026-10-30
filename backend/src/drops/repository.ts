@@ -12,6 +12,7 @@ export type NewDropRow = {
     location: LngLat;
     locationSource: "gps";
     locationName: string | null;
+    photoKey: string | null;
     senderKey: string;
     deviceKey: string;
 };

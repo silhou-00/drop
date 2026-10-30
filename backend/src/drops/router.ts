@@ -9,7 +9,7 @@ import type { AppEnv } from "../middleware/session.js";
 import { AppError } from "../shared/errors.js";
 import type { DropService } from "./service.js";
 
-const BODY_LIMIT_BYTES = 16 * 1024;
+const BODY_LIMIT_BYTES = 9 * 1024 * 1024;
 const MULTIPART = "multipart/form-data";
 
 export function createDropRouter(service: DropService, { origin }: { origin: string }) {
@@ -32,7 +32,10 @@ export function createDropRouter(service: DropService, { origin }: { origin: str
     const limitBody = bodyLimit({
         maxSize: BODY_LIMIT_BYTES,
         onError: (c) => {
-            return c.json({ data: null, error: { code: "PAYLOAD_TOO_LARGE", message: "Request too large" } }, 413);
+            return c.json(
+                { data: null, error: { code: "PAYLOAD_TOO_LARGE", message: "That photo is too large." } },
+                413,
+            );
         },
     });
 

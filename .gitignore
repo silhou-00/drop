@@ -12,3 +12,6 @@ dist
 
 # map files served at /tiles
 /tiles/
+
+# photos stored on the server's disk
+/uploads/

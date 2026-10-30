@@ -2,6 +2,10 @@
 
 ## October 30, 2026
 
+**Photos:**
+
+- Senders can add one photo to a drop from their camera or gallery, see a preview with its size, and remove it before sending. A wrong or oversized file is turned away with a plain message.
+
 **Send page:**
 
 - Senders now share their GPS location to send a drop; placing a pin by hand is gone.

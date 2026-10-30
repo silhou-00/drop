@@ -2,6 +2,10 @@
 
 ## October 30, 2026
 
+**Photos:**
+
+- Senders can attach a photo to a drop; the server removes hidden data like GPS, shrinks it, and stores it privately.
+
 **Profiles:**
 
 - Anyone can claim a link; sign-up no longer asks for an age confirmation.

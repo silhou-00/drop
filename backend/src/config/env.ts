@@ -6,6 +6,9 @@ import { z } from "zod";
 // the tiles folder at the drop-app root unless TILES_DIR says otherwise
 const DEFAULT_TILES_DIR = path.resolve(import.meta.dirname, "../../../tiles");
 
+// the uploads folder at the drop-app root unless UPLOADS_DIR says otherwise
+const DEFAULT_UPLOADS_DIR = path.resolve(import.meta.dirname, "../../../uploads");
+
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
@@ -20,6 +23,10 @@ const envSchema = z.object({
         .string()
         .optional()
         .transform((value) => path.resolve(value || DEFAULT_TILES_DIR)),
+    UPLOADS_DIR: z
+        .string()
+        .optional()
+        .transform((value) => path.resolve(value || DEFAULT_UPLOADS_DIR)),
 });
 
 const parsed = envSchema.safeParse(process.env);

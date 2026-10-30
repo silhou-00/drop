@@ -95,14 +95,38 @@ describe("POST /profiles/:username/drops", () => {
         expect(json.error.code).toBe("VALIDATION_ERROR");
     });
 
-    it("rejects a body over 16 KB with 413", async () => {
+    it("rejects a body over 9 MB with 413 in the envelope", async () => {
         const form = new FormData();
 
-        form.set("message", "a".repeat(17 * 1024));
+        form.set("message", "hi");
+        form.set("photo", new File([new Uint8Array(9 * 1024 * 1024 + 1)], "a.jpg", { type: "image/jpeg" }));
 
         const res = await post(build(ok), { body: form });
 
         expect(res.status).toBe(413);
+        expect(await res.json()).toEqual({
+            data: null,
+            error: { code: "PAYLOAD_TOO_LARGE", message: "That photo is too large." },
+        });
+    });
+
+    it("passes a file field to the service as a File", async () => {
+        let seen: SendDropRequest | undefined;
+        const form = new FormData();
+
+        form.set("message", "hi");
+        form.set("photo", new File([new Uint8Array([1, 2, 3])], "a.jpg", { type: "image/jpeg" }));
+
+        await post(
+            build(async (request) => {
+                seen = request;
+
+                return { delivered: true };
+            }),
+            { body: form },
+        );
+
+        expect(seen?.fields.photo).toBeInstanceOf(File);
     });
 
     it("passes a 422 location message through in the envelope", async () => {

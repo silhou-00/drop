@@ -1,5 +1,5 @@
 /* Styles for the public send page: the wider send card, the message box and its counter, the
-   location button and GPS place row, the map plate with its centre pin and credits (kept for
+   location button and GPS place row, the photo picker with its preview, the map plate with its centre pin and credits (kept for
    the location map), and the sent mark. It builds on the auth page styles (card, buttons,
    type) and is scoped under the same auth root. Every value comes from tokens.css. */
 
@@ -148,7 +148,40 @@
     color: var(--ink-2);
 }
 
-/* round icon button: refresh the location */
+/* photo: the file input stays reachable for the button but is never seen */
+.auth-page .send-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.auth-page .send-file-slot {
+    margin-block-start: calc(var(--placement-gap) * -1);
+}
+
+.auth-page .send-photo {
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: var(--send-place-padding);
+    border: 1px solid var(--hair);
+    border-radius: var(--send-place-radius);
+    background: var(--ground);
+}
+
+.auth-page .send-photo-thumb {
+    display: block;
+    inline-size: var(--send-photo-thumb);
+    max-inline-size: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--send-photo-radius);
+    object-fit: cover;
+    background: var(--paper);
+}
+
+/* round icon button: refresh the location, remove the photo */
 .auth-page .send-icon-btn {
     display: inline-flex;
     align-items: center;
@@ -160,6 +193,11 @@
     color: var(--ink);
     cursor: pointer;
     transition: transform 140ms var(--landing-e-cubic);
+}
+
+.auth-page .send-icon-btn:disabled {
+    cursor: default;
+    opacity: 0.5;
 }
 
 .auth-page .send-icon-btn:active {

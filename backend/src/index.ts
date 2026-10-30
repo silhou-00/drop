@@ -21,6 +21,7 @@ import { createSendLimiter } from "./drops/limits.js";
 import { createDropRepository } from "./drops/repository.js";
 import { createDropRouter } from "./drops/router.js";
 import { createDropService } from "./drops/service.js";
+import { cleanPhoto, newPhotoKey } from "./photos/service.js";
 import { createLocationIqClient } from "./places/client.js";
 import { createPlaceRepository } from "./places/repository.js";
 import { createPlaceService } from "./places/service.js";
@@ -29,6 +30,7 @@ import { createProfileRouter } from "./profiles/router.js";
 import { createProfileService } from "./profiles/service.js";
 import { closeDb, db } from "./shared/db/client.js";
 import { errorHandler } from "./shared/errors.js";
+import { createLocalDiskStore } from "./shared/storage/local-disk.js";
 
 const FRONTEND_DIST = path.relative(process.cwd(), path.resolve(import.meta.dirname, "../../frontend/dist"));
 
@@ -47,6 +49,9 @@ const dropService = createDropService({
     limiter: createSendLimiter(),
     keys: createKeyMaker(config.SENDER_KEY_SECRET),
     lookupPlaceName: placeService.lookupPlaceName,
+    store: createLocalDiskStore({ dir: config.UPLOADS_DIR }),
+    cleanPhoto,
+    newPhotoKey,
 });
 
 const app = new Hono<AppEnv>();

@@ -1,11 +1,16 @@
 // Tests for the send service with fakes: the order of the checks, what reaches the
-// repository, and the place-name fallback.
+// repository, the place-name fallback, and the photo save and cleanup order.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
 import type { NewDropRow } from "./repository.js";
+import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
+import { AppError } from "../shared/errors.js";
 import { LOCATION_REQUIRED_MESSAGE } from "./model.js";
 import { createDropService } from "./service.js";
+
+const PHOTO_KEY = "123e4567-e89b-42d3-a456-426614174000.webp";
+const photo = new File([new Uint8Array([1, 2, 3])], "a.jpg", { type: "image/jpeg" });
 
 const keys = createKeyMaker("s".repeat(40));
 const recipient = { id: "r1", acceptingDrops: true };
@@ -14,20 +19,30 @@ type Options = {
     recipient?: typeof recipient | null;
     result?: "inserted" | "paused" | "missing";
     placeName?: string | null;
+    insertError?: Error;
+    cleanError?: Error;
 };
 
 function build({
     recipient: found = recipient,
     result = "inserted",
     placeName = "Diliman, Quezon City",
+    insertError,
+    cleanError,
 }: Options = {}) {
     const rows: NewDropRow[] = [];
     const lookups: unknown[] = [];
+    const saved: string[] = [];
+    const removed: string[] = [];
     const service = createDropService({
         findRecipient: async () => found,
         drops: {
             insertDrop: async (row) => {
                 rows.push(row);
+
+                if (insertError) {
+                    throw insertError;
+                }
 
                 return result;
             },
@@ -39,9 +54,26 @@ function build({
 
             return placeName;
         },
+        store: {
+            save: async (key) => {
+                saved.push(key);
+            },
+            read: async () => Buffer.alloc(0),
+            remove: async (key) => {
+                removed.push(key);
+            },
+        },
+        cleanPhoto: async () => {
+            if (cleanError) {
+                throw cleanError;
+            }
+
+            return Buffer.from("cleaned");
+        },
+        newPhotoKey: () => PHOTO_KEY,
     });
 
-    return { service, rows, lookups };
+    return { service, rows, lookups, saved, removed };
 }
 
 const gps = { latitude: "14.599512", longitude: "120.984222", location_source: "gps" };
@@ -147,5 +179,76 @@ describe("sendDrop", () => {
         await expect(
             build({ result: "missing" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({ status: 404 });
+    });
+
+    it("sends no photo: nothing is saved and the key is null", async () => {
+        const { service, rows, saved } = build();
+
+        await service.sendDrop({ ...base, fields: { message: "hi", ...gps } });
+
+        expect(saved).toEqual([]);
+        expect(rows[0].photoKey).toBeNull();
+    });
+
+    it("cleans and saves a photo, and passes its key to the insert", async () => {
+        const { service, rows, saved, removed } = build();
+
+        await service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } });
+
+        expect(saved).toEqual([PHOTO_KEY]);
+        expect(removed).toEqual([]);
+        expect(rows[0].photoKey).toBe(PHOTO_KEY);
+    });
+
+    it("removes the saved photo and answers 409 when the insert returns paused", async () => {
+        const { service, saved, removed } = build({ result: "paused" });
+
+        await expect(service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } })).rejects.toMatchObject({
+            status: 409,
+        });
+        expect(saved).toEqual([PHOTO_KEY]);
+        expect(removed).toEqual([PHOTO_KEY]);
+    });
+
+    it("removes the saved photo and answers 404 when the insert returns missing", async () => {
+        const { service, removed } = build({ result: "missing" });
+
+        await expect(service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } })).rejects.toMatchObject({
+            status: 404,
+        });
+        expect(removed).toEqual([PHOTO_KEY]);
+    });
+
+    it("removes the saved photo and rethrows when the insert throws", async () => {
+        const failure = new Error("db down");
+        const { service, removed } = build({ insertError: failure });
+
+        await expect(service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } })).rejects.toBe(failure);
+        expect(removed).toEqual([PHOTO_KEY]);
+    });
+
+    it("answers 422 and saves nothing when the photo cannot be cleaned", async () => {
+        const { service, saved, rows } = build({ cleanError: new AppError(422, "VALIDATION_ERROR", PHOTO_MESSAGE) });
+
+        await expect(service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } })).rejects.toMatchObject({
+            status: 422,
+            message: PHOTO_MESSAGE,
+        });
+        expect(saved).toEqual([]);
+        expect(rows).toHaveLength(0);
+    });
+
+    it("answers 422 for a photo that is a string, a list, empty or too big", async () => {
+        const empty = new File([], "a.jpg");
+        const big = new File([new Uint8Array(PHOTO_MAX_BYTES + 1)], "a.jpg");
+
+        for (const bad of ["text", [photo, photo], empty, big]) {
+            const { service, saved } = build();
+
+            await expect(
+                service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo: bad } }),
+            ).rejects.toMatchObject({ status: 422, message: PHOTO_MESSAGE });
+            expect(saved).toEqual([]);
+        }
     });
 });

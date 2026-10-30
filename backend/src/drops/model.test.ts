@@ -1,6 +1,7 @@
 // Tests for the send input rules: message length in code points, coordinates, the
-// required GPS location, unknown fields, and multipart array values.
+// required GPS location, unknown fields, multipart array values, and the optional photo.
 import { describe, expect, it } from "vitest";
+import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
 import { LOCATION_MESSAGE, LOCATION_REQUIRED_MESSAGE, MESSAGE_MESSAGE, sendDropSchema } from "./model.js";
 
 function firstMessage(input: unknown) {
@@ -63,5 +64,30 @@ describe("sendDropSchema", () => {
     it("rejects unknown fields and array values", () => {
         expect(sendDropSchema.safeParse({ message: "hi", ...gps, extra: "x" }).success).toBe(false);
         expect(sendDropSchema.safeParse({ message: ["a", "b"], ...gps }).success).toBe(false);
+    });
+
+    it("accepts a file photo within the size bounds, or none", () => {
+        const base = { message: "hi", ...gps };
+
+        expect(sendDropSchema.safeParse(base).success).toBe(true);
+        expect(sendDropSchema.safeParse({ ...base, photo: new File([new Uint8Array(1)], "a.jpg") }).success).toBe(true);
+        expect(
+            sendDropSchema.safeParse({ ...base, photo: new File([new Uint8Array(PHOTO_MAX_BYTES)], "a.jpg") }).success,
+        ).toBe(true);
+    });
+
+    it("rejects a photo that is a string, a list, empty or over the cap", () => {
+        const base = { message: "hi", ...gps };
+        const file = new File([new Uint8Array(1)], "a.jpg");
+        const bad = [
+            "text",
+            [file, file],
+            new File([], "a.jpg"),
+            new File([new Uint8Array(PHOTO_MAX_BYTES + 1)], "a.jpg"),
+        ];
+
+        for (const photo of bad) {
+            expect(firstMessage({ ...base, photo })).toBe(PHOTO_MESSAGE);
+        }
     });
 });

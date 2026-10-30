@@ -1,10 +1,12 @@
 // Drop table and the input rules for sending a drop. Every drop must carry a GPS
 // location. The error messages are exported as constants so the frontend can show the
-// same text for the same failure. The send body arrives as multipart text fields, so
+// same text for the same failure. The optional photo is checked here for size only; the
+// photos slice reads the bytes. The send body arrives as multipart text fields, so
 // numbers are decimal strings until parsed here.
 import { sql } from "drizzle-orm";
 import { boolean, char, check, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
+import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
 import { profiles } from "../profiles/model.js";
 import { geographyPoint } from "../shared/db/geography.js";
 
@@ -19,6 +21,7 @@ export const drops = pgTable(
         location: geographyPoint("location").notNull(),
         locationSource: text("location_source", { enum: ["gps"] }).notNull(),
         locationName: varchar("location_name", { length: 100 }),
+        photoKey: text("photo_key"),
         senderKey: char("sender_key", { length: 64 }).notNull(),
         deviceKey: char("device_key", { length: 64 }),
         isRead: boolean("is_read").notNull().default(false),
@@ -60,11 +63,17 @@ function coordinate(max: number) {
         .refine((value) => Math.abs(value) <= max, LOCATION_MESSAGE);
 }
 
+// one uploaded file of 1 byte up to the size cap; a string or a list of files fails
+const photoSchema = z
+    .custom<File>((value) => value instanceof File && value.size >= 1 && value.size <= PHOTO_MAX_BYTES, PHOTO_MESSAGE)
+    .optional();
+
 export const sendDropSchema = z.strictObject({
     message: messageSchema,
     latitude: coordinate(LAT_MAX),
     longitude: coordinate(LNG_MAX),
     location_source: z.literal("gps", LOCATION_REQUIRED_MESSAGE),
+    photo: photoSchema,
 });
 
 export type SendDropInput = z.infer<typeof sendDropSchema>;

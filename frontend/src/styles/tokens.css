@@ -244,6 +244,8 @@
     --send-credit-bg: rgba(255, 255, 255, 0.86);
     --send-credit-ink: #3c474d;
     --send-sent-size: clamp(2.75rem, 2.4rem + 1.5vw, 3.5rem);
+    --send-photo-thumb: clamp(4rem, 3.5rem + 2vw, 5rem);
+    --send-photo-radius: 12px;
 }
 
 @media (min-width: 48rem) {
