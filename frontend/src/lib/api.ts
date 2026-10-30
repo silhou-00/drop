@@ -2,8 +2,8 @@
 // cookie and sends JSON when the body is a string. A FormData body gets no content type, so
 // the browser adds the multipart boundary itself. It unwraps the { data, error } envelope and
 // turns every failure into an ApiError carrying the status, the error code and a message that
-// is safe to show. A 429 reads Retry-After and becomes a plain "try again in" message. Error
-// text is shown as text.
+// is safe to show. A 429 reads Retry-After and becomes a plain "try again in" message. A 204
+// has no body and resolves with undefined. Error text is shown as text.
 
 const NETWORK_MESSAGE = "Could not reach Drop. Check your connection and try again.";
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
@@ -59,6 +59,10 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
 
     if (response.status === 429) {
         throw new ApiError(429, "RATE_LIMITED", rateLimitMessage(response.headers.get("Retry-After")));
+    }
+
+    if (response.status === 204) {
+        return undefined as T;
     }
 
     const body = (await response.json().catch(() => null)) as Envelope<T> | null;

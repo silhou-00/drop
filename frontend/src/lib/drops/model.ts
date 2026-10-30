@@ -4,7 +4,8 @@
 // Every drop carries a GPS location and may carry one photo. The server still decides; these
 // checks only save a round trip. The photo is checked by its stated type and size here, and the
 // server checks it again from its bytes. Coordinates are sent as decimal strings and stay in
-// memory only.
+// memory only. The inbox shapes and messages match the backend's inbox item and query rules,
+// and a drop id is checked as a UUID before it is put in any request path.
 
 export const MESSAGE_MAX = 280;
 export const MESSAGE_MESSAGE = "Write a message up to 280 characters.";
@@ -16,6 +17,11 @@ export const PHOTO_MESSAGE = "Use a JPEG, PNG or WebP photo up to 8 MB.";
 export const PHOTO_UNREADABLE_MESSAGE = "That photo could not be read.";
 export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+export const LIMIT_MESSAGE = "Choose a page size from 1 to 50.";
+export const CURSOR_MESSAGE = "That page link is not valid.";
+export const IS_READ_MESSAGE = "Send is_read as true or false.";
+
+const DROP_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const COORDINATE_PATTERN = /^-?\d{1,3}(\.\d{1,15})?$/;
 const LAT_MAX = 90;
 const LNG_MAX = 180;
@@ -28,6 +34,22 @@ export type DropLocation = { latitude: number; longitude: number; source: Locati
 export type DropDraft = { message: string; location: DropLocation; photo: File | null };
 
 export type DraftCheck = { ok: true } | { ok: false; message: string };
+
+export type InboxItem = {
+    id: string;
+    message: string;
+    location: { lat: number; lng: number; name: string | null; source: LocationSource };
+    has_photo: boolean;
+    is_read: boolean;
+    created_at: string;
+};
+
+export type InboxPage = { items: InboxItem[]; next_cursor: string | null };
+
+// a drop id in the server's UUID form; anything else is not-found without a request
+export function isDropId(value: string) {
+    return DROP_ID_PATTERN.test(value);
+}
 
 // decimal string for a coordinate, never in exponent form
 export function formatCoordinate(value: number) {

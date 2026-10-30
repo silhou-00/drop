@@ -14,6 +14,8 @@ import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as InboxIndexRouteImport } from './routes/inbox.index'
+import { Route as InboxIdRouteImport } from './routes/inbox.$id'
 import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
 import { Route as PlaygroundGooRouteImport } from './routes/playground/goo'
 import { Route as PlaygroundMarbleRouteImport } from './routes/playground/marble'
@@ -44,6 +46,16 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxIndexRoute = InboxIndexRouteImport.update({
+  id: '/inbox/',
+  path: '/inbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxIdRoute = InboxIdRouteImport.update({
+  id: '/inbox/$id',
+  path: '/inbox/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
   id: '/playground/',
   path: '/playground/',
@@ -71,9 +83,11 @@ export interface FileRoutesByFullPath {
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
+  '/inbox/$id': typeof InboxIdRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
+  '/inbox/': typeof InboxIndexRoute
   '/playground/': typeof PlaygroundIndexRoute
 }
 export interface FileRoutesByTo {
@@ -82,9 +96,11 @@ export interface FileRoutesByTo {
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
+  '/inbox/$id': typeof InboxIdRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
+  '/inbox': typeof InboxIndexRoute
   '/playground': typeof PlaygroundIndexRoute
 }
 export interface FileRoutesById {
@@ -94,9 +110,11 @@ export interface FileRoutesById {
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
+  '/inbox/$id': typeof InboxIdRoute
   '/playground/goo': typeof PlaygroundGooRoute
   '/playground/marble': typeof PlaygroundMarbleRoute
   '/playground/motion': typeof PlaygroundMotionRoute
+  '/inbox/': typeof InboxIndexRoute
   '/playground/': typeof PlaygroundIndexRoute
 }
 export interface FileRouteTypes {
@@ -107,9 +125,11 @@ export interface FileRouteTypes {
     | '/claim'
     | '/home'
     | '/sign-in'
+    | '/inbox/$id'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
+    | '/inbox/'
     | '/playground/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -118,9 +138,11 @@ export interface FileRouteTypes {
     | '/claim'
     | '/home'
     | '/sign-in'
+    | '/inbox/$id'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
+    | '/inbox'
     | '/playground'
   id:
     | '__root__'
@@ -129,9 +151,11 @@ export interface FileRouteTypes {
     | '/claim'
     | '/home'
     | '/sign-in'
+    | '/inbox/$id'
     | '/playground/goo'
     | '/playground/marble'
     | '/playground/motion'
+    | '/inbox/'
     | '/playground/'
   fileRoutesById: FileRoutesById
 }
@@ -141,9 +165,11 @@ export interface RootRouteChildren {
   ClaimRoute: typeof ClaimRoute
   HomeRoute: typeof HomeRoute
   SignInRoute: typeof SignInRoute
+  InboxIdRoute: typeof InboxIdRoute
   PlaygroundGooRoute: typeof PlaygroundGooRoute
   PlaygroundMarbleRoute: typeof PlaygroundMarbleRoute
   PlaygroundMotionRoute: typeof PlaygroundMotionRoute
+  InboxIndexRoute: typeof InboxIndexRoute
   PlaygroundIndexRoute: typeof PlaygroundIndexRoute
 }
 
@@ -184,6 +210,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inbox/': {
+      id: '/inbox/'
+      path: '/inbox'
+      fullPath: '/inbox/'
+      preLoaderRoute: typeof InboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox/$id': {
+      id: '/inbox/$id'
+      path: '/inbox/$id'
+      fullPath: '/inbox/$id'
+      preLoaderRoute: typeof InboxIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/playground/': {
       id: '/playground/'
       path: '/playground'
@@ -221,9 +261,11 @@ const rootRouteChildren: RootRouteChildren = {
   ClaimRoute: ClaimRoute,
   HomeRoute: HomeRoute,
   SignInRoute: SignInRoute,
+  InboxIdRoute: InboxIdRoute,
   PlaygroundGooRoute: PlaygroundGooRoute,
   PlaygroundMarbleRoute: PlaygroundMarbleRoute,
   PlaygroundMotionRoute: PlaygroundMotionRoute,
+  InboxIndexRoute: InboxIndexRoute,
   PlaygroundIndexRoute: PlaygroundIndexRoute,
 }
 export const routeTree = rootRouteImport

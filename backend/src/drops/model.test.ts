@@ -1,8 +1,19 @@
-// Tests for the send input rules: message length in code points, coordinates, the
-// required GPS location, unknown fields, multipart array values, and the optional photo.
+// Tests for the drop input rules: message length in code points, coordinates, the
+// required GPS location, unknown fields, multipart array values, the optional photo,
+// and the inbox query, cursor and read body.
 import { describe, expect, it } from "vitest";
 import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
-import { LOCATION_MESSAGE, LOCATION_REQUIRED_MESSAGE, MESSAGE_MESSAGE, sendDropSchema } from "./model.js";
+import {
+    CURSOR_MESSAGE,
+    LIMIT_MESSAGE,
+    LOCATION_MESSAGE,
+    LOCATION_REQUIRED_MESSAGE,
+    MESSAGE_MESSAGE,
+    encodeCursor,
+    inboxQuerySchema,
+    readBodySchema,
+    sendDropSchema,
+} from "./model.js";
 
 function firstMessage(input: unknown) {
     const result = sendDropSchema.safeParse(input);
@@ -89,5 +100,62 @@ describe("sendDropSchema", () => {
         for (const photo of bad) {
             expect(firstMessage({ ...base, photo })).toBe(PHOTO_MESSAGE);
         }
+    });
+});
+
+describe("inboxQuerySchema", () => {
+    const id = "11111111-1111-4111-8111-111111111111";
+    const at = "2026-10-30T12:00:00.123456Z";
+    const cursor = encodeCursor({ createdAt: at, id });
+
+    function messageOf(input: unknown) {
+        const result = inboxQuerySchema.safeParse(input);
+
+        return result.success ? null : result.error.issues[0]?.message;
+    }
+
+    it("defaults the page size to 20 and accepts 1 to 50", () => {
+        expect(inboxQuerySchema.parse({}).limit).toBe(20);
+        expect(inboxQuerySchema.parse({ limit: "1" }).limit).toBe(1);
+        expect(inboxQuerySchema.parse({ limit: "50" }).limit).toBe(50);
+    });
+
+    it("rejects a page size outside 1 to 50 or not a whole number", () => {
+        for (const limit of ["0", "51", "-1", "2.5", "abc", "", "1e1", "0012x"]) {
+            expect(messageOf({ limit })).toBe(LIMIT_MESSAGE);
+        }
+    });
+
+    it("round trips a cursor", () => {
+        expect(inboxQuerySchema.parse({ cursor }).cursor).toEqual({ createdAt: at, id });
+    });
+
+    it("rejects a malformed, oversized or tampered cursor", () => {
+        const bad = [
+            "not a cursor!",
+            "a".repeat(200),
+            Buffer.from("nope").toString("base64url"),
+            Buffer.from(`${at}|not-a-uuid`).toString("base64url"),
+            Buffer.from(`2026-13-45T99:00:00.123456Z|${id}`).toString("base64url"),
+            Buffer.from(`${at}|${id}|extra`).toString("base64url"),
+            Buffer.from(`2026-10-30T12:00:00Z|${id}`).toString("base64url"),
+        ];
+
+        for (const value of bad) {
+            expect(messageOf({ cursor: value })).toBe(CURSOR_MESSAGE);
+        }
+    });
+
+    it("rejects unknown query fields", () => {
+        expect(inboxQuerySchema.safeParse({ sort: "id" }).success).toBe(false);
+    });
+});
+
+describe("readBodySchema", () => {
+    it("accepts only a boolean is_read", () => {
+        expect(readBodySchema.parse({ is_read: false })).toEqual({ is_read: false });
+        expect(readBodySchema.safeParse({ is_read: "true" }).success).toBe(false);
+        expect(readBodySchema.safeParse({}).success).toBe(false);
+        expect(readBodySchema.safeParse({ is_read: true, message: "x" }).success).toBe(false);
     });
 });

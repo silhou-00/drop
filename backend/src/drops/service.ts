@@ -1,17 +1,29 @@
-// Business rules for sending a drop. Runs a fixed order: find the recipient, check the
+// Business rules for drops. Sending runs a fixed order: find the recipient, check the
 // send limits, validate the input, clean the photo, round the location, look up a place
 // name, store the photo, then insert. Only the rounded cell centre ever reaches the
-// repository. A photo saved before a failed insert is removed again.
+// repository. A photo saved before a failed insert is removed again. The inbox side
+// resolves the signed-in user's profile first, then lists, reads, marks, deletes and
+// serves the photo of drops that belong to it. A drop that is missing, malformed or
+// someone else's gets the same 404.
 import { usernameSchema, type Profile } from "../profiles/model.js";
 import { AppError } from "../shared/errors.js";
 import { snapToGrid, type SnappedPoint } from "../shared/geo.js";
 import type { FileStore } from "../shared/storage/model.js";
 import type { KeyMaker } from "./keys.js";
 import type { SendLimiter } from "./limits.js";
-import { LINK_PAUSED_MESSAGE, sendDropSchema } from "./model.js";
+import {
+    LINK_PAUSED_MESSAGE,
+    dropIdSchema,
+    encodeCursor,
+    sendDropSchema,
+    toInboxItem,
+    type InboxItem,
+    type InboxQuery,
+} from "./model.js";
 import type { DropRepository, InsertDropResult } from "./repository.js";
 
 type Dependencies = {
+    findOwnProfile: (userId: string) => Promise<Pick<Profile, "id"> | null>;
     findRecipient: (username: string) => Promise<Pick<Profile, "id" | "acceptingDrops"> | null>;
     drops: DropRepository;
     limiter: SendLimiter;
@@ -29,6 +41,11 @@ export type SendDropRequest = {
     fields: Record<string, unknown>;
 };
 
+export type InboxPage = {
+    items: InboxItem[];
+    next_cursor: string | null;
+};
+
 function notFound() {
     return new AppError(404, "NOT_FOUND", "Not found");
 }
@@ -38,6 +55,7 @@ function paused() {
 }
 
 export function createDropService({
+    findOwnProfile,
     findRecipient,
     drops,
     limiter,
@@ -126,7 +144,96 @@ export function createDropService({
         return { delivered: true };
     }
 
-    return { sendDrop };
+    // profile of the signed-in user, 404 when there is none
+    async function ownProfileId(userId: string): Promise<string> {
+        const profile = await findOwnProfile(userId);
+
+        if (!profile) {
+            throw notFound();
+        }
+
+        return profile.id;
+    }
+
+    // a malformed id gets the same 404 as a missing drop
+    function parseId(id: string): string {
+        const parsed = dropIdSchema.safeParse(id);
+
+        if (!parsed.success) {
+            throw notFound();
+        }
+
+        return parsed.data;
+    }
+
+    async function listInbox(userId: string, { limit, cursor }: InboxQuery): Promise<InboxPage> {
+        const profileId = await ownProfileId(userId);
+        const rows = await drops.listForRecipient(profileId, limit, cursor);
+        const page = rows.slice(0, limit);
+        const last = page[page.length - 1];
+
+        return {
+            items: page.map(toInboxItem),
+            next_cursor: rows.length > limit && last ? encodeCursor({ createdAt: last.cursorAt, id: last.id }) : null,
+        };
+    }
+
+    async function getDrop(userId: string, id: string): Promise<InboxItem> {
+        const dropId = parseId(id);
+        const profileId = await ownProfileId(userId);
+        const row = await drops.findForRecipient(profileId, dropId);
+
+        if (!row) {
+            throw notFound();
+        }
+
+        return toInboxItem(row);
+    }
+
+    async function markRead(userId: string, id: string, isRead: boolean): Promise<InboxItem> {
+        const dropId = parseId(id);
+        const profileId = await ownProfileId(userId);
+        const row = await drops.setRead(profileId, dropId, isRead);
+
+        if (!row) {
+            throw notFound();
+        }
+
+        return toInboxItem(row);
+    }
+
+    // the row goes first; a file that cannot be removed is logged without its key
+    async function deleteDrop(userId: string, id: string): Promise<void> {
+        const dropId = parseId(id);
+        const profileId = await ownProfileId(userId);
+        const removed = await drops.deleteForRecipient(profileId, dropId);
+
+        if (!removed) {
+            throw notFound();
+        }
+
+        if (removed.photoKey) {
+            try {
+                await store.remove(removed.photoKey);
+            } catch {
+                console.error("Photo file could not be removed");
+            }
+        }
+    }
+
+    async function readPhoto(userId: string, id: string): Promise<Buffer> {
+        const dropId = parseId(id);
+        const profileId = await ownProfileId(userId);
+        const row = await drops.findForRecipient(profileId, dropId);
+
+        if (!row || !row.photoKey) {
+            throw notFound();
+        }
+
+        return store.read(row.photoKey);
+    }
+
+    return { sendDrop, listInbox, getDrop, markRead, deleteDrop, readPhoto };
 }
 
 export type DropService = ReturnType<typeof createDropService>;

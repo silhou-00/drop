@@ -1,6 +1,5 @@
 /* Styles for the public send page: the wider send card, the message box and its counter, the
-   location button and GPS place row, the photo picker with its preview, the map plate with its centre pin and credits (kept for
-   the location map), and the sent mark. It builds on the auth page styles (card, buttons,
+   location button and GPS place row, the photo picker with its preview, and the sent mark. It builds on the auth page styles (card, buttons,
    type) and is scoped under the same auth root. Every value comes from tokens.css. */
 
 /* card: the sender column is wider than the auth card */
@@ -207,56 +206,6 @@
 .auth-page .send-icon-btn svg {
     width: 1.1rem;
     height: 1.1rem;
-}
-
-/* map: a framed plate with a fixed pin at the centre */
-.auth-page .send-map {
-    position: relative;
-    height: var(--send-map-h);
-    overflow: hidden;
-    border-radius: var(--send-map-radius);
-    background: var(--ground);
-    isolation: isolate;
-}
-
-.auth-page .send-map-pin {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 1;
-    display: flex;
-    color: var(--accent-fill);
-    filter: var(--send-pin-shadow);
-    transform: translate(-50%, -100%);
-    pointer-events: none;
-}
-
-.auth-page .send-map-pin svg {
-    width: var(--send-pin-size);
-    height: var(--send-pin-size);
-}
-
-.auth-page .send-map-credit {
-    position: absolute;
-    right: 6px;
-    bottom: 6px;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 2px 8px;
-    max-width: calc(100% - 12px);
-    padding: 3px 8px;
-    border-radius: 8px;
-    background: var(--send-credit-bg);
-    color: var(--send-credit-ink);
-    font: 500 0.6875rem / 1.3 var(--family-body);
-}
-
-.auth-page .send-map-credit a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
 }
 
 /* sent mark */

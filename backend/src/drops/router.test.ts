@@ -18,7 +18,7 @@ function build(sendDrop: DropService["sendDrop"]) {
 
     app.onError(errorHandler);
     app.use("/api/v1/profiles/*", createDeviceCookie({ secure: false }));
-    app.route("/api/v1", createDropRouter({ sendDrop }, { origin: ORIGIN }));
+    app.route("/api/v1", createDropRouter({ sendDrop } as DropService, { origin: ORIGIN }));
 
     return app;
 }

@@ -2,6 +2,10 @@
 
 ## October 30, 2026
 
+**Inbox:**
+
+- Signed-in people can now list their drops page by page, open one, mark it read or unread, delete it, and view its photo, all limited to their own drops.
+
 **Photos:**
 
 - Senders can attach a photo to a drop; the server removes hidden data like GPS, shrinks it, and stores it privately.

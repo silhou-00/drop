@@ -1,6 +1,6 @@
-// Send limits. Three fixed windows guard the public send endpoint: per IP, per device,
+// Drop limits. Three fixed windows guard the public send endpoint: per IP, per device,
 // and per device and recipient. A send is counted only when all three have room, and
-// only hashed keys are held in memory.
+// only hashed keys are held in memory. A per-user window guards the inbox routes.
 import { AppError } from "../shared/errors.js";
 import { createFixedWindow } from "../shared/fixed-window.js";
 
@@ -40,6 +40,25 @@ export function createSendLimiter({ now }: Options = {}) {
         ip.hit(senderKey);
         device.hit(deviceKey);
         deviceRecipient.hit(pairKey);
+    }
+
+    return { check };
+}
+
+const MINUTE_MS = 60_000;
+
+// one window per signed-in user id; throws 429 with the wait when it is full
+export function createUserLimiter({ limit, now }: { limit: number; now?: () => number }) {
+    const window = createFixedWindow({ limit, windowMs: MINUTE_MS, now });
+
+    function check(userId: string) {
+        const state = window.peek(userId);
+
+        if (!state.allowed) {
+            throw new AppError(429, "RATE_LIMITED", "Too many requests", state.retryAfterSeconds);
+        }
+
+        window.hit(userId);
     }
 
     return { check };

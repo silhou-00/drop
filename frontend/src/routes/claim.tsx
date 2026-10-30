@@ -1,7 +1,7 @@
 // Claim page. A signed-in person without a profile picks their link name, with a live check
 // that it is valid and free, and adds a display name. Drop is open to everyone, so there is no
 // age question. The name picked on the landing arrives pre-filled. A taken name answered by the server shows on the
-// name field; anyone who already has a profile goes home. The route guard only spares a trip:
+// name field; anyone who already has a profile goes to the inbox. The route guard only spares a trip:
 // the server checks the session and every rule again on submit.
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -47,10 +47,10 @@ function ClaimPage() {
     const serverTaken = error?.code === "USERNAME_TAKEN" && submittedName === check.username;
     const movingOn = own.status === "ready" || own.status === "signed-out" || error?.code === "PROFILE_EXISTS";
 
-    // people with a profile go home; an ended session goes back to sign-in
+    // people with a profile go to the inbox; an ended session goes back to sign-in
     useEffect(() => {
         if (own.status === "ready" || error?.code === "PROFILE_EXISTS") {
-            void navigate({ to: "/home", replace: true });
+            void navigate({ to: "/inbox", replace: true });
         } else if (own.status === "signed-out" || error?.status === 401) {
             void navigate({ to: "/sign-in", search: { username: suggested }, replace: true });
         }
@@ -118,7 +118,7 @@ function ClaimPage() {
         });
 
         if (profile) {
-            await navigate({ to: "/home", replace: true });
+            await navigate({ to: "/inbox", replace: true });
         }
     }
 

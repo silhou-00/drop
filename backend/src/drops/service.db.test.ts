@@ -86,6 +86,7 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
             const { cleanPhoto, newPhotoKey } = await import("../photos/service.js");
             const { createLocalDiskStore } = await import("../shared/storage/local-disk.js");
             const service = createDropService({
+                findOwnProfile: createProfileRepository(db).findByUserId,
                 findRecipient: createProfileRepository(db).findByUsername,
                 drops: repo,
                 limiter: createSendLimiter(),

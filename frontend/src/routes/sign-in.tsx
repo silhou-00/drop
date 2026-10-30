@@ -1,7 +1,7 @@
 // Sign-in page. Step one takes an email and asks the server to send a six-digit code; step
 // two takes the code, which signs the person in. The copy never says whether an email has an
 // account, and a wrong or expired code gets one neutral message. A new code can be asked for
-// once a minute, with the wait shown. After sign-in, a person with a profile goes home and
+// once a minute, with the wait shown. After sign-in, a person with a profile goes to the inbox and
 // anyone else goes on to claim a link, carrying the name picked on the landing if it is valid.
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -38,11 +38,11 @@ function failureMessage(error: unknown, neutral: string) {
 }
 
 // where a freshly signed-in person belongs; when unsure, the claim page checks again
-async function destinationAfterSignIn(): Promise<"/home" | "/claim"> {
+async function destinationAfterSignIn(): Promise<"/inbox" | "/claim"> {
     try {
         await getOwnProfile();
 
-        return "/home";
+        return "/inbox";
     } catch {
         return "/claim";
     }
@@ -171,7 +171,7 @@ function SignInPage() {
             if (to === "/claim") {
                 await navigate({ to: "/claim", search: { username } });
             } else {
-                await navigate({ to: "/home" });
+                await navigate({ to: "/inbox" });
             }
 
             return true;

@@ -1,4 +1,4 @@
-// Page frame shared by the auth pages (sign-in, claim, home). The marbled bath at content
+// Page frame shared by the auth pages (sign-in, claim), the inbox and the send page. The marbled bath at content
 // intensity sits fixed behind everything, the logo links back to the landing, and the page's
 // own sections are centred below it. The pages bring their card; this only frames it.
 import type { ReactNode } from "react";

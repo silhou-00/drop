@@ -44,6 +44,7 @@ const placeService = createPlaceService({
     client: createLocationIqClient({ apiKey: config.LOCATIONIQ_API_KEY }),
 });
 const dropService = createDropService({
+    findOwnProfile: profileRepository.findByUserId,
     findRecipient: profileRepository.findByUsername,
     drops: createDropRepository(db),
     limiter: createSendLimiter(),

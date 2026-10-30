@@ -35,8 +35,13 @@ function build({
     const saved: string[] = [];
     const removed: string[] = [];
     const service = createDropService({
+        findOwnProfile: async () => null,
         findRecipient: async () => found,
         drops: {
+            listForRecipient: async () => [],
+            findForRecipient: async () => null,
+            setRead: async () => null,
+            deleteForRecipient: async () => null,
             insertDrop: async (row) => {
                 rows.push(row);
 
