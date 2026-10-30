@@ -226,3 +226,32 @@
         --auth-card-padding: 40px;
     }
 }
+
+/* send page: one focused column on the bath, the pin sheet and its map, phones first */
+:root {
+    --send-card-max: 35rem;
+    --send-avatar-size: clamp(2.75rem, 2.5rem + 1vw, 3.25rem);
+    --send-fs-avatar: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+    --send-message-min-h: 7.5rem;
+    --send-icon-size: 1.25em;
+    --send-icon-btn: 44px;
+    --send-place-padding: 12px 14px;
+    --send-place-radius: 16px;
+    --send-sheet-max: 40rem;
+    --send-sheet-radius: 22px;
+    --send-sheet-backdrop: rgba(10, 10, 10, 0.45);
+    --send-sheet-enter: 320ms;
+    --send-map-h: clamp(16rem, 52svh, 30rem);
+    --send-map-radius: 16px;
+    --send-pin-size: clamp(2.5rem, 2.3rem + 1vw, 3rem);
+    --send-pin-shadow: drop-shadow(0 6px 8px rgba(10, 10, 10, 0.3));
+    --send-credit-bg: rgba(255, 255, 255, 0.86);
+    --send-credit-ink: #3c474d;
+    --send-sent-size: clamp(2.75rem, 2.4rem + 1.5vw, 3.5rem);
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --send-map-h: clamp(20rem, 56svh, 32rem);
+    }
+}

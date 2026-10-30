@@ -1,5 +1,12 @@
 # Frontend Changelog
 
+## October 30, 2026
+
+**Send page:**
+
+- Anyone can open a person's link and send them an anonymous drop with a message and an optional place, taken from their phone location or a pin placed on a map. A confirmation follows, with a way to send another or claim their own link.
+- Links that do not exist, fail to load or are paused each get a plain page, and the map loads only when a sender asks for it.
+
 ## October 29, 2026
 
 **Landing:**

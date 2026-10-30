@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as SignInRouteImport } from './routes/sign-in'
@@ -21,6 +22,11 @@ import { Route as PlaygroundMotionRouteImport } from './routes/playground/motion
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsernameRoute = UsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimRoute = ClaimRouteImport.update({
@@ -61,6 +67,7 @@ const PlaygroundMotionRoute = PlaygroundMotionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
   '/sign-in': typeof SignInRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$username'
     | '/claim'
     | '/home'
     | '/sign-in'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$username'
     | '/claim'
     | '/home'
     | '/sign-in'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$username'
     | '/claim'
     | '/home'
     | '/sign-in'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  UsernameRoute: typeof UsernameRoute
   ClaimRoute: typeof ClaimRoute
   HomeRoute: typeof HomeRoute
   SignInRoute: typeof SignInRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$username': {
+      id: '/$username'
+      path: '/$username'
+      fullPath: '/$username'
+      preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim': {
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  UsernameRoute: UsernameRoute,
   ClaimRoute: ClaimRoute,
   HomeRoute: HomeRoute,
   SignInRoute: SignInRoute,

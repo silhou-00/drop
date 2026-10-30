@@ -119,7 +119,7 @@ Sender keys (`drops/keys.ts`): HMAC-SHA256 hex of `ip:` plus the normalized IP (
 
 ## Map files
 
-`middleware/tiles.ts` serves `TILES_DIR` (git-ignored `drop-app/tiles/` by default) at `/tiles` with Hono's `serveStatic` from `@hono/node-server`. No compression is applied, so range responses are never gzipped. Content types: `.pmtiles` octet-stream, `.pbf` x-protobuf, `.json`, `.png`. The CSP lists no extra origin because everything loads from `self`. The server logs a one-line warning at boot when the folder does not exist.
+`middleware/tiles.ts` serves `TILES_DIR` (git-ignored `drop-app/tiles/` by default) at `/tiles` with Hono's `serveStatic` from `@hono/node-server`. No compression is applied, so range responses are never gzipped. Content types: `.pmtiles` octet-stream, `.pbf` x-protobuf, `.json`, `.png`. The CSP lists no extra origin because everything loads from `self`. The server logs a one-line warning at boot when the folder does not exist. How to fill the folder (the extract, fonts and sprites) is in [frontend.md](frontend.md).
 
 ## Database
 

@@ -8,6 +8,7 @@ The design system as built: colour, type, spacing, layout widths, motion and the
 | ---------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------ |
 | Palette, type families, type scale, wrapper spacing, rail and content widths | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Tailwind mapping of those variables, `3xl` breakpoint, shadcn variables      | `src/index.css`            | `@theme inline`, `@theme`, `:root`               |
+| Send page (`--send-*`)                                                       | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Motion                                                                       | `src/lib/motion/tokens.ts` | `motionDefaults`, `landingMotion`                |
 | Marble                                                                       | `src/lib/marble/tokens.ts` | `marbleDefaults`, `MARBLE_PIGMENTS`, `MARBLE_GL` |
 
@@ -153,6 +154,40 @@ Ported from the approved landing comp (concept A, "The Bath"). Styles in `src/st
 - **Lengths.** Beat 06 (kept quiet) is 515svh, as in the comp. The claim band is 185svh (comp: 200svh), trimmed to remove paper before the footer.
 - **Motion.** `landingMotion` values unchanged, plus `load`, `card`, `streets` and `shader.accent` (0.13) in `landingDefaults`.
 - **Stills** (`public/landing/`): `still-<port|land>-<comb|grey|ink>.webp`, 29.1KB to 47.8KB, from the comp.
+
+## Send page
+
+The public page at `/<name>`. Styles in `src/styles/send.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. Light and dark follow the same rule as the rest of the app, except the map, which always uses the light Drop palette.
+
+- **Auth shell reuse.** The page sits in `AuthShell` (marble content zone, logo bar, centred main) and its card is the auth card (`.auth-card`) with the `auth-*` field, button, title and note classes, widened to `--send-card-max`. Nothing in `auth.css` changed.
+- **Wrapper levels.** Section, sub-section (the card), placement and container are all present. The form uses `display: contents` so its placements sit directly in the card.
+- **Pin sheet.** A native modal `dialog`. Below 48rem it is a bottom sheet with top corners rounded to `--send-sheet-radius`, rising over `--send-sheet-enter`. From 48rem it is a centred dialog capped at `--send-sheet-max` that fades up. Under reduced motion it only fades. The backdrop is `--send-sheet-backdrop`.
+- **Fixed centre pin.** The map has no draggable marker. A filled Phosphor map pin sits fixed at the centre of the map frame in `--accent-fill`, with its tip on the centre point, and the sender pans the map under it. It is the only colour on the map, which is drawn in the grey marble pigments.
+- **Map frame.** Height `--send-map-h`, rounded by `--send-map-radius`, with the credit links in a small corner label on `--send-credit-bg` and `--send-credit-ink`.
+
+| Token                   | Value                                                                 | Use                                     |
+| ----------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| `--send-card-max`       | `35rem` (560px)                                                       | Card width cap                          |
+| `--send-avatar-size`    | `clamp(2.75rem, 2.5rem + 1vw, 3.25rem)`                               | Avatar or initial circle                |
+| `--send-fs-avatar`      | `clamp(1.1rem, 1rem + 0.5vw, 1.35rem)`                                | Initial letter size                     |
+| `--send-message-min-h`  | `7.5rem`                                                              | Message box minimum height              |
+| `--send-icon-size`      | `1.25em`                                                              | Icons in buttons                        |
+| `--send-icon-btn`       | `44px`                                                                | Round icon button (close, remove place) |
+| `--send-place-padding`  | `12px 14px`                                                           | Chosen-place row padding                |
+| `--send-place-radius`   | `16px`                                                                | Chosen-place row radius                 |
+| `--send-sheet-max`      | `40rem`                                                               | Dialog width cap from 48rem             |
+| `--send-sheet-radius`   | `22px`                                                                | Sheet and dialog radius                 |
+| `--send-sheet-backdrop` | `rgba(10, 10, 10, 0.45)`                                              | Backdrop                                |
+| `--send-sheet-enter`    | `320ms`                                                               | Rise duration                           |
+| `--send-map-h`          | `clamp(16rem, 52svh, 30rem)`; from 48rem `clamp(20rem, 56svh, 32rem)` | Map height                              |
+| `--send-map-radius`     | `16px`                                                                | Map frame radius                        |
+| `--send-pin-size`       | `clamp(2.5rem, 2.3rem + 1vw, 3rem)`                                   | Centre pin                              |
+| `--send-pin-shadow`     | `drop-shadow(0 6px 8px rgba(10, 10, 10, 0.3))`                        | Pin shadow                              |
+| `--send-credit-bg`      | `rgba(255, 255, 255, 0.86)`                                           | Credit label background                 |
+| `--send-credit-ink`     | `#3c474d`                                                             | Credit label ink                        |
+| `--send-sent-size`      | `clamp(2.75rem, 2.4rem + 1.5vw, 3.5rem)`                              | Check mark on the sent card             |
+
+The map style (`src/lib/map/style.ts`) takes land from the light ground pigment, areas and water from mixes of ground and grey, roads from paper, and labels from ink-2.
 
 ## Scrollbar
 

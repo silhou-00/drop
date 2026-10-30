@@ -8,3 +8,4 @@
 | 04  | [Landing](04-landing.md)                     | Done   | October 29, 2026 |
 | 05  | [Database](05-database.md)                   | Done   | October 29, 2026 |
 | 06  | [Auth and profiles](06-auth-and-profiles.md) | Done   | October 29, 2026 |
+| 07  | [Send page](07-send-page.md)                 | Done   | October 30, 2026 |
