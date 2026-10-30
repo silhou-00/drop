@@ -312,6 +312,7 @@
     .app-page .app-nav-logo {
         display: flex;
         justify-content: center;
+        margin-block-end: var(--app-logo-gap);
     }
 
     .app-page .app-nav-list {

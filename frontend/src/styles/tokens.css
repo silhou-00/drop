@@ -60,7 +60,7 @@
     :root {
         --section-padding: 20px 24px;
         --section-gap: 16px;
-        --rail-w: 104px;
+        --rail-w: 124px;
         --content-max: 640px;
     }
 }
@@ -277,6 +277,7 @@
     --app-tab-padding: 0;
     --app-fs-tab: clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem);
     --app-logo-h: 32px;
+    --app-logo-gap: 0px;
     --app-bar-clearance: 96px;
     --app-bar-blur: 6px;
     --app-bar-fade: 40px;
@@ -305,12 +306,14 @@
 
 @media (min-width: 48rem) {
     :root {
-        --app-nav-padding: 16px 8px;
+        --app-nav-padding: 18px 10px;
         --app-nav-radius: 28px;
-        --app-nav-w: 80px;
-        --app-tab-min: 64px;
-        --app-tab-radius: 20px;
-        --app-logo-h: 30px;
+        --app-nav-w: 100px;
+        --app-tab-min: 72px;
+        --app-tab-radius: 22px;
+        --app-fs-tab: clamp(0.8rem, 0.76rem + 0.1vw, 0.85rem);
+        --app-logo-h: 34px;
+        --app-logo-gap: 20px;
         --app-bead-inset: 0px;
     }
 }
@@ -325,6 +328,7 @@
         --app-tab-gap: 14px;
         --app-tab-padding: 0 18px;
         --app-logo-h: 52px;
+        --app-logo-gap: 12px;
         --app-list-w: 420px;
     }
 }
