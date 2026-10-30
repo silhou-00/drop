@@ -36,6 +36,7 @@ function row(id: string, recipientId: string, photoKey: string | null, minute: n
 
 type Options = {
     removeError?: Error;
+    readError?: Error;
     profile?: boolean;
 };
 
@@ -92,6 +93,10 @@ function build(initial: DropRow[], options: Options = {}) {
             save: async () => {},
             read: async (key) => {
                 read.push(key);
+
+                if (options.readError) {
+                    throw options.readError;
+                }
 
                 return Buffer.from("webp-bytes");
             },
@@ -223,5 +228,18 @@ describe("inbox service", () => {
         expect((await service.readPhoto(USER, DROP_B)).toString()).toBe("webp-bytes");
         expect(read).toEqual([PHOTO_KEY]);
         await expect(service.readPhoto(USER, DROP_A)).rejects.toMatchObject({ status: 404 });
+    });
+
+    it("answers 404 when the photo file is missing from disk", async () => {
+        const missing = Object.assign(new Error("gone"), { code: "ENOENT" });
+        const { service } = build(rows, { readError: missing });
+
+        await expect(service.readPhoto(USER, DROP_B)).rejects.toMatchObject({ status: 404, code: "NOT_FOUND" });
+    });
+
+    it("lets other read errors fall through", async () => {
+        const { service } = build(rows, { readError: new Error("disk failure") });
+
+        await expect(service.readPhoto(USER, DROP_B)).rejects.toThrow("disk failure");
     });
 });

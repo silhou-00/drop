@@ -230,7 +230,16 @@ export function createDropService({
             throw notFound();
         }
 
-        return store.read(row.photoKey);
+        // a file gone from disk is the same as no photo
+        try {
+            return await store.read(row.photoKey);
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+                throw notFound();
+            }
+
+            throw error;
+        }
     }
 
     return { sendDrop, listInbox, getDrop, markRead, deleteDrop, readPhoto };

@@ -71,7 +71,7 @@ Let a person who has claimed a link read the drops sent to them. They see a list
 
 ## Open Items
 
-- A photo file that is missing from disk gives a server error instead of "not found".
+- ~~A photo file that is missing from disk gives a server error instead of "not found".~~ Fixed the same day: it now answers "not found".
 - Pages loaded with Load more are dropped when the person returns to the inbox, which starts again from page one.
 - The photo is downloaded before it is revealed. The blur hides it on screen but the file is already on the phone.
 - Block and report arrive in module 11. Reported drops must be kept until reviewed, which changes how delete works.

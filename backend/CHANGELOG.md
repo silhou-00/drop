@@ -4,6 +4,7 @@
 
 **Inbox:**
 
+- A photo whose file is missing now answers "not found" instead of a server error.
 - Signed-in people can now list their drops page by page, open one, mark it read or unread, delete it, and view its photo, all limited to their own drops.
 
 **Photos:**
