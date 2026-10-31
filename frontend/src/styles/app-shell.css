@@ -1,9 +1,9 @@
 /* Styles for the signed-in app frame: the marbled bath behind it, the skip link, the glass nav
    with its red bead and unread count, the main area and the panes the pages sit in, and the
    few shared pieces the app pages use (title, card, button row). Phones first: a bottom tab
-   bar and one column; from 768px an icon rail and one column on a near-plain sheet; from
-   1280px a labelled rail docked to a list pane, with a paper reading pane filling the rest
-   of the screen. It builds on the auth root (type, buttons, focus ring) and every value
+   bar and one column; from 768px the same bottom bar over one centred column on a near-plain
+   sheet; from 1280px a labelled rail docked to a list pane, with a paper reading pane filling
+   the rest of the screen. It builds on the auth root (type, buttons, focus ring) and every value
    comes from tokens.css. */
 
 /* root and bath; on phones the bath shows behind the header only */
@@ -292,7 +292,7 @@
     height: 1.25em;
 }
 
-/* tablet: icon rail on the left, one column on a near-plain sheet */
+/* tablet: the bottom bar stays, one centred column on a near-plain sheet above it */
 @media (min-width: 48rem) {
     .app-page .app-bath,
     .app-page:has(.drop-view) .app-bath {
@@ -302,6 +302,7 @@
 
     .app-page .app-main {
         padding: var(--app-frame-inset);
+        padding-bottom: var(--app-bar-clearance);
         padding-left: var(--rail-w);
     }
 
@@ -312,12 +313,24 @@
         border-radius: var(--app-sheet-radius);
         background: var(--app-sheet-fill);
     }
+}
+
+/* laptop and up: labelled rail docked to the list pane; the panes fill the screen */
+@media (min-width: 80rem) {
+    .app-page .app-main {
+        flex: none;
+        height: 100svh;
+        padding-bottom: var(--app-frame-inset);
+        padding-left: calc(var(--app-frame-inset) + var(--app-nav-w));
+        overflow: hidden;
+    }
 
     .app-page .app-nav {
         top: 0;
         right: auto;
         width: auto;
         padding: var(--app-frame-inset);
+        padding-right: 0;
     }
 
     .app-page .app-nav::before {
@@ -326,11 +339,13 @@
 
     .app-page .app-nav-bar {
         flex: 1;
+        border-right: 0;
+        border-radius: var(--app-dock-radius) 0 0 var(--app-dock-radius);
     }
 
     .app-page .app-nav-logo {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         margin-block-end: var(--app-logo-gap);
     }
 
@@ -349,29 +364,6 @@
         width: 100%;
         height: var(--app-tab-min);
         transform: translateY(calc(var(--nav-index) * (var(--app-tab-min) + var(--placement-gap))));
-    }
-}
-
-/* laptop and up: labelled rail docked to the list pane; the panes fill the screen */
-@media (min-width: 80rem) {
-    .app-page .app-main {
-        flex: none;
-        height: 100svh;
-        padding-left: calc(var(--app-frame-inset) + var(--app-nav-w));
-        overflow: hidden;
-    }
-
-    .app-page .app-nav {
-        padding-right: 0;
-    }
-
-    .app-page .app-nav-bar {
-        border-right: 0;
-        border-radius: var(--app-dock-radius) 0 0 var(--app-dock-radius);
-    }
-
-    .app-page .app-nav-logo {
-        justify-content: flex-start;
     }
 
     .app-page .app-logo {

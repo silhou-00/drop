@@ -62,7 +62,7 @@ shadcn variables point at these tokens: `background` ground, `foreground` ink, `
 | Band               | Media         | Section padding | Section gap | `--rail-w` | `--content-max` |
 | ------------------ | ------------- | --------------- | ----------- | ---------- | --------------- |
 | Mobile             | below 48rem   | 14px 18px       | 14px        | 0px        | 100%            |
-| Tablet             | 48rem (768)   | 20px 24px       | 16px        | 124px      | 640px           |
+| Tablet             | 48rem (768)   | 20px 24px       | 16px        | 12px       | 640px           |
 | Laptop and desktop | 80rem (1280)  | 28px 32px       | 20px        | 252px      | 1120px          |
 | Full HD and wider  | 120rem (1920) | 32px 40px       | 24px        | 260px      | 1280px          |
 
@@ -72,11 +72,11 @@ Fixed at every band: sub-section gap 10px, placement gap 8px, container gap 0, a
 
 Built in module 12b: the frame, the inbox, the drop page, and (run B) the Map, My link and Settings pages and the theme. Styles are in `src/styles/app-shell.css`; the components are listed in [frontend.md](frontend.md).
 
-| Band                | Navigation                                                | Notes                                                                                                                                                            |
-| ------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mobile              | Glass bottom tab bar with a sliding bead                  | One column. The marbled bath shows behind the header only and fades out below it.                                                                                |
-| Tablet, 768 to 1279 | Glass icon rail, 100px wide                               | One column on a near-plain sheet, padded left by `--rail-w` (124px: the rail plus its inset and gap).                                                            |
-| 1280 and up         | Labelled rail, 220px wide, logo on top, link card at foot | List pane (`--app-list-w`, 420px, 560px from 120rem) docked to the rail, with a paper reading pane filling the rest. Reading content capped at `--app-read-max`. |
+| Band                | Navigation                                                | Notes                                                                                                                                                                                                                      |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mobile              | Glass bottom tab bar with a sliding bead                  | One column. The marbled bath shows behind the header only and fades out below it.                                                                                                                                          |
+| Tablet, 768 to 1279 | Same glass bottom tab bar as phones                       | One centred column on a near-plain sheet, padded left by `--rail-w` (12px, the frame inset) and at the bottom by `--app-bar-clearance`. The bar replaced a wider icon rail because the rail pulled the content off-centre. |
+| 1280 and up         | Labelled rail, 220px wide, logo on top, link card at foot | List pane (`--app-list-w`, 420px, 560px from 120rem) docked to the rail, with a paper reading pane filling the rest. Reading content capped at `--app-read-max`.                                                           |
 
 - Selecting a drop pushes its URL, so deep links and Back work. On phones and tablets the list and an open drop take turns; from 80rem both show, with "Pick a drop to read it" in the pane until one is open.
 - Glass: `--glass-fill`, `--glass-edge`, `--glass-blur` (18px) and `--glass-saturate` (1.4) on the nav bar, and on the map controls. Below the bar a soft blur (`--app-bar-blur`, `--app-bar-fade`) keeps the labels readable over content.
@@ -89,48 +89,48 @@ Built in module 12b: the frame, the inbox, the drop page, and (run B) the Map, M
 - My link and settings: content held to 1120px; the cards are capped further (see their sections).
 - Glass appears in at most 3 places per view.
 
-| Token                                                       | Value                                                                                                                                    | Use                                                                      |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `--glass-fill`                                              | `rgba(255, 255, 255, 0.72)`; dark `rgba(16, 18, 22, 0.62)`                                                                               | Glass surface                                                            |
-| `--glass-edge`                                              | `1px solid rgba(255, 255, 255, 0.7)`; dark `... 0.16)`                                                                                   | Glass border                                                             |
-| `--inverse-fill`                                            | `#0a0a0a`; dark `#f5fdff`                                                                                                                | Unread badge and pressed filter chip                                     |
-| `--inverse-ink`                                             | `#f5fdff`; dark `#0a0a0a`                                                                                                                | Text on the inverse surface                                              |
-| `--app-patch-image`                                         | `comb-land-light.webp`; dark `comb-land-dark.webp`                                                                                       | Marble patch in the empty states                                         |
-| `--rail-w`                                                  | `0px`; 48rem `124px`; 80rem `252px`; 120rem `260px`                                                                                      | Left padding for the rail (the nav section's side padding plus the rail) |
-| `--app-nav-padding`                                         | `8px 6px`; 48rem `16px 8px`; 80rem `22px 14px`                                                                                           | Nav bar padding                                                          |
-| `--app-nav-radius`                                          | `999px`; 48rem `28px`                                                                                                                    | Nav bar radius                                                           |
-| `--app-nav-w`                                               | `auto`; 48rem `100px`; 80rem `220px`                                                                                                     | Nav bar width                                                            |
-| `--app-tab-min`                                             | `56px`; 48rem `72px`; 80rem `52px`                                                                                                       | Tab minimum size                                                         |
-| `--app-tab-radius`                                          | `999px`; 48rem `22px`; 80rem `999px`                                                                                                     | Tab radius                                                               |
-| `--app-tab-icon`                                            | `22px`                                                                                                                                   | Tab icon size                                                            |
-| `--app-tab-gap`                                             | `2px`; 80rem `14px`                                                                                                                      | Gap between a tab's icon and label                                       |
-| `--app-tab-padding`                                         | `0`; 80rem `0 18px`                                                                                                                      | Tab side padding                                                         |
-| `--app-fs-tab`                                              | `clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem)`; 48rem `clamp(0.8rem, 0.76rem + 0.1vw, 0.85rem)`; 80rem `clamp(0.95rem, 0.9rem + 0.1vw, 1rem)` | Tab label size                                                           |
-| `--app-logo-h`                                              | `32px`; 48rem `34px`; 80rem `52px`                                                                                                       | Logo height                                                              |
-| `--app-logo-gap`                                            | `0px`; 48rem `20px`; 80rem `12px`                                                                                                        | Space between the rail logo and the tabs                                 |
-| `--app-bar-clearance`                                       | `96px`                                                                                                                                   | Space under the content for the bottom bar                               |
-| `--app-bar-blur`                                            | `6px`                                                                                                                                    | Blur under the bar                                                       |
-| `--app-bar-fade`                                            | `40px`                                                                                                                                   | Height of the blur's fade                                                |
-| `--app-frame-inset`                                         | `12px`                                                                                                                                   | Inset from the screen edge (skip link)                                   |
-| `--app-list-w`                                              | `100%`; 80rem `420px`; 120rem `560px`                                                                                                    | List pane width                                                          |
-| `--app-read-max`                                            | `860px`                                                                                                                                  | Reading content cap                                                      |
-| `--app-sheet-radius`                                        | `32px`                                                                                                                                   | Sheet and reading pane radius                                            |
-| `--app-dock-radius`                                         | `28px`                                                                                                                                   | Docked pane radius                                                       |
-| `--app-sheet-fill`                                          | `color-mix(in srgb, var(--ground) 94%, transparent)`                                                                                     | Sheet fill                                                               |
-| `--app-ring-dot`                                            | `0 0 0 3px var(--paper), 0 0 0 5px var(--accent-soft)`                                                                                   | Ring around the unread dot                                               |
-| `--app-chip-min-h`                                          | `44px`                                                                                                                                   | Filter chip height                                                       |
-| `--app-chip-padding`                                        | `0 14px`                                                                                                                                 | Filter chip padding                                                      |
-| `--app-fs-chip`                                             | `clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem)`                                                                                               | Filter chip text                                                         |
-| `--app-bead-dur`, `--app-bead-ease`                         | `420ms`, spring overshoot curve (overridden from `tabSpring`)                                                                            | Bead travel                                                              |
-| `--app-bath-fade-dur`                                       | `600ms`                                                                                                                                  | Marble fade-in in the app shell                                          |
-| `--app-bead-lag`                                            | `1.6`                                                                                                                                    | Trail bead delay multiple                                                |
-| `--app-bead-inset`                                          | `6px`; 48rem `0px`                                                                                                                       | Bead inset in its cell                                                   |
-| `--app-count-size`                                          | `18px`                                                                                                                                   | Unread badge size                                                        |
-| `--app-fs-count`                                            | `0.6875rem`                                                                                                                              | Unread badge text                                                        |
-| `--app-foot-padding`                                        | `14px`                                                                                                                                   | Link card padding at the rail's foot                                     |
-| `--app-foot-radius`                                         | `20px`                                                                                                                                   | Link card radius at the rail's foot                                      |
-| `--app-mask-solid`, `--app-mask-clear`, `--app-mask-detail` | `120px`, `300px`, `80px`                                                                                                                 | Bath fade on phones                                                      |
-| `--shadow-rest`, `--shadow-lift`                            | `0 4px 30px rgba(10, 10, 10, 0.08)`, `0 12px 32px -14px rgba(10, 10, 10, 0.18)`                                                          | Resting and raised shadow                                                |
+| Token                                                       | Value                                                                                   | Use                                                                                                                    |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--glass-fill`                                              | `rgba(255, 255, 255, 0.72)`; dark `rgba(16, 18, 22, 0.62)`                              | Glass surface                                                                                                          |
+| `--glass-edge`                                              | `1px solid rgba(255, 255, 255, 0.7)`; dark `... 0.16)`                                  | Glass border                                                                                                           |
+| `--inverse-fill`                                            | `#0a0a0a`; dark `#f5fdff`                                                               | Unread badge and pressed filter chip                                                                                   |
+| `--inverse-ink`                                             | `#f5fdff`; dark `#0a0a0a`                                                               | Text on the inverse surface                                                                                            |
+| `--app-patch-image`                                         | `comb-land-light.webp`; dark `comb-land-dark.webp`                                      | Marble patch in the empty states                                                                                       |
+| `--rail-w`                                                  | `0px`; 48rem `var(--app-frame-inset)` (12px); 80rem `252px`; 120rem `260px`             | Left padding of the content (on tablets just the frame inset; from 80rem the nav section's side padding plus the rail) |
+| `--app-nav-padding`                                         | `8px 6px`; 80rem `22px 14px`                                                            | Nav bar padding                                                                                                        |
+| `--app-nav-radius`                                          | `999px`; 80rem `28px`                                                                   | Nav bar radius                                                                                                         |
+| `--app-nav-w`                                               | `auto`; 80rem `220px`                                                                   | Nav bar width                                                                                                          |
+| `--app-tab-min`                                             | `56px`; 80rem `52px`                                                                    | Tab minimum size                                                                                                       |
+| `--app-tab-radius`                                          | `999px`; 80rem `999px`                                                                  | Tab radius                                                                                                             |
+| `--app-tab-icon`                                            | `22px`                                                                                  | Tab icon size                                                                                                          |
+| `--app-tab-gap`                                             | `2px`; 80rem `14px`                                                                     | Gap between a tab's icon and label                                                                                     |
+| `--app-tab-padding`                                         | `0`; 80rem `0 18px`                                                                     | Tab side padding                                                                                                       |
+| `--app-fs-tab`                                              | `clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem)`; 80rem `clamp(0.95rem, 0.9rem + 0.1vw, 1rem)` | Tab label size                                                                                                         |
+| `--app-logo-h`                                              | `32px`; 80rem `52px`                                                                    | Logo height                                                                                                            |
+| `--app-logo-gap`                                            | `0px`; 80rem `12px`                                                                     | Space between the rail logo and the tabs                                                                               |
+| `--app-bar-clearance`                                       | `96px`                                                                                  | Space under the content for the bottom bar                                                                             |
+| `--app-bar-blur`                                            | `6px`                                                                                   | Blur under the bar                                                                                                     |
+| `--app-bar-fade`                                            | `40px`                                                                                  | Height of the blur's fade                                                                                              |
+| `--app-frame-inset`                                         | `12px`                                                                                  | Inset from the screen edge (skip link)                                                                                 |
+| `--app-list-w`                                              | `100%`; 80rem `420px`; 120rem `560px`                                                   | List pane width                                                                                                        |
+| `--app-read-max`                                            | `860px`                                                                                 | Reading content cap                                                                                                    |
+| `--app-sheet-radius`                                        | `32px`                                                                                  | Sheet and reading pane radius                                                                                          |
+| `--app-dock-radius`                                         | `28px`                                                                                  | Docked pane radius                                                                                                     |
+| `--app-sheet-fill`                                          | `color-mix(in srgb, var(--ground) 94%, transparent)`                                    | Sheet fill                                                                                                             |
+| `--app-ring-dot`                                            | `0 0 0 3px var(--paper), 0 0 0 5px var(--accent-soft)`                                  | Ring around the unread dot                                                                                             |
+| `--app-chip-min-h`                                          | `44px`                                                                                  | Filter chip height                                                                                                     |
+| `--app-chip-padding`                                        | `0 14px`                                                                                | Filter chip padding                                                                                                    |
+| `--app-fs-chip`                                             | `clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem)`                                              | Filter chip text                                                                                                       |
+| `--app-bead-dur`, `--app-bead-ease`                         | `420ms`, spring overshoot curve (overridden from `tabSpring`)                           | Bead travel                                                                                                            |
+| `--app-bath-fade-dur`                                       | `600ms`                                                                                 | Marble fade-in in the app shell                                                                                        |
+| `--app-bead-lag`                                            | `1.6`                                                                                   | Trail bead delay multiple                                                                                              |
+| `--app-bead-inset`                                          | `6px`; 80rem `0px`                                                                      | Bead inset in its cell                                                                                                 |
+| `--app-count-size`                                          | `18px`                                                                                  | Unread badge size                                                                                                      |
+| `--app-fs-count`                                            | `0.6875rem`                                                                             | Unread badge text                                                                                                      |
+| `--app-foot-padding`                                        | `14px`                                                                                  | Link card padding at the rail's foot                                                                                   |
+| `--app-foot-radius`                                         | `20px`                                                                                  | Link card radius at the rail's foot                                                                                    |
+| `--app-mask-solid`, `--app-mask-clear`, `--app-mask-detail` | `120px`, `300px`, `80px`                                                                | Bath fade on phones                                                                                                    |
+| `--shadow-rest`, `--shadow-lift`                            | `0 4px 30px rgba(10, 10, 10, 0.08)`, `0 12px 32px -14px rgba(10, 10, 10, 0.18)`         | Resting and raised shadow                                                                                              |
 
 Deviations from the comps:
 
@@ -253,9 +253,9 @@ The public page at `/<name>`. Styles in `src/styles/send.css`, scoped under `.au
 The list at `/inbox` and a drop at `/inbox/<id>`, inside the app frame. Styles in `src/styles/inbox.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. They build on the auth button, note and status classes and on the app shell. Light and dark follow the rest of the app, except the map, which always uses the light Drop palette.
 
 - **Wrapper levels.** Each part of the page is a section with sub-sections, placements and containers. The card is a link whose inner spans carry the same structure as inline text rows.
-- **Heading and chips.** The title with an "N new" count, then the All, Unread and Photos pill chips (`--app-chip-min-h`, pressed state shown by `--inverse-fill`). On phones the logo sits above the title.
-- **Statement banner.** A strip over the filter chips (`--statement-banner-padding`, `--statement-banner-radius`, text at `--statement-fs-banner`): "Live:" with the statement and the time left, or a closed note linking to My link.
-- **Statement sections.** Each section has a header (`--statement-fs-head`, the statement cut to `--statement-head-lines` lines, its start, its drop count, a Live mark while it runs, and an "Only this one" button of `--statement-chip-min-h`). The drops from before statements form the last section, "Earlier". A scoped list adds a row "Showing one statement" with a "Show all" button.
+- **Heading and chips.** The title with an "N new" count, then the All, Unread and Photos pill chips (`--app-chip-min-h`, pressed state shown by `--inverse-fill`). On phones and tablets the logo sits above the title; from 80rem it moves to the rail.
+- **Status pill.** The "N new" count and the link status sit together in the title row at every viewport. Each is a pill (`--statement-pill-min-h`, `--statement-pill-radius`, text at `--statement-fs-banner`), and a goo layer under the text draws both shapes plus a narrow bridge (`--inbox-status-gap` wide, `--inbox-status-bridge-h` tall) in one fill (`--inbox-status-fill`), so the filter melts them into one shape with a concave neck. The count pill uses `--inbox-new-padding`. Open: a live dot and the time left in the meta font, the whole pill linking to My link (`--statement-pill-live-padding`). Closed: a muted dot, "Closed", and a "Start" link to My link drawn as a small inverse pill (`--statement-pill-link-min-h`, `--statement-pill-link-padding`, `--statement-pill-link-radius`). Focus rings are drawn inside the shape (`--statement-option-ring`, `--statement-pill-link-ring`) because an outside ring would be clipped by the filter. If one pill is missing, the bridge and the missing shape are hidden.
+- **Statement sections.** Each section has a header (`--statement-fs-head`, the statement cut to `--statement-head-lines` lines, its start, its drop count, a Live mark while it runs, and a "View all" button of `--statement-chip-min-h` with a `CaretRight` icon of `--statement-scope-icon`, spaced by `--statement-scope-gap`). The drops from before statements form the last section, "Earlier". A scoped list adds a row "Showing one statement" with a "Show all" button.
 - **Cards.** Paper cards grouped under their statement section, with a `--inbox-item-border` border and `--inbox-item-radius` corners. Each shows the message (`--inbox-fs-card`, `--inbox-item-lines` lines), a place badge, a Photo badge and a compact age. An unread card has a red dot (`--inbox-dot-size`) ringed by `--app-ring-dot`. The open drop's card is marked active.
 - **Empty states.** A marble patch (`--app-patch-image`, `--inbox-patch-w`, `--inbox-patch-ratio`) with the card pinned to its foot; the stage is at least `--inbox-empty-min-h` tall.
 - **Drop page.** A bar with a back button (hidden from 80rem, where the list is beside it), the day and time, and a round read toggle. The message sits large (`--inbox-fs-read`) in a padded card (`--inbox-message-padding`). Below: the place and GPS badges, then the media row: the map and the photo stacked on phones, side by side from 48rem. From 80rem the drop fills the paper reading pane, its body scrolls and its actions stay pinned.
@@ -317,11 +317,11 @@ Light, dark or auto (follow the device). The choice sits on the root element as 
 
 The map page at `/map`. Styles in `src/styles/map.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. The map fills the screen behind a glass chip bar (top) and a glass control column (right), and always uses the light Drop palette, in dark mode too. Pins are red (`--accent-fill`) with a white count badge that always shows the drop count; zoomed out, nearby places merge into one pin. A chosen place draws a dashed ~150 m ring (fill opacity 0.18). The map may pan to `WIDE_BOUNDS` [101, 0, 142, 26], beyond the Philippines data extract, so a wide screen can frame far pins clear of the list.
 
-| Band        | List                                                                                                                         |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Mobile      | Paper bottom sheet over the map, up to `--map-sheet-max-h` (42svh), with a grip; rises when a place is chosen                |
-| Tablet      | Floating paper panel, `--map-panel-w` wide, beside the rail; rises when a place is chosen                                    |
-| 1280 and up | Docked beside the rail, open by default, lists all filtered drops until a place is chosen; a 44px round button folds it away |
+| Band        | List                                                                                                                             |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Mobile      | Paper bottom sheet over the map, up to `--map-sheet-max-h` (42svh), with a grip; rises when a place is chosen                    |
+| Tablet      | Floating paper panel, `--map-panel-w` wide, above the bottom bar (raised by `--app-bar-clearance`); rises when a place is chosen |
+| 1280 and up | Docked beside the rail, open by default, lists all filtered drops until a place is chosen; a 44px round button folds it away     |
 
 | Token                          | Value                                                    | Use                                   |
 | ------------------------------ | -------------------------------------------------------- | ------------------------------------- |
@@ -348,7 +348,7 @@ The map page at `/map`. Styles in `src/styles/map.css`, scoped under `.auth-page
 | `--map-note-radius`            | `22px`                                                   | Note radius                           |
 | `--map-empty-max`              | `28rem`                                                  | Empty state card width                |
 
-The statement picker sits under the chips on the map: a native select at `--statement-picker-top` from the top, up to `--statement-picker-max` wide and at least `--statement-picker-min-h` tall (`--statement-picker-padding`). The "Load older drops" button moves down to `--statement-older-top` to make room.
+The statement picker sits under the chips on the map: a glass pill button at `--statement-picker-top` from the top, `--statement-picker-max` wide at most and at least `--statement-picker-min-h` tall (`--statement-picker-padding`), with a caret that turns over when it is open. Opening it melts a paper list out of the pill through the goo filter (`--statement-picker-fill`, `--statement-picker-melt-dur`); the list scrolls inside `--statement-picker-panel-max-h`. The active option is shaded with `--statement-option-active-fill`, the chosen one is bold with a check, and the keyboard ring is drawn inside (`--statement-option-ring`). Open, the picker rises above the other map pieces. Under reduced motion the melt and the caret turn are off. The "Load older drops" button moves down to `--statement-older-top` to make room.
 
 ## My link
 
@@ -367,48 +367,78 @@ The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/style
 
 ### Statement tokens
 
-| Token                        | Value                                          | Use                              |
-| ---------------------------- | ---------------------------------------------- | -------------------------------- |
-| `--statement-fs-send`        | `clamp(1.35rem, 1.15rem + 1vw, 1.85rem)`       | Statement text on the send page  |
-| `--statement-fs-card`        | `clamp(1.25rem, 1.1rem + 0.8vw, 1.7rem)`       | Statement text on My link        |
-| `--statement-fs-head`        | `clamp(1.05rem, 1rem + 0.4vw, 1.3rem)`         | Inbox section header             |
-| `--statement-fs-banner`      | `clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem)` | Inbox banner                     |
-| `--statement-card-padding`   | `16px 18px`                                    | Quoted card padding              |
-| `--statement-card-radius`    | `22px`                                         | Quoted card radius               |
-| `--statement-card-fill`      | `var(--ground)`                                | Quoted card fill                 |
-| `--statement-head-lines`     | `2`                                            | Header lines before the cut      |
-| `--statement-banner-padding` | `10px 14px`                                    | Banner padding                   |
-| `--statement-banner-radius`  | `18px`                                         | Banner radius                    |
-| `--statement-chip-min-h`     | `36px`                                         | "Only this one" button height    |
-| `--statement-chip-padding`   | `0 12px`                                       | "Only this one" button padding   |
-| `--statement-picker-top`     | `80px`                                         | Map picker offset from the top   |
-| `--statement-picker-max`     | `22rem`                                        | Map picker width cap             |
-| `--statement-picker-min-h`   | `44px`                                         | Map picker height                |
-| `--statement-picker-padding` | `0 14px`                                       | Map picker padding               |
-| `--statement-older-top`      | `136px`                                        | "Load older drops" offset on map |
+| Token                              | Value                                                                                                               | Use                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `--statement-fs-send`              | `clamp(1.35rem, 1.15rem + 1vw, 1.85rem)`                                                                            | Statement text on the send page       |
+| `--statement-fs-card`              | `clamp(1.25rem, 1.1rem + 0.8vw, 1.7rem)`                                                                            | Statement text on My link             |
+| `--statement-fs-head`              | `clamp(1.05rem, 1rem + 0.4vw, 1.3rem)`                                                                              | Inbox section header                  |
+| `--statement-fs-banner`            | `clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem)`                                                                      | Inbox pills text                      |
+| `--statement-card-padding`         | `16px 18px`                                                                                                         | Quoted card padding                   |
+| `--statement-card-radius`          | `22px`                                                                                                              | Quoted card radius                    |
+| `--statement-card-fill`            | `var(--ground)`                                                                                                     | Quoted card fill                      |
+| `--statement-head-lines`           | `2`                                                                                                                 | Header lines before the cut           |
+| `--statement-pill-gap`             | `8px`                                                                                                               | Gap inside a status pill              |
+| `--statement-pill-min-h`           | `44px`                                                                                                              | Status and count pill height          |
+| `--statement-pill-padding`         | `0 6px 0 12px`                                                                                                      | Closed pill padding                   |
+| `--statement-pill-live-padding`    | `0 14px 0 12px`                                                                                                     | Open pill padding                     |
+| `--statement-pill-link-min-h`      | `32px`                                                                                                              | "Start" pill height                   |
+| `--statement-pill-link-padding`    | `0 12px`                                                                                                            | "Start" pill padding                  |
+| `--statement-pill-radius`          | `22px`                                                                                                              | Status and count pill radius          |
+| `--statement-pill-link-radius`     | `16px`                                                                                                              | "Start" pill radius                   |
+| `--statement-pill-link-ring`       | `inset 0 0 0 2px var(--inverse-ink)`                                                                                | "Start" pill focus ring               |
+| `--inbox-status-gap`               | `18px`                                                                                                              | Gap between the two pills             |
+| `--inbox-status-bridge-h`          | `8px`                                                                                                               | Height of the goo bridge              |
+| `--inbox-status-fill`              | `var(--paper)`; dark `color-mix(in srgb, var(--paper) 82%, var(--ink))`                                             | Fill of both pills and the bridge     |
+| `--inbox-new-padding`              | `0 10px 0 16px`                                                                                                     | "N new" pill padding                  |
+| `--statement-chip-min-h`           | `36px`                                                                                                              | "View all" button height              |
+| `--statement-chip-padding`         | `0 12px`                                                                                                            | "View all" button padding             |
+| `--statement-scope-gap`            | `4px`                                                                                                               | Gap before the "View all" icon        |
+| `--statement-scope-icon`           | `14px`                                                                                                              | "View all" icon size                  |
+| `--statement-picker-top`           | `80px`                                                                                                              | Map picker offset from the top        |
+| `--statement-picker-max`           | `22rem`                                                                                                             | Map picker width cap                  |
+| `--statement-picker-min-h`         | `44px`                                                                                                              | Map picker height                     |
+| `--statement-picker-padding`       | `0 16px 0 20px`                                                                                                     | Map picker padding                    |
+| `--statement-picker-gap`           | `10px`                                                                                                              | Gap inside the picker and its options |
+| `--statement-picker-caret`         | `16px`                                                                                                              | Picker caret size                     |
+| `--statement-picker-check`         | `16px`                                                                                                              | Chosen-option check size              |
+| `--statement-picker-fill`          | `var(--paper)`                                                                                                      | Picker blob and list fill             |
+| `--statement-picker-panel-gap`     | `6px`                                                                                                               | Gap between pill and list             |
+| `--statement-picker-panel-padding` | `6px`                                                                                                               | List padding                          |
+| `--statement-picker-panel-radius`  | `22px`                                                                                                              | List radius                           |
+| `--statement-picker-panel-max-h`   | `min(24rem, calc(100svh - var(--statement-picker-top) - var(--statement-picker-min-h) - var(--app-bar-clearance)))` | List height cap                       |
+| `--statement-picker-melt-dur`      | `360ms`                                                                                                             | List melt-out duration                |
+| `--statement-picker-melt-from`     | `-24px`                                                                                                             | List melt-out start offset            |
+| `--statement-option-gap`           | `2px`                                                                                                               | Gap between options                   |
+| `--statement-option-min-h`         | `44px`                                                                                                              | Option height                         |
+| `--statement-option-padding`       | `0 14px 0 10px`                                                                                                     | Option padding                        |
+| `--statement-option-radius`        | `16px`                                                                                                              | Option radius                         |
+| `--statement-option-active-fill`   | `var(--ground)`                                                                                                     | Active option fill                    |
+| `--statement-option-ring`          | `inset 0 0 0 2px var(--ink)`                                                                                        | Inside focus ring                     |
+| `--statement-older-top`            | `136px`                                                                                                             | "Load older drops" offset on map      |
 
 ## Settings
 
 The page at `/settings`. Styles in `src/styles/settings.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), one card of rows with a hair divider (Appearance with a segmented Light, Dark, Auto choice; Locations with "Rounded to about 150 m"), and a full-width Sign out row.
 
-| Token                            | Value                                        | Use                        |
-| -------------------------------- | -------------------------------------------- | -------------------------- |
-| `--settings-max`                 | `100%`; 80rem `36rem`                        | Page width cap             |
-| `--settings-row-min-h`           | `60px`                                       | Row height                 |
-| `--settings-row-padding`         | `10px 18px`                                  | Row padding                |
-| `--settings-rows-radius`         | `22px`                                       | Rows card radius           |
-| `--settings-icon`                | `20px`                                       | Row icon size              |
-| `--settings-label-gap`           | `12px`                                       | Gap between icon and label |
-| `--settings-seg-padding`         | `3px`                                        | Segmented control padding  |
-| `--settings-seg-min-h`           | `44px`                                       | Segmented option height    |
-| `--settings-seg-option-padding`  | `0 12px`                                     | Segmented option padding   |
-| `--settings-fs-seg`              | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem)` | Segmented option text      |
-| `--settings-fs-row`              | `var(--type-body)`                           | Row label text             |
-| `--settings-danger-ink`          | `var(--accent-ink)`                          | Delete account row text    |
-| `--settings-confirm-padding`     | `18px`                                       | Delete panel padding       |
-| `--settings-confirm-gap`         | `16px`                                       | Gap between panel parts    |
-| `--settings-confirm-list-gap`    | `6px`                                        | Gap between list items     |
-| `--settings-confirm-list-indent` | `1.25em`                                     | Panel list indent          |
+| Token                            | Value                                        | Use                                                                                  |
+| -------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `--settings-max`                 | `100%`; 80rem `36rem`                        | Page width cap                                                                       |
+| `--settings-row-min-h`           | `60px`                                       | Row height                                                                           |
+| `--settings-row-padding`         | `10px 18px`                                  | Row padding                                                                          |
+| `--settings-rows-radius`         | `22px`                                       | Rows card radius                                                                     |
+| `--settings-icon`                | `20px`                                       | Row icon size                                                                        |
+| `--settings-label-gap`           | `12px`                                       | Gap between icon and label                                                           |
+| `--settings-seg-padding`         | `3px`                                        | Segmented control padding                                                            |
+| `--settings-seg-min-h`           | `44px`                                       | Segmented option height                                                              |
+| `--settings-seg-option-padding`  | `0 12px`                                     | Segmented option padding                                                             |
+| `--settings-fs-seg`              | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem)` | Segmented option text                                                                |
+| `--settings-fs-row`              | `var(--type-body)`                           | Row label text                                                                       |
+| `--settings-danger-ink`          | `var(--accent-ink)`                          | Delete account row text                                                              |
+| `--settings-row-ring`            | `inset 0 0 0 3px var(--ink)`                 | Focus ring of a full row button, drawn inside because the card clips an outside ring |
+| `--settings-confirm-padding`     | `18px`                                       | Delete panel padding                                                                 |
+| `--settings-confirm-gap`         | `16px`                                       | Gap between panel parts                                                              |
+| `--settings-confirm-list-gap`    | `6px`                                        | Gap between list items                                                               |
+| `--settings-confirm-list-indent` | `1.25em`                                     | Panel list indent                                                                    |
 
 Settings also has a second rows card, "About Drop", with Terms, Privacy and Safety as link rows (`Scroll`, `LockKey`, `Lifebuoy` icons and a `CaretRight` pushed to the far end by `.settings-caret`, colour `--ink-2`). `.settings-row-btn` removes the underline so a link row looks like the Sign out button row.
 
@@ -419,15 +449,22 @@ Settings also has a second rows card, "About Drop", with Terms, Privacy and Safe
 
 The Terms, Privacy and Safety pages. Styles in `src/styles/legal.css`, every rule scoped under `.legal-page`; tokens in `src/styles/tokens.css`. One reading column on `--ground`, in Onest body text. The pages follow the person's light or dark choice through the shared tokens, unlike the landing, which stays light. The logo swaps between `logo.svg` and `logo-dark.svg` by theme in CSS (`prefers-color-scheme` unless `data-theme` says otherwise).
 
-| Token                 | Value    | Use                                       |
-| --------------------- | -------- | ----------------------------------------- |
-| `--legal-max`         | `42rem`  | Reading column width cap (`.section` max) |
-| `--legal-line-height` | `1.6`    | Body line height                          |
-| `--legal-logo-h`      | `30px`   | Header logo height                        |
-| `--legal-list-gap`    | `6px`    | Gap between list items                    |
-| `--legal-list-indent` | `1.25em` | List indent                               |
+| Token                      | Value                                      | Use                                              |
+| -------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| `--legal-max`              | `42rem`                                    | Reading column width cap (`.section` max)        |
+| `--legal-line-height`      | `1.6`                                      | Body line height                                 |
+| `--legal-logo-h`           | `30px`                                     | Header logo height                               |
+| `--legal-list-gap`         | `6px`                                      | Gap between list items                           |
+| `--legal-list-indent`      | `1.25em`                                   | List indent                                      |
+| `--legal-pill-min-h`       | `44px`                                     | Back and footer pill height                      |
+| `--legal-pill-padding`     | `0 16px`                                   | Back and footer pill padding                     |
+| `--legal-fs-pill`          | `clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem)` | Back and footer pill text                        |
+| `--legal-back-gap`         | `8px`                                      | Gap between the Back arrow and its label         |
+| `--legal-back-icon`        | `18px`                                     | Back arrow size                                  |
+| `--legal-foot-gap`         | `8px`                                      | Gap between footer pills                         |
+| `--legal-foot-padding-top` | `20px`                                     | Space between the footer hair line and its pills |
 
-- **Classes.** `.legal-page` (flex column, `min-height: 100svh`, ground and ink colours), `.legal-body` (grows to push the footer down), `.legal-h1` (display font, `--type-heading`, line height 1.04), `.legal-h2` (display font, `--type-subheading`, line height 1.1), `.legal-updated` (`--ink-2`, `--type-caption`), `.legal-text` (full-width column), `.legal-list` (bulleted column), `.legal-foot` (hair top border) and `.legal-foot-links a` (44px minimum tap height). Links inside text are underlined with a 3px offset and break long addresses.
+- **Classes.** `.legal-page` (flex column, `min-height: 100svh`, ground and ink colours), `.legal-body` (grows to push the footer down), `.legal-h1` (display font, `--type-heading`, line height 1.04), `.legal-h2` (display font, `--type-subheading`, line height 1.1), `.legal-updated` (`--ink-2`, `--type-caption`), `.legal-text` (full-width column), `.legal-list` (bulleted column), `.legal-top-row` (Back on the left, logo on the right), `.legal-back` and `.legal-foot-link` (pills in the app's chip style: `--paper` fill, hair border, the border darkens to `--ink-2` on hover), `.legal-foot-row` (hair top border over a wrapping row of pills) and `.legal-foot-link[aria-current="page"]` (filled with `--inverse-fill`). Links inside text are underlined with a 3px offset and break long addresses.
 - **Wrappers.** Four levels everywhere, with the shared level tokens. The legal section component adds a heading sub-section and a body sub-section, and each page wraps every paragraph or list in a container.
 - **Focus.** The ring is `--auth-focus-ring`.
 

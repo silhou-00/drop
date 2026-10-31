@@ -32,7 +32,7 @@ const AllDropsMap = lazy(() =>
 );
 
 const EDGE_GAP = 16;
-const SIDE_QUERY = "(min-width: 48rem)";
+const SIDE_QUERY = "(min-width: 80rem)";
 
 const LIST_TITLES: Record<InboxFilter, string> = {
     all: "All drops",

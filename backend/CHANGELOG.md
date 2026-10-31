@@ -1,5 +1,11 @@
 # Backend Changelog
 
+## November 1, 2026
+
+**Documentation:**
+
+- The technical reference, design reference and progress notes now describe the restyled statement controls, the legal page buttons, and the bottom bar on tablets.
+
 ## October 31, 2026
 
 **Accounts:**

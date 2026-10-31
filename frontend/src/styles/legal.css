@@ -1,5 +1,6 @@
 /* The legal pages (Terms, Privacy, Safety): one reading column on the ground colour, capped
-   for line length and centred, with Unbounded headings and Onest body text. Colours follow
+   for line length and centred, with Unbounded headings and Onest body text. Back and the
+   footer links are pills in the app's chip style. Colours follow
    the light and dark tokens, so the pages match the person's theme. Every rule is scoped
    under the legal root, and every size comes from tokens.css. */
 
@@ -27,6 +28,44 @@
 
 .legal-page .legal-body {
     flex: 1;
+}
+
+/* top row: Back on the left, the logo on the right */
+.legal-page .legal-top-row {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.legal-page .legal-back,
+.legal-page .legal-foot-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--legal-pill-min-h);
+    padding: var(--legal-pill-padding);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 600 var(--legal-fs-pill) / 1 var(--family-body);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 140ms var(--landing-e-cubic);
+}
+
+.legal-page .legal-back {
+    gap: var(--legal-back-gap);
+}
+
+.legal-page .legal-back svg {
+    width: var(--legal-back-icon);
+    height: var(--legal-back-icon);
+}
+
+@media (hover: hover) {
+    .legal-page .legal-back:hover,
+    .legal-page .legal-foot-link:hover {
+        border-color: var(--ink-2);
+    }
 }
 
 /* logo: the light or dark file follows the theme */
@@ -103,14 +142,18 @@
     overflow-wrap: anywhere;
 }
 
-/* footer links */
-.legal-page .legal-foot {
+/* footer links: a hair line over a wrapping row of pills; the current page is filled */
+.legal-page .legal-foot-row {
+    padding-top: var(--legal-foot-padding-top);
     border-top: 1px solid var(--hair);
 }
 
-.legal-page .legal-foot-links a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    font-weight: 600;
+.legal-page .legal-foot-links {
+    gap: var(--legal-foot-gap);
+}
+
+.legal-page .legal-foot-link[aria-current="page"] {
+    border-color: var(--inverse-fill);
+    background: var(--inverse-fill);
+    color: var(--inverse-ink);
 }

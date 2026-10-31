@@ -1,5 +1,5 @@
 /* Styles for the inbox and a drop's page. The list: its heading with the "N new" count, the
-   statement banner, the filter chips, the scope row, the statement sections with their
+   link status pill melted to it, the filter chips, the scope row, the statement sections with their
    headers, and the paper cards with their badges and ringed unread dot,
    the empty stage over a marble patch, and the "Pick a drop" pane. A drop's page: its bar,
    the large message, the place and GPS badges, the map plate with its glass controls and the
@@ -30,8 +30,12 @@
 }
 
 .auth-page .inbox-new {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--statement-pill-min-h);
+    padding: var(--inbox-new-padding);
     color: var(--ink);
-    font: 600 var(--type-caption) / 1 var(--family-body);
+    font: 600 var(--statement-fs-banner) / 1 var(--family-body);
     white-space: nowrap;
 }
 
@@ -64,48 +68,131 @@
     font: 700 var(--type-subheading) / 1.1 var(--family-display);
 }
 
-/* statement banner: live with the statement and time left, or closed with a link */
-.auth-page .statement-banner {
-    flex-wrap: nowrap;
-    padding: var(--statement-banner-padding);
-    border-radius: var(--statement-banner-radius);
-    background: var(--paper);
-    box-shadow: var(--shadow-rest);
+/* count and status pills: the text sits over a goo layer that draws both pill shapes and a
+   narrow bridge in one fill, so the filter melts them into one shape with a concave neck */
+.auth-page .inbox-title-row > .container:first-child {
+    min-width: 0;
 }
 
-.auth-page .statement-banner[data-state="closed"] {
+.auth-page .inbox-status {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto var(--inbox-status-gap) auto;
+    align-items: center;
+    gap: 0;
+}
+
+.auth-page .inbox-new-box {
+    position: relative;
+    grid-area: 1 / 1;
+}
+
+.auth-page .inbox-status > .statement-pill-box {
+    position: relative;
+    grid-area: 1 / 3;
+}
+
+.auth-page .inbox-status-layer {
+    display: grid;
+    grid-area: 1 / 1 / 2 / -1;
+    grid-template-columns: subgrid;
+    grid-template-rows: 1fr;
+    align-self: stretch;
+}
+
+.auth-page .inbox-status-goo {
+    display: grid;
+    grid-area: 1 / 1 / 2 / -1;
+    grid-template-columns: subgrid;
+    grid-template-rows: 1fr;
+}
+
+.auth-page .inbox-status-blob {
+    grid-row: 1;
+    align-self: stretch;
+    border-radius: var(--statement-pill-radius);
+    background: var(--inbox-status-fill);
+}
+
+.auth-page .inbox-status-blob[data-part="count"] {
+    grid-column: 1;
+}
+
+.auth-page .inbox-status-blob[data-part="bridge"] {
+    grid-column: 1 / 4;
+    align-self: center;
+    height: var(--inbox-status-bridge-h);
+    margin-inline: var(--statement-pill-radius);
+    border-radius: 0;
+}
+
+.auth-page .inbox-status-blob[data-part="status"] {
+    grid-column: 3;
+}
+
+/* one pill missing: no bridge, and no shape for the missing one */
+.auth-page .inbox-status:not(:has(.inbox-new-box)) [data-part="count"],
+.auth-page .inbox-status:not(:has(.inbox-new-box)) [data-part="bridge"],
+.auth-page .inbox-status:not(:has(.statement-pill-box)) [data-part="status"],
+.auth-page .inbox-status:not(:has(.statement-pill-box)) [data-part="bridge"] {
+    display: none;
+}
+
+.auth-page .statement-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--statement-pill-gap);
+    min-height: var(--statement-pill-min-h);
+    padding: var(--statement-pill-padding);
+    border-radius: var(--statement-pill-radius);
+    color: var(--ink);
+    font: 600 var(--statement-fs-banner) / 1 var(--family-body);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* inset ring, kept inside the melted shape */
+.auth-page .statement-pill:focus-visible,
+.auth-page .statement-pill-link:focus-visible {
+    outline: none;
+    box-shadow: var(--statement-option-ring);
+}
+
+.auth-page .statement-pill-link:focus-visible {
+    box-shadow: var(--statement-pill-link-ring);
+}
+
+.auth-page .statement-pill[data-state="live"] {
+    padding: var(--statement-pill-live-padding);
+}
+
+.auth-page .statement-pill[data-state="live"] .statement-pill-text {
+    font-family: var(--family-meta);
+    font-variant-numeric: tabular-nums;
+}
+
+.auth-page .statement-pill-dot {
+    flex: none;
+    width: var(--inbox-dot-size);
+    height: var(--inbox-dot-size);
+    border-radius: 50%;
+    background: var(--ink-2);
+}
+
+.auth-page .statement-pill-text {
+    color: var(--ink-2);
+}
+
+.auth-page .statement-pill-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--statement-pill-link-min-h);
+    padding: var(--statement-pill-link-padding);
+    border-radius: var(--statement-pill-link-radius);
     background: var(--inverse-fill);
     color: var(--inverse-ink);
-}
-
-.auth-page .statement-banner-text {
-    flex: 1 1 auto;
-}
-
-.auth-page .statement-banner-line {
-    overflow: hidden;
-    font: 600 var(--statement-fs-banner) / 1.3 var(--family-body);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.auth-page .statement-banner-label {
     font-weight: 700;
-}
-
-.auth-page .statement-banner-left {
-    color: var(--ink-2);
-    font: 600 var(--type-mono) var(--family-meta);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-.auth-page .statement-banner-link {
-    color: inherit;
-    font: 700 var(--statement-fs-banner) / 1.3 var(--family-body);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    white-space: nowrap;
+    text-decoration: none;
 }
 
 /* scope row and the small pill buttons that change the scope */
@@ -122,6 +209,7 @@
 .auth-page .statement-scope-btn {
     display: inline-flex;
     align-items: center;
+    gap: var(--statement-scope-gap);
     min-height: var(--statement-chip-min-h);
     padding: var(--statement-chip-padding);
     border: 1px solid var(--hair);
@@ -131,6 +219,12 @@
     font: 600 var(--app-fs-chip) / 1 var(--family-body);
     white-space: nowrap;
     cursor: pointer;
+}
+
+.auth-page .statement-scope-icon {
+    flex: none;
+    width: var(--statement-scope-icon);
+    height: var(--statement-scope-icon);
 }
 
 /* statement section headers */
@@ -616,12 +710,8 @@
     color: var(--on-accent);
 }
 
-/* tablet and up: the logo moves to the rail and the map sits beside the photo */
+/* tablet and up: the map sits beside the photo */
 @media (min-width: 48rem) {
-    .auth-page .inbox-mobile-logo {
-        display: none;
-    }
-
     .auth-page .drop-media {
         grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     }
@@ -635,8 +725,13 @@
     }
 }
 
-/* laptop and up: the drop fills the paper pane, its body scrolls and the actions stay put */
+/* laptop and up: the logo moves to the rail, the drop fills the paper pane, its body scrolls
+   and the actions stay put */
 @media (min-width: 80rem) {
+    .auth-page .inbox-mobile-logo {
+        display: none;
+    }
+
     .auth-page .drop-back {
         visibility: hidden;
     }

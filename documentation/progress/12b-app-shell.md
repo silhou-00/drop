@@ -16,8 +16,8 @@ Give every signed-in page one shared frame, so the app feels like one place inst
 
 - Signed-in pages now share one frame with four places to go: Inbox, Map, My link and Settings.
     - On a phone it is a glass tab bar at the bottom, with a small red marker that slides, gooey and springy, to the tab you tap.
-    - On a tablet it is a slim rail of icons down the left side.
-    - On a laptop and wider it is a wider rail with labels, and the owner's link card with a Copy button sits at its foot.
+    - On a tablet it is the same bottom tab bar as on a phone, with the page centred above it.
+    - On a laptop and wider (1280 and up) it is a rail down the left side with labels, and the owner's link card with a Copy button sits at its foot.
 - The Inbox tab shows a count of unread drops, with "9+" above nine. It is the same number as the "N new" next to the Inbox title. The count also fills in when the app is opened on My link or Settings.
 - The inbox has a title with the "N new" count, and three filter chips: All, Unread and Photos. The chosen filter is kept in the page address, so a reload or the Back button keeps it.
 - Drops are grouped under Today and Earlier. Each card shows the start of the message, the place, a Photo tag when there is a photo, a short time such as "2m" or "3h", and a red dot while the drop is unread.
@@ -46,6 +46,7 @@ Give every signed-in page one shared frame, so the app feels like one place inst
 
 ## Decisions & Trade-offs
 
+- **Tablets use the bottom bar, not a wider rail (changed November 1, 2026).** The first tablet design put a slim icon rail on the left. In use, the rail pulled the page content off-centre, so the reading column looked pushed to the right. Tablets now keep the same bottom tab bar as phones, and the content sits centred above it. The side rail appears only from 1280 pixels, where there is room for it beside the list and reading panes.
 - **The list and the open drop share one stored copy of the inbox.** Marking a drop read, or deleting it, updates the list, the "N new" count and the tab badge at the same moment. The map hears the same changes and updates its pins.
 - **The drop view is rebuilt for each drop.** With the list and the drop side by side, moving from one drop to another could have carried over the last drop's revealed photo, its map position, or an open delete or share panel. Rebuilding the view each time closes that gap.
 - **The filter lives in the page address.** That way Back keeps it and a filtered view can be reloaded. On the map the chosen place lives there too.

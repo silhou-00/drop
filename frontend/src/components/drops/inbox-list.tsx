@@ -1,7 +1,8 @@
 // The inbox list for one filter and, when the address names one, one statement. On top: the
 // logo (phones only, where the nav has none), the "Inbox" heading with the "N new" count from
-// the server, the banner saying whether the link is taking drops, and the filter chips, which
-// put the filter in the address. A scoped list adds a row to go back to every statement.
+// the server melted through the goo filter into the pill that says whether the link is taking
+// drops, then the filter chips, which put the filter in the address. A scoped list adds a row
+// to go back to every statement.
 // Below: one section per statement, newest first, then the drops from before statements, with
 // "Load more" while the server has another page. It has loading, failed (with retry) and empty
 // states; the empty state differs per filter, and for all drops it points to My link. The
@@ -10,6 +11,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { LinkSimple } from "@phosphor-icons/react";
 import { InboxCard } from "@/components/drops/inbox-card";
 import { FilterChips } from "@/components/drops/filter-chips";
+import { Goo, GooFilter } from "@/components/goo/goo-filter";
 import { StatementBanner } from "@/components/statements/statement-banner";
 import { StatementHeader } from "@/components/statements/statement-header";
 import { useInbox } from "@/hooks/drops/use-inbox";
@@ -17,6 +19,7 @@ import { groupByStatement } from "@/lib/drops/helper";
 import type { InboxFilter, InboxItem } from "@/lib/drops/model";
 import type { Statement } from "@/lib/statements/model";
 
+const STATUS_GOO_ID = "inbox-status-goo";
 const EMPTY_COPY: Record<InboxFilter, { title: string; body: string }> = {
     all: { title: "No drops yet", body: "Put your link in your story. Notes from real places land here." },
     unread: { title: "No unread drops", body: "You have read every drop." },
@@ -82,13 +85,25 @@ export function InboxList({ filter, statement }: InboxListProps) {
                             Inbox
                         </h1>
                     </div>
-                    {inbox.unreadCount === null ? null : (
-                        <div className="container">
-                            <p className="inbox-new">{inbox.unreadCount} new</p>
+                    {/* count and link status, melted into one shape */}
+                    <div className="placement inbox-status">
+                        {/* goo layer: the two pill shapes and the bridge under the text */}
+                        <div className="container inbox-status-layer" aria-hidden="true">
+                            <GooFilter id={STATUS_GOO_ID} />
+                            <Goo id={STATUS_GOO_ID} className="inbox-status-goo">
+                                <span className="inbox-status-blob" data-part="count" />
+                                <span className="inbox-status-blob" data-part="bridge" />
+                                <span className="inbox-status-blob" data-part="status" />
+                            </Goo>
                         </div>
-                    )}
+                        {inbox.unreadCount === null ? null : (
+                            <div className="container inbox-new-box">
+                                <p className="inbox-new">{inbox.unreadCount} new</p>
+                            </div>
+                        )}
+                        <StatementBanner />
+                    </div>
                 </div>
-                <StatementBanner />
                 <FilterChips value={filter} onChange={handleFilter} />
                 {scoped ? (
                     <div className="placement inbox-scope">

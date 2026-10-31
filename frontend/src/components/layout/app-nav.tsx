@@ -1,6 +1,6 @@
-// Main navigation for the signed-in app: Inbox, Map, My link and Settings. On phones it is a
-// glass tab bar at the bottom, on tablets an icon rail on the left, and from laptops a
-// labelled rail with the logo on top and the owner's link card at its foot. A red bead sits
+// Main navigation for the signed-in app: Inbox, Map, My link and Settings. On phones and
+// tablets it is a glass tab bar at the bottom, and from laptops a labelled rail with the logo
+// on top and the owner's link card at its foot. A red bead sits
 // under the current tab and springs to the next one, with a slower second bead melting
 // behind it through the goo filter; under reduced motion it moves without travel. The Inbox
 // tab carries the unread count from the shared inbox store; when the app opens on a page that

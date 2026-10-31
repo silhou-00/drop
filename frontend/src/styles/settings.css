@@ -112,6 +112,11 @@
     cursor: pointer;
 }
 
+/* the card clips an outside ring, so full rows get theirs inside */
+.auth-page .settings-row-btn:focus-visible {
+    box-shadow: var(--settings-row-ring);
+}
+
 .auth-page .settings-row-btn:disabled {
     opacity: 0.6;
     cursor: default;
@@ -157,12 +162,13 @@
     list-style: disc;
 }
 
+/* the two answers sit side by side, and stack when the delete label does not fit */
 .auth-page .settings-confirm-actions {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .auth-page .settings-confirm-actions > .container {
-    flex: 1 1 0;
+    flex: 1 1 auto;
 }
 
 .auth-page .settings-btn-danger {

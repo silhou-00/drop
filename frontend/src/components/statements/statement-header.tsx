@@ -1,9 +1,10 @@
 // The heading over one inbox section. A statement section shows the statement in quotes, cut
 // to two lines, with when it started, how many drops it brought in all, and a Live mark while
 // it runs. The section for drops from before statements reads "Earlier" with its own count.
-// Outside a scoped view, "Only this one" puts the section in the address so the list shows
-// just its drops. Statement text is shown as text only.
+// Outside a scoped view, "View all" puts the section in the address so the list shows just
+// its drops. Statement text is shown as text only.
 import { useNavigate } from "@tanstack/react-router";
+import { CaretRight } from "@phosphor-icons/react";
 import { dayTime } from "@/lib/drops/helper";
 import type { Statement } from "@/lib/statements/model";
 
@@ -57,8 +58,14 @@ export function StatementHeader({ statement, earlierCount, scoped }: StatementHe
                 </div>
                 {scoped ? null : (
                     <div className="container statement-head-scope">
-                        <button className="statement-scope-btn" type="button" onClick={handleScope}>
-                            Only this one
+                        <button
+                            className="statement-scope-btn"
+                            type="button"
+                            aria-label={statement ? "View all drops for this statement" : "View all earlier drops"}
+                            onClick={handleScope}
+                        >
+                            View all
+                            <CaretRight className="statement-scope-icon" weight="bold" aria-hidden="true" />
                         </button>
                     </div>
                 )}

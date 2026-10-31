@@ -1,5 +1,31 @@
 # Frontend Changelog
 
+## November 1, 2026
+
+**Settings:**
+
+- Full-width setting rows show their focus ring inside the row, and the delete account buttons wrap on narrow screens instead of squeezing.
+
+**Map:**
+
+- On tablets the map now frames its pins above the bottom bar, so it no longer opens zoomed out with pins at the right edge.
+- The credit box on the map no longer stretches into a tall white block when a pin is opened while the statement picker is showing.
+
+**App shell:**
+
+- Tablets now use the bottom tab bar like phones, with the page centred above it. The side rail shows only from 1280 pixels wide.
+
+**Legal:**
+
+- The Terms, Privacy and Safety pages have a Back button, and their footer links are now pills with the current page filled in.
+- The contact address in the example settings file is now hello@fundrstudio.com.
+
+**Statements:**
+
+- The inbox shows the link status as a small pill beside the "N new" count, joined to it by a gooey shape, in the same place on every screen size. When the link is closed, the pill has a Start button.
+- The "Only this one" button on a statement section is now "View all", with an arrow.
+- The map's statement picker is now a custom list that melts out of its pill, with full keyboard and screen reader support.
+
 ## October 31, 2026
 
 **Legal and accounts:**

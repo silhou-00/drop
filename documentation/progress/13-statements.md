@@ -23,9 +23,11 @@ This replaces the old pause switch. A link used to be open until its owner pause
 - A closed link does not use up a sender's send limits, because the server checks that the link is open before it counts anything.
 - Every new drop is filed under the statement that was running when it arrived. The sender cannot choose the statement, and a request that tries is refused.
 - The inbox shows one section per statement, newest first, each with the statement, when it started, how many drops it brought, and a "Live" mark while it runs. Drops sent before statements existed sit in an "Earlier" section at the end.
-- "Only this one" on a section narrows the inbox to that statement, and "Show all" brings the rest back. This works together with the All, Unread and Photos chips.
-- A strip at the top of the inbox says "Live" with the statement and time left, or says the link is closed and points to My link.
-- The map has a statement picker next to the chips, listing each statement with its drop count and "Earlier". Choosing one narrows the pins and the list.
+- "View all" (with a small arrow) on a section narrows the inbox to that statement, and "Show all" brings the rest back. This works together with the All, Unread and Photos chips. The button was first called "Only this one" and was renamed later.
+- Beside the Inbox title, a small status pill says whether the link is taking drops. Open, it shows a live dot and the time left, and tapping it opens My link. Closed, it says "Closed" and has a Start button that opens My link.
+- The status pill and the "N new" count are two pills that melt into one shape with a narrow neck between them, using the same gooey effect as the navigation bead. They sit in the same place on every screen size, and the shape stays correct when only one of the two is showing.
+- The map has a statement picker under the chips, listing each statement with its drop count and "Earlier". Choosing one narrows the pins and the list.
+- The picker is a custom pill that opens a list which melts out of it, instead of the plain system menu. It works from the keyboard (arrows, Home, End, Enter, Space and Escape), closes when tapped outside, and tells screen readers which choice is picked.
 - The story image made from My link now carries the statement instead of a fixed line. When the link is closed, My link keeps the Copy button and hides the preview and Share, because sharing a closed link would waste the story.
 - The empty states in the inbox and on the map now point to My link instead of offering to share a closed link.
 - The link preview that chat apps show does not include the statement. Chat apps keep previews long after a two-hour statement ends.
@@ -81,11 +83,12 @@ Open risk carried into the PRD: statement text is public, unmoderated text, on a
 - Database tests cover: the two-hour length, a second start closing the first, two starts at once leaving exactly one open statement, ending early and ending twice, a statement that ran out being closed at its own end time on the next start, counts that ignore other owners, a drop landing under the running statement, a closed link refusing a drop, and the inbox statement and earlier filters.
 - Web app: format check, lint (no warnings), type check, build and tests pass.
 - Code size, first load in KB before and after: the public link page 137.10 to 138.11, the inbox 128.99 to 131.22, a drop's page 135.55 to 137.78, the map 131.39 to 131.97, My link 126.51 to 131.34, Settings 127.14 to 127.21. All stay under the 150 KB budget.
-- Browser tests on the built app, on real development data, in light and dark: My link closed and running, starting a statement (a double click sent one request), ending with the in-page question, replacing a running statement, the countdown reaching zero and closing the link on screen, the public page open and closed, inbox sections for a live statement, an ended one and Earlier, "Only this one" and "Show all", a bad statement value in the address being dropped, the map picker with counts and Earlier, and the map's no-match message with its reset. No console errors, no content policy violations and no sideways scrolling.
+- Browser tests on the built app, on real development data, in light and dark: My link closed and running, starting a statement (a double click sent one request), ending with the in-page question, replacing a running statement, the countdown reaching zero and closing the link on screen, the public page open and closed, inbox sections for a live statement, an ended one and Earlier, "Only this one" (later renamed "View all") and "Show all", a bad statement value in the address being dropped, the map picker with counts and Earlier, and the map's no-match message with its reset. No console errors, no content policy violations and no sideways scrolling.
 
 ## Open Items
 
 - Only the tablet width (958 px) was checked in the browser, because the window would not resize. The phone (390), laptop (1280) and wide (1920) widths still need a manual check.
+- The later restyle (the status pill, the picker and the "View all" button) has not been checked by hand at 390, 768 and 1920 pixels. Those three widths still need a manual check.
 - Not tried in the browser: a send turned away as closed (sending needs a GPS fix), ending a statement that had already ended, and the public page's countdown reaching zero on its own. The first two are covered by tests.
 - On the closed public page, the heading and the message say nearly the same thing. The wording can be tightened.
 - The stores keep the previous account's statement until the page reloads, if someone signs out and signs in as another person in the same tab. The other in-memory stores behave the same way.
