@@ -1,12 +1,15 @@
 // Better Auth client for the web app. Sign-in is by email code only: send a code, then
 // check it, which sets the httpOnly session cookie on this origin. Failures become the
-// shared ApiError so pages show one kind of error. The session is read from the server
-// on every call; nothing about it is kept in browser storage.
+// shared ApiError so pages show one kind of error. A signed-in session read by the route
+// guards is reused in memory for 30 seconds, so moving between pages does not ask the server
+// each time; it is forgotten on sign-out and on any 401 from the API. A missing session is
+// never reused. Nothing about the session is kept in browser storage.
 import { emailOTPClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
-import { ApiError, rateLimitMessage } from "@/lib/api";
+import { ApiError, rateLimitMessage, setUnauthorizedHandler } from "@/lib/api";
 
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
+const SESSION_REUSE_MS = 30_000;
 
 const authClient = createAuthClient({
     baseURL: window.location.origin,
@@ -15,6 +18,15 @@ const authClient = createAuthClient({
 });
 
 type AuthFailure = { status: number; code?: string; message?: string } | null;
+type Session = NonNullable<Awaited<ReturnType<typeof authClient.getSession>>["data"]>;
+
+let reused: { session: Session; at: number } | null = null;
+
+function forgetSession() {
+    reused = null;
+}
+
+setUnauthorizedHandler(forgetSession);
 
 // a failed auth call as an ApiError; the raw message never reaches the page
 function toApiError(error: NonNullable<AuthFailure>, retryAfter: string | null) {
@@ -62,6 +74,8 @@ export async function verifyCode(email: string, otp: string) {
 }
 
 export async function signOut() {
+    forgetSession();
+
     const { error } = await authClient.signOut();
 
     if (error) {
@@ -71,7 +85,13 @@ export async function signOut() {
 
 // the current session for route guards, null when signed out or unreachable
 export async function getSession() {
+    if (reused && Date.now() - reused.at < SESSION_REUSE_MS) {
+        return reused.session;
+    }
+
     const { data } = await authClient.getSession();
+
+    reused = data ? { session: data, at: Date.now() } : null;
 
     return data ?? null;
 }

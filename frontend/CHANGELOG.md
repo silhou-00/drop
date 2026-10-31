@@ -4,6 +4,10 @@
 
 **App shell:**
 
+- The Map page shows every drop as a pin on a map, with filters and a list of the drops at each place.
+- The My link page shows the owner's link with a story image to share, and Settings has an appearance choice (light, dark or automatic) and sign out.
+- The chosen look is applied before the page appears, so it no longer flashes.
+- Pages open faster when a link is hovered or touched, and pages load lighter.
 - Signed-in pages share a new frame with a tab bar or side rail, an unread badge, inbox filters, a side-by-side reading view on wide screens, and a restyled drop page.
 
 ## October 30, 2026

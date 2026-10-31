@@ -294,6 +294,7 @@
     --app-bead-dur: 420ms;
     --app-bead-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
     --app-bead-lag: 1.6;
+    --app-bath-fade-dur: 600ms;
     --app-bead-inset: 6px;
     --app-count-size: 18px;
     --app-fs-count: 0.6875rem;
@@ -411,5 +412,81 @@
 @media (min-width: 48rem) {
     :root {
         --share-panel-padding: 20px;
+    }
+}
+
+/* map: the full-screen map with glass chips and controls, its pins, and the list that rises
+   over it on phones, floats beside the rail on tablets and docks beside it from laptops */
+:root {
+    --map-inset: 12px;
+    --map-ctl-top: 96px;
+    --map-ctl-right: 16px;
+    --map-chips-padding: 6px;
+    --map-older-top: 80px;
+    --map-pin-size: 34px;
+    --map-pin-hit: 44px;
+    --map-pin-count: 22px;
+    --map-pin-shadow: drop-shadow(0 3px 4px rgba(10, 10, 10, 0.3));
+    --map-pin-pressed: 1.15;
+    --map-panel-w: auto;
+    --map-panel-radius: 28px;
+    --map-panel-gap: 12px;
+    --map-panel-card-fill: var(--ground);
+    --map-sheet-max-h: 42svh;
+    --map-grip-w: 40px;
+    --map-grip-h: 5px;
+    --map-fs-panel-title: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    --map-close-size: 44px;
+    --map-collapse-size: 44px;
+    --map-note-padding: 16px;
+    --map-note-radius: 22px;
+    --map-empty-max: 28rem;
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --map-panel-w: min(380px, 100vw - var(--rail-w) - 24px);
+        --map-sheet-max-h: 52svh;
+    }
+}
+
+/* my link: the link card capped on wide screens, the large link text and the tilted story
+   preview with its white ring */
+:root {
+    --mylink-card-max: 100%;
+    --mylink-fs-url: clamp(1.4rem, 1.1rem + 1.4vw, 2.2rem);
+    --mylink-story-w: min(13.75rem, 50%);
+    --mylink-story-tilt: -3deg;
+    --mylink-story-radius: 18px;
+    --mylink-story-ring: 0 0 0 6px #fff;
+    --mylink-preview-padding: 12px 0;
+    --mylink-wait-padding: 12px;
+}
+
+@media (min-width: 80rem) {
+    :root {
+        --mylink-card-max: 36rem;
+    }
+}
+
+/* settings: one card of rows with a hair divider, the segmented theme choice and the full
+   row sign out button */
+:root {
+    --settings-max: 100%;
+    --settings-row-min-h: 60px;
+    --settings-row-padding: 10px 18px;
+    --settings-rows-radius: 22px;
+    --settings-icon: 20px;
+    --settings-label-gap: 12px;
+    --settings-seg-padding: 3px;
+    --settings-seg-min-h: 44px;
+    --settings-seg-option-padding: 0 12px;
+    --settings-fs-seg: clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem);
+    --settings-fs-row: var(--type-body);
+}
+
+@media (min-width: 80rem) {
+    :root {
+        --settings-max: 36rem;
     }
 }

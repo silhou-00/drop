@@ -1,0 +1,116 @@
+/* The settings page: paper cards of rows split by a hair line, each row an icon and a label
+   on the left and its control on the right. Appearance is a segmented choice on the ground
+   colour with the chosen option raised on paper, and Sign out is a full-width row button.
+   Capped and start-aligned on wide screens. Every size comes from tokens.css. */
+
+.auth-page .settings-section {
+    max-width: none;
+}
+
+.auth-page .settings-rows {
+    width: 100%;
+    max-width: var(--settings-max);
+    gap: 0;
+    overflow: hidden;
+    border-radius: var(--settings-rows-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .settings-row,
+.auth-page .settings-row-full {
+    justify-content: space-between;
+    min-height: var(--settings-row-min-h);
+}
+
+.auth-page .settings-row {
+    padding: var(--settings-row-padding);
+}
+
+.auth-page .settings-row + .settings-row,
+.auth-page .settings-row-full + .settings-row-full {
+    border-top: 1px solid var(--hair);
+}
+
+.auth-page .settings-row-full > .container {
+    flex: 1;
+}
+
+.auth-page .settings-row-label {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--settings-label-gap);
+    font: 600 var(--settings-fs-row) / 1.2 var(--family-body);
+}
+
+.auth-page .settings-icon {
+    flex: none;
+    width: var(--settings-icon);
+    height: var(--settings-icon);
+}
+
+.auth-page .settings-caption {
+    color: var(--ink-2);
+    font-size: var(--type-caption);
+}
+
+/* the segmented choice */
+.auth-page .settings-seg {
+    display: flex;
+    padding: var(--settings-seg-padding);
+    border-radius: 999px;
+    background: var(--ground);
+}
+
+.auth-page .settings-seg-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--settings-seg-min-h);
+    padding: var(--settings-seg-option-padding);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font: 600 var(--settings-fs-seg) / 1 var(--family-body);
+    cursor: pointer;
+}
+
+.auth-page .settings-seg-option:has(:checked) {
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+}
+
+.auth-page .settings-seg-option:has(:focus-visible) {
+    box-shadow: var(--auth-focus-ring);
+}
+
+.auth-page .settings-seg-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+}
+
+/* sign out: the whole row is the button */
+.auth-page .settings-row-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--settings-label-gap);
+    width: 100%;
+    min-height: var(--settings-row-min-h);
+    padding: var(--settings-row-padding);
+    background: none;
+    color: var(--ink);
+    font: 600 var(--settings-fs-row) / 1.2 var(--family-body);
+    text-align: start;
+    cursor: pointer;
+}
+
+.auth-page .settings-row-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

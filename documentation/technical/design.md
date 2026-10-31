@@ -14,6 +14,7 @@ The design system as built: colour, type, spacing, layout widths, motion and the
 | Share panel (`--share-*`)                                                    | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Motion                                                                       | `src/lib/motion/tokens.ts` | `motionDefaults`, `landingMotion`                |
 | Marble                                                                       | `src/lib/marble/tokens.ts` | `marbleDefaults`, `MARBLE_PIGMENTS`, `MARBLE_GL` |
+| Map, My link, Settings (`--map-*`, `--mylink-*`, `--settings-*`)             | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 
 ## Colour
 
@@ -68,7 +69,7 @@ Fixed at every band: sub-section gap 10px, placement gap 8px, container gap 0, a
 
 ## App layout
 
-Built in module 12b run A: the frame, the inbox and the drop page. The Map, My link and Settings pages are placeholders until run B. Styles are in `src/styles/app-shell.css`; the components are listed in [frontend.md](frontend.md).
+Built in module 12b: the frame, the inbox, the drop page, and (run B) the Map, My link and Settings pages and the theme. Styles are in `src/styles/app-shell.css`; the components are listed in [frontend.md](frontend.md).
 
 | Band                | Navigation                                                | Notes                                                                                                                                                            |
 | ------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -79,11 +80,12 @@ Built in module 12b run A: the frame, the inbox and the drop page. The Map, My l
 - Selecting a drop pushes its URL, so deep links and Back work. On phones and tablets the list and an open drop take turns; from 80rem both show, with "Pick a drop to read it" in the pane until one is open.
 - Glass: `--glass-fill`, `--glass-edge`, `--glass-blur` (18px) and `--glass-saturate` (1.4) on the nav bar, and on the map controls. Below the bar a soft blur (`--app-bar-blur`, `--app-bar-fade`) keeps the labels readable over content.
 - Bath mask: `--app-mask-solid` (120px) and `--app-mask-clear` (300px) fade the bath out on phones; a drop's page uses the shorter `--app-mask-detail` (80px).
+- Marble fade: the app shell loads the bath after the page. `.app-bath-marble` fades in with `--app-bath-fade-dur` (`600ms`, `--landing-e-cubic`); under reduced motion it appears without a fade. The Map page has no bath.
 - Bead: a lead and a slower trail bead melt through the goo filter. Duration and easing come from the `tabSpring` motion token; `--app-bead-lag` (1.6) sets the trail's delay. Under reduced motion the bead jumps without travel.
 - Active tab: the icon switches from bold to fill weight. The Inbox tab carries a count badge (`--app-count-size`, `--app-fs-count`), capped at `9+`.
-- Map (run B): full bleed at every band. Mobile: paper bottom sheet. Tablet: 380px floating panel. 1280 and up: full-height paper list panel, open by default, with a round collapse control carrying `aria-expanded`.
+- Map: full bleed at every band; see the Map section below.
 - Sender: one focused column, at most 560px.
-- My link and settings: content held to 1120px.
+- My link and settings: content held to 1120px; the cards are capped further (see their sections).
 - Glass appears in at most 3 places per view.
 
 | Token                                                       | Value                                                                                                                                    | Use                                                                      |
@@ -119,6 +121,7 @@ Built in module 12b run A: the frame, the inbox and the drop page. The Map, My l
 | `--app-chip-padding`                                        | `0 14px`                                                                                                                                 | Filter chip padding                                                      |
 | `--app-fs-chip`                                             | `clamp(0.875rem, 0.85rem + 0.1vw, 0.9rem)`                                                                                               | Filter chip text                                                         |
 | `--app-bead-dur`, `--app-bead-ease`                         | `420ms`, spring overshoot curve (overridden from `tabSpring`)                                                                            | Bead travel                                                              |
+| `--app-bath-fade-dur`                                       | `600ms`                                                                                                                                  | Marble fade-in in the app shell                                          |
 | `--app-bead-lag`                                            | `1.6`                                                                                                                                    | Trail bead delay multiple                                                |
 | `--app-bead-inset`                                          | `6px`; 48rem `0px`                                                                                                                       | Bead inset in its cell                                                   |
 | `--app-count-size`                                          | `18px`                                                                                                                                   | Unread badge size                                                        |
@@ -135,7 +138,14 @@ Deviations from the comps:
 - "Placed by hand" became a GPS badge, because every drop is placed by GPS.
 - No bell, and no Pins chip. Alerts arrive outside the app and their switch goes in Settings; the Inbox tab badge does the bell's job in the app.
 - The gooey tab bar and the glass map controls were rebuilt in the project's own code; nothing was copied and no package was added.
-- The unread badge fills only after the inbox has loaded once.
+- The unread badge now also fills on My link and Settings, with one small request.
+- My link and Settings are two pages; the comp shows one.
+- The map pin badge always shows the drop count, even for one drop.
+- The inbox header's moon button is left out (bundle budget at the time); Settings covers the theme.
+- Settings rows are trimmed to Appearance, Locations and Sign out. Alerts, pause link, blocked senders and delete account are left out.
+- Segmented choices are 44px tall, not about 30px, for tap size.
+- The map stays on the light palette in dark mode.
+- On 1280 and up, the docked map list shows all filtered drops when no place is chosen.
 
 ## Motion
 
@@ -294,6 +304,78 @@ The list at `/inbox` and a drop at `/inbox/<id>`, inside the app frame. Styles i
 | `--inbox-confirm-radius`    | `22px`                                                                         | Delete step radius                |
 
 The map style (`src/lib/map/style.ts`) takes land from the light ground pigment, areas and water from mixes of ground and grey, roads from paper, and labels from ink-2.
+
+## Theme
+
+Light, dark or auto (follow the device). The choice sits on the root element as `data-theme` and is applied before first paint by `public/theme.js`, so there is no flash. Auto leaves the attribute off and the palette follows `prefers-color-scheme`. The landing page forces light. A change made from Settings grows out of the picked option as a circle (the iris): `motionDefaults.iris` sets duration and easing, the browser's default cross-fade is turned off in `app-shell.css`, and the change is instant under reduced motion, without view transition support, or when the theme shown does not change. Logic is in [frontend.md](frontend.md).
+
+## Map
+
+The map page at `/map`. Styles in `src/styles/map.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. The map fills the screen behind a glass chip bar (top) and a glass control column (right), and always uses the light Drop palette, in dark mode too. Pins are red (`--accent-fill`) with a white count badge that always shows the drop count; zoomed out, nearby places merge into one pin. A chosen place draws a dashed ~150 m ring (fill opacity 0.18). The map may pan to `WIDE_BOUNDS` [101, 0, 142, 26], beyond the Philippines data extract, so a wide screen can frame far pins clear of the list.
+
+| Band        | List                                                                                                                         |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Mobile      | Paper bottom sheet over the map, up to `--map-sheet-max-h` (42svh), with a grip; rises when a place is chosen                |
+| Tablet      | Floating paper panel, `--map-panel-w` wide, beside the rail; rises when a place is chosen                                    |
+| 1280 and up | Docked beside the rail, open by default, lists all filtered drops until a place is chosen; a 44px round button folds it away |
+
+| Token                          | Value                                                    | Use                                   |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------- |
+| `--map-inset`                  | `12px`                                                   | Inset of the map pieces from the edge |
+| `--map-ctl-top`                | `96px`                                                   | Control column top                    |
+| `--map-ctl-right`              | `16px`                                                   | Control column right                  |
+| `--map-chips-padding`          | `6px`                                                    | Glass chip bar padding                |
+| `--map-older-top`              | `80px`                                                   | "Load older drops" button top         |
+| `--map-pin-size`               | `34px`                                                   | Pin size                              |
+| `--map-pin-hit`                | `44px`                                                   | Pin tap target                        |
+| `--map-pin-count`              | `22px`                                                   | Count badge size                      |
+| `--map-pin-shadow`             | `drop-shadow(0 3px 4px rgba(10, 10, 10, 0.3))`           | Pin shadow                            |
+| `--map-pin-pressed`            | `1.15`                                                   | Chosen pin scale                      |
+| `--map-panel-w`                | `auto`; 48rem `min(380px, 100vw - var(--rail-w) - 24px)` | List panel width                      |
+| `--map-panel-radius`           | `28px`                                                   | List panel radius                     |
+| `--map-panel-gap`              | `12px`                                                   | Gap inside the panel                  |
+| `--map-panel-card-fill`        | `var(--ground)`                                          | Card fill in the panel                |
+| `--map-sheet-max-h`            | `42svh`; 48rem `52svh`                                   | Sheet and panel height cap            |
+| `--map-grip-w`, `--map-grip-h` | `40px`, `5px`                                            | Sheet grip                            |
+| `--map-fs-panel-title`         | `clamp(1.15rem, 1rem + 0.6vw, 1.5rem)`                   | Panel heading                         |
+| `--map-close-size`             | `44px`                                                   | Close button                          |
+| `--map-collapse-size`          | `44px`                                                   | Fold button                           |
+| `--map-note-padding`           | `16px`                                                   | Loading, error and no-match notes     |
+| `--map-note-radius`            | `22px`                                                   | Note radius                           |
+| `--map-empty-max`              | `28rem`                                                  | Empty state card width                |
+
+## My link
+
+The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), then a card with the caption "Put this in your story", the link in large text, Copy and Share buttons, and a tilted preview of the story image in a white ring.
+
+| Token                      | Value                                   | Use                      |
+| -------------------------- | --------------------------------------- | ------------------------ |
+| `--mylink-card-max`        | `100%`; 80rem `36rem`                   | Card width cap           |
+| `--mylink-fs-url`          | `clamp(1.4rem, 1.1rem + 1.4vw, 2.2rem)` | Link text                |
+| `--mylink-story-w`         | `min(13.75rem, 50%)`                    | Preview width            |
+| `--mylink-story-tilt`      | `-3deg`                                 | Preview tilt             |
+| `--mylink-story-radius`    | `18px`                                  | Preview radius           |
+| `--mylink-story-ring`      | `0 0 0 6px #fff`                        | Preview ring             |
+| `--mylink-preview-padding` | `12px 0`                                | Space around the preview |
+| `--mylink-wait-padding`    | `12px`                                  | "Making the image" note  |
+
+## Settings
+
+The page at `/settings`. Styles in `src/styles/settings.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), one card of rows with a hair divider (Appearance with a segmented Light, Dark, Auto choice; Locations with "Rounded to about 150 m"), and a full-width Sign out row.
+
+| Token                           | Value                                        | Use                        |
+| ------------------------------- | -------------------------------------------- | -------------------------- |
+| `--settings-max`                | `100%`; 80rem `36rem`                        | Page width cap             |
+| `--settings-row-min-h`          | `60px`                                       | Row height                 |
+| `--settings-row-padding`        | `10px 18px`                                  | Row padding                |
+| `--settings-rows-radius`        | `22px`                                       | Rows card radius           |
+| `--settings-icon`               | `20px`                                       | Row icon size              |
+| `--settings-label-gap`          | `12px`                                       | Gap between icon and label |
+| `--settings-seg-padding`        | `3px`                                        | Segmented control padding  |
+| `--settings-seg-min-h`          | `44px`                                       | Segmented option height    |
+| `--settings-seg-option-padding` | `0 12px`                                     | Segmented option padding   |
+| `--settings-fs-seg`             | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem)` | Segmented option text      |
+| `--settings-fs-row`             | `var(--type-body)`                           | Row label text             |
 
 ## Share panel
 

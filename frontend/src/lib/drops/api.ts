@@ -25,8 +25,12 @@ export function sendDrop(username: string, draft: DropDraft) {
     });
 }
 
-// one inbox page, newest first; "all" sends no filter, and the cursor comes from the page before
-export function listDrops({ cursor, filter }: { cursor?: string | null; filter?: InboxFilter }, signal?: AbortSignal) {
+// one inbox page, newest first; "all" sends no filter, the cursor comes from the page before,
+// and the page size is the server's default unless given
+export function listDrops(
+    { cursor, filter, limit }: { cursor?: string | null; filter?: InboxFilter; limit?: number },
+    signal?: AbortSignal,
+) {
     const params = new URLSearchParams();
 
     if (filter && filter !== "all") {
@@ -35,6 +39,10 @@ export function listDrops({ cursor, filter }: { cursor?: string | null; filter?:
 
     if (cursor) {
         params.set("cursor", cursor);
+    }
+
+    if (limit !== undefined) {
+        params.set("limit", String(limit));
     }
 
     const text = params.toString();

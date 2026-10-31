@@ -3,11 +3,11 @@
 // the panel closes. The photo is loaded once from the drop's same-origin photo path; a failed
 // load leaves the card without it. Share hands the file to the device's share sheet when the
 // browser can share files, and otherwise saves it, like Save. A ref lock stops a double click
-// from firing twice; a cancelled share is not an error. Nothing is uploaded or stored.
+// from firing twice; a cancelled share is not an error. Nothing is uploaded or stored. The
+// drawing code loads on first use, so a page that offers a card does not carry it up front.
 import { useEffect, useRef, useState } from "react";
 import { dropPhotoPath } from "@/lib/drops/api";
 import { DOWNLOAD_LOCK_MS, STORY_FILE_NAME, STORY_FILE_TYPE, type StoryOptions } from "@/lib/share/model";
-import { renderStoryCard } from "@/lib/share/render";
 
 const BUILD_FAILED_MESSAGE = "The image could not be made. Close this and try again.";
 const SHARE_FAILED_MESSAGE = "Sharing did not work. Use Save image instead.";
@@ -90,21 +90,25 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
         let cancelled = false;
         let url = "";
 
-        renderStoryCard({ message, placeName, photo: image, link }, { includePhoto, includePlace }).then(
-            (blob) => {
-                if (cancelled) {
-                    return;
-                }
+        import("@/lib/share/render")
+            .then(({ renderStoryCard }) =>
+                renderStoryCard({ message, placeName, photo: image, link }, { includePhoto, includePlace }),
+            )
+            .then(
+                (blob) => {
+                    if (cancelled) {
+                        return;
+                    }
 
-                url = URL.createObjectURL(blob);
-                setCard({ key, url, blob, failed: false });
-            },
-            () => {
-                if (!cancelled) {
-                    setCard({ key, url: "", blob: null, failed: true });
-                }
-            },
-        );
+                    url = URL.createObjectURL(blob);
+                    setCard({ key, url, blob, failed: false });
+                },
+                () => {
+                    if (!cancelled) {
+                        setCard({ key, url: "", blob: null, failed: true });
+                    }
+                },
+            );
 
         return () => {
             cancelled = true;

@@ -5,7 +5,7 @@
 // and the scrollbar. Under reduced motion there is no Lenis and no live shader;
 // the still bath and the final states show instead. The page is always shown in light mode.
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BathPlate } from "@/components/landing/bath-plate";
 import { Claim } from "@/components/landing/claim";
 import { ClaimIris, type ClaimRequest } from "@/components/landing/claim-iris";
@@ -58,8 +58,8 @@ function LandingPage() {
     const { subscribe, invalidate, runtime } = useScrollTimeline({ rootRef, lenis, reduced, tokens });
     const [claim, setClaim] = useState<ClaimRequest | null>(null);
 
-    // the landing is designed for the light palette only
-    useEffect(() => {
+    // the landing is designed for the light palette only, set before the first paint
+    useLayoutEffect(() => {
         const root = document.documentElement;
         const previous = root.getAttribute("data-theme");
 

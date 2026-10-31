@@ -2,7 +2,9 @@
 // drop pane and the unread badge on the Inbox tab. It lives in memory only and is never
 // written to storage. Readers subscribe and get a fresh snapshot on every change, so a read
 // toggle or a delete on one screen shows at once on the others. The unread count is the
-// server's inbox-wide number, moved by one on each local change and never below zero.
+// server's inbox-wide number, moved by one on each local change and never below zero. Other
+// keepers of drops (the map) hear each read change and delete through a change listener, and
+// may set the unread count from a page they loaded.
 import type { InboxFilter, InboxItem } from "@/lib/drops/model";
 
 export type InboxSnapshot = {
@@ -16,7 +18,10 @@ export type InboxSnapshot = {
     moreError: string;
 };
 
+export type DropChange = { kind: "read"; item: InboxItem } | { kind: "remove"; id: string };
+
 const listeners = new Set<() => void>();
+const changeListeners = new Set<(change: DropChange) => void>();
 
 let snapshot: InboxSnapshot = {
     filter: "all",
@@ -54,6 +59,26 @@ export function update(change: (current: InboxSnapshot) => InboxSnapshot) {
     setSnapshot(change(snapshot));
 }
 
+// hear each read change and delete; returns the way to stop
+export function onDropChange(listener: (change: DropChange) => void) {
+    changeListeners.add(listener);
+
+    return () => {
+        changeListeners.delete(listener);
+    };
+}
+
+function emitChange(change: DropChange) {
+    for (const listener of changeListeners) {
+        listener(change);
+    }
+}
+
+// the server's inbox-wide unread count from any page
+export function setUnreadCount(count: number) {
+    update((current) => ({ ...current, unreadCount: count }));
+}
+
 function shiftCount(count: number | null, by: number) {
     return count === null ? null : Math.max(0, count + by);
 }
@@ -73,6 +98,8 @@ export function applyReadChange(item: InboxItem, wasRead: boolean) {
         items: current.items.map((kept) => (kept.id === item.id ? item : kept)),
         unreadCount: shiftCount(current.unreadCount, by),
     }));
+
+    emitChange({ kind: "read", item });
 }
 
 // a deleted drop leaves the list, and an unread one lowers the count
@@ -82,4 +109,6 @@ export function applyRemoval(id: string, wasUnread: boolean) {
         items: current.items.filter((kept) => kept.id !== id),
         unreadCount: shiftCount(current.unreadCount, wasUnread ? -1 : 0),
     }));
+
+    emitChange({ kind: "remove", id });
 }

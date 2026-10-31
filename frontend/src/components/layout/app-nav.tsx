@@ -3,12 +3,14 @@
 // labelled rail with the logo on top and the owner's link card at its foot. A red bead sits
 // under the current tab and springs to the next one, with a slower second bead melting
 // behind it through the goo filter; under reduced motion it moves without travel. The Inbox
-// tab carries the unread count from the shared inbox store, so it needs no extra request.
+// tab carries the unread count from the shared inbox store; when the app opens on a page that
+// loads no drops, one small request fills it in.
 import { Link, useLocation } from "@tanstack/react-router";
 import { Copy, GearSix, LinkSimple, MapTrifold, Tray, type Icon } from "@phosphor-icons/react";
 import { useSyncExternalStore, type CSSProperties } from "react";
 import { Goo, GooFilter } from "@/components/goo/goo-filter";
 import { getSnapshot, subscribe } from "@/hooks/drops/inbox-store";
+import { useUnreadSeed } from "@/hooks/drops/use-unread-seed";
 import { useLinkShare } from "@/hooks/profiles/use-link-share";
 import { useOwnLink } from "@/hooks/profiles/use-own-link";
 import { sampleSpring } from "@/lib/motion/easings";
@@ -85,6 +87,8 @@ export function AppNav() {
     const unread = useSyncExternalStore(subscribe, readUnread);
     const index = tabIndex(pathname);
     const showCount = unread !== null && unread > 0;
+
+    useUnreadSeed();
 
     const beadStyle = {
         "--nav-index": index,

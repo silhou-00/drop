@@ -1,0 +1,51 @@
+/* The My link page: the link card, capped and start-aligned on wide screens, with a caption,
+   the link in large mono type that breaks anywhere, and the story preview tilted inside a
+   white ring. Every size comes from tokens.css. */
+
+.auth-page .mylink-card {
+    width: 100%;
+    max-width: var(--mylink-card-max);
+}
+
+.auth-page .mylink-caption {
+    color: var(--ink-2);
+    font: 500 var(--type-caption) / 1.3 var(--family-body);
+}
+
+.auth-page .mylink-url {
+    font: 700 var(--mylink-fs-url) / 1.15 var(--family-meta);
+    overflow-wrap: anywhere;
+}
+
+.auth-page .mylink-preview {
+    justify-content: center;
+    padding: var(--mylink-preview-padding);
+}
+
+.auth-page .mylink-story {
+    position: relative;
+    width: var(--mylink-story-w);
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: var(--mylink-story-radius);
+    background: var(--ground);
+    box-shadow: var(--mylink-story-ring), var(--shadow-lift);
+    transform: rotate(var(--mylink-story-tilt));
+}
+
+.auth-page .mylink-story-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.auth-page .mylink-story-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mylink-wait-padding);
+    text-align: center;
+}

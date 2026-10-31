@@ -3,12 +3,20 @@
 // the browser adds the multipart boundary itself. It unwraps the { data, error } envelope and
 // turns every failure into an ApiError carrying the status, the error code and a message that
 // is safe to show. A 429 reads Retry-After and becomes a plain "try again in" message. A 204
-// has no body and resolves with undefined. Error text is shown as text.
+// has no body and resolves with undefined. A 401 tells the auth client to forget the session it
+// reuses. Error text is shown as text.
 
 const NETWORK_MESSAGE = "Could not reach Drop. Check your connection and try again.";
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
 
 type Envelope<T> = { data: T | null; error: { code: string; message: string } | null };
+
+let unauthorizedHandler: (() => void) | null = null;
+
+// set by the auth client, so a 401 here drops its reused session
+export function setUnauthorizedHandler(handler: () => void) {
+    unauthorizedHandler = handler;
+}
 
 export class ApiError extends Error {
     status: number;
@@ -63,6 +71,10 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
 
     if (response.status === 204) {
         return undefined as T;
+    }
+
+    if (response.status === 401) {
+        unauthorizedHandler?.();
     }
 
     const body = (await response.json().catch(() => null)) as Envelope<T> | null;

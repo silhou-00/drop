@@ -1,5 +1,6 @@
 // One drop in the inbox list. The whole card is one link to the drop's page that keeps the
-// current filter in the address. It shows the start of the message clamped to three lines,
+// current filter in the address, or the search it is given (the map passes only its filter,
+// so the selected place does not follow the drop). It shows the start of the message clamped to three lines,
 // then a badge for the place (left out when the drop has no place name), a badge when there
 // is a photo, a short age with the full time in a time element, and a ringed red dot when the
 // drop is unread. The open drop's card is marked active by the router. Text only.
@@ -8,7 +9,9 @@ import { Image, MapPin } from "@phosphor-icons/react";
 import { fullTime, shortAgo } from "@/lib/drops/helper";
 import type { InboxItem } from "@/lib/drops/model";
 
-export function InboxCard({ item }: { item: InboxItem }) {
+type InboxCardProps = { item: InboxItem; search?: { filter?: "unread" | "photos" } };
+
+export function InboxCard({ item, search }: InboxCardProps) {
     const unread = !item.is_read;
 
     return (
@@ -16,7 +19,7 @@ export function InboxCard({ item }: { item: InboxItem }) {
             className="inbox-card"
             to="/inbox/$id"
             params={{ id: item.id }}
-            search={(prev) => prev}
+            search={search ?? ((prev) => prev)}
             data-unread={unread ? "true" : undefined}
         >
             {unread ? <span className="inbox-sr">Unread. </span> : null}

@@ -7,7 +7,9 @@
 // memory only. The inbox shapes and messages match the backend's inbox item and query rules,
 // and a drop id is checked as a UUID before it is put in any request path. The inbox filter is
 // one of all, unread or photos; each inbox page also carries the inbox-wide unread count, which
-// does not depend on the filter or the page.
+// does not depend on the filter or the page. The map loads its pages in a fixed size, a few on
+// its own and more on request up to a cap, and reuses a recent load. A place in the address is
+// the six-decimal latitude and longitude every drop in that ~150 m cell shares.
 
 export const MESSAGE_MAX = 280;
 export const MESSAGE_MESSAGE = "Write a message up to 280 characters.";
@@ -25,6 +27,12 @@ export const IS_READ_MESSAGE = "Send is_read as true or false.";
 export const FILTER_MESSAGE = "Choose a filter: all, unread or photos.";
 
 export const INBOX_FILTERS = ["all", "unread", "photos"] as const;
+
+export const MAP_PAGE_SIZE = 50;
+export const MAP_AUTO_PAGES = 4;
+export const MAP_MAX_DROPS = 500;
+export const MAP_FRESH_MS = 60_000;
+export const PLACE_KEY_PATTERN = /^-?\d{1,2}\.\d{6},-?\d{1,3}\.\d{6}$/;
 
 const DROP_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const COORDINATE_PATTERN = /^-?\d{1,3}(\.\d{1,15})?$/;

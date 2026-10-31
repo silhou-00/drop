@@ -2,15 +2,15 @@
 // the list from laptops up. A bar on top holds the back button (phones and tablets), the day
 // and time, and a read or unread toggle. Below: the message large, a badge for the place and
 // one saying it came from GPS, the map of the rough area (loaded only here) and the photo
-// behind a blur when there is one. At the foot: "Share to story" and a round Delete button;
-// Delete swaps the row for an in-page confirm. Opening an unread drop marks it read once.
-// After a delete the inbox opens with the filter kept and its heading takes focus. A
-// malformed id or someone else's drop shows the same not-found view. Text only throughout.
+// behind a blur when there is one (its code loads only then). At the foot: "Share to story"
+// and a round Delete button; Delete swaps the row for an in-page confirm. Opening an unread
+// drop marks it read once. After a delete the inbox opens with the filter kept and its
+// heading takes focus. A malformed id or someone else's drop shows the same not-found view.
+// Text only throughout.
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Crosshair, Envelope, EnvelopeOpen, InstagramLogo, MapPin, Trash } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
 import { DeleteConfirm } from "@/components/drops/delete-confirm";
-import { PhotoReveal } from "@/components/drops/photo-reveal";
 import { useDeleteDrop } from "@/hooks/drops/use-delete-drop";
 import { useDrop } from "@/hooks/drops/use-drop";
 import { useMarkRead } from "@/hooks/drops/use-mark-read";
@@ -18,6 +18,9 @@ import { useOwnLink } from "@/hooks/profiles/use-own-link";
 import { dayTime, fullTime } from "@/lib/drops/helper";
 
 const DropMap = lazy(() => import("@/components/drops/drop-map").then((module) => ({ default: module.DropMap })));
+const PhotoReveal = lazy(() =>
+    import("@/components/drops/photo-reveal").then((module) => ({ default: module.PhotoReveal })),
+);
 const ShareSheet = lazy(() =>
     import("@/components/share/share-sheet").then((module) => ({ default: module.ShareSheet })),
 );
@@ -259,7 +262,16 @@ export function DropView({ id, wide }: DropViewProps) {
                     </div>
                     {item.has_photo ? (
                         <div className="container drop-photo">
-                            <PhotoReveal id={item.id} />
+                            <Suspense
+                                fallback={
+                                    // photo loading: the closed circle, same size, no image yet
+                                    <span className="inbox-photo" data-stage="hidden" aria-hidden="true">
+                                        <span className="inbox-photo-label" />
+                                    </span>
+                                }
+                            >
+                                <PhotoReveal id={item.id} />
+                            </Suspense>
                         </div>
                     ) : null}
                 </div>

@@ -1,0 +1,356 @@
+/* The map page. The map fills the screen behind everything; the filter chips sit on a glass
+   bar at the top and the zoom buttons in a glass column at the right, the only two glass
+   pieces besides the nav. The list of drops is a paper sheet over the map on phones, a
+   floating paper panel beside the rail on tablets, and a docked pane beside the rail from
+   laptops, where a round button folds it away. Loading, failure and the empty state sit on
+   the plain ground. Every size comes from tokens.css. */
+
+.auth-page .map-page {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+.auth-page .map-stage {
+    flex: 1;
+    max-width: none;
+}
+
+/* the map itself, fixed under the chrome */
+.auth-page .map-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: var(--ground);
+}
+
+.auth-page .map-view {
+    position: absolute;
+    inset: 0;
+}
+
+.auth-page .map-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* chips: a glass pill bar along the top */
+.auth-page .map-chips {
+    position: fixed;
+    top: var(--map-inset);
+    right: var(--map-inset);
+    left: var(--map-inset);
+    z-index: 2;
+    width: fit-content;
+    max-width: calc(100% - var(--map-inset) * 2);
+    padding: var(--map-chips-padding);
+    border: var(--glass-edge);
+    border-radius: 999px;
+    background: var(--glass-fill);
+    box-shadow: var(--shadow-rest);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+/* zoom and fit: the glass column at the right */
+.auth-page .map-ctl.inbox-map-ctl {
+    position: fixed;
+    top: var(--map-ctl-top);
+    right: var(--map-ctl-right);
+    z-index: 2;
+}
+
+/* load older drops, and a late error, under the chips */
+.auth-page .map-older {
+    position: fixed;
+    top: var(--map-older-top);
+    left: var(--map-inset);
+    z-index: 2;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: calc(100% - var(--map-inset) * 2 - var(--inbox-map-ctl) - var(--map-ctl-right));
+}
+
+.auth-page .map-older .auth-btn {
+    width: auto;
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .map-older-error:not(:empty) {
+    padding: var(--inbox-badge-padding);
+    border-radius: 12px;
+    background: var(--paper);
+}
+
+/* pins: a red pin with its drop count on a black badge, inside a 44px target */
+.auth-page .map-pin {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: var(--map-pin-hit);
+    height: var(--map-pin-hit);
+    padding: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--accent-fill);
+    cursor: pointer;
+    transition: transform 140ms var(--landing-e-cubic);
+}
+
+.auth-page .map-pin svg {
+    width: var(--map-pin-size);
+    height: var(--map-pin-size);
+    filter: var(--map-pin-shadow);
+}
+
+.auth-page .map-pin b {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--map-pin-count);
+    height: var(--map-pin-count);
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--inverse-fill);
+    color: var(--inverse-ink);
+    font: 700 var(--app-fs-count) / 1 var(--family-meta);
+}
+
+.auth-page .map-pin[aria-pressed="true"] {
+    transform: scale(var(--map-pin-pressed));
+}
+
+/* the list: a paper sheet over the map on phones */
+.auth-page .map-panel {
+    position: fixed;
+    right: var(--map-inset);
+    bottom: var(--app-bar-clearance);
+    left: var(--map-inset);
+    z-index: 3;
+    width: var(--map-panel-w);
+    max-width: none;
+    max-height: var(--map-sheet-max-h);
+    margin: 0;
+    overflow: auto;
+    border-radius: var(--map-panel-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-lift);
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.auth-page .map-panel-handle {
+    justify-content: center;
+}
+
+.auth-page .map-panel-grip {
+    display: block;
+    width: var(--map-grip-w);
+    height: var(--map-grip-h);
+    border-radius: 999px;
+    background: var(--hair);
+}
+
+.auth-page .map-panel-title-row {
+    flex-wrap: nowrap;
+}
+
+.auth-page .map-panel-title-box {
+    flex: 1;
+}
+
+.auth-page .map-panel-title {
+    font: 700 var(--map-fs-panel-title) / 1.1 var(--family-display);
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+.auth-page .map-panel-count {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+    white-space: nowrap;
+}
+
+.auth-page .map-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--map-close-size);
+    height: var(--map-close-size);
+    border-radius: 50%;
+    background: var(--ground);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.auth-page .map-panel-close svg {
+    width: var(--inbox-icon);
+    height: var(--inbox-icon);
+}
+
+/* cards in the list sit on the ground colour, their badges on paper */
+.auth-page .map-panel .inbox-card {
+    background: var(--map-panel-card-fill);
+    box-shadow: none;
+}
+
+.auth-page .map-panel .inbox-badge {
+    background: var(--paper);
+}
+
+/* fold button: a round paper button on the list's right edge */
+.auth-page .map-collapse {
+    position: fixed;
+    top: 50%;
+    left: calc(var(--app-frame-inset) + var(--app-nav-w) + var(--app-list-w) - var(--map-collapse-size) / 2);
+    z-index: 4;
+    transform: translateY(-50%);
+}
+
+.auth-page .map-page[data-list="closed"] .map-collapse {
+    left: calc(var(--app-frame-inset) + var(--app-nav-w) + var(--map-inset));
+}
+
+.auth-page .map-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--map-collapse-size);
+    height: var(--map-collapse-size);
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.auth-page .map-collapse-btn svg {
+    width: var(--inbox-icon);
+    height: var(--inbox-icon);
+}
+
+/* nothing matches the filter: a paper note over the map */
+.auth-page .map-note {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+}
+
+.auth-page .map-note-card {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    padding: var(--map-note-padding);
+    border-radius: var(--map-note-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-lift);
+}
+
+.auth-page .map-note-title {
+    font: 700 var(--type-subheading) / 1.1 var(--family-display);
+    white-space: nowrap;
+}
+
+/* loading, failure and no drops: on the plain ground */
+.auth-page .map-state {
+    flex: 1;
+    justify-content: center;
+}
+
+.auth-page .map-empty {
+    align-items: center;
+}
+
+.auth-page .map-empty .inbox-empty-card {
+    width: 100%;
+    max-width: var(--map-empty-max);
+}
+
+/* credits above the tab bar; with the sheet open they move up under the chips */
+.auth-page .map-view .inbox-map-credit {
+    bottom: calc(var(--app-bar-clearance) + 4px);
+}
+
+.auth-page .map-page:has(.map-panel) .map-view .inbox-map-credit {
+    top: var(--map-older-top);
+    right: auto;
+    bottom: auto;
+    left: var(--map-inset);
+}
+
+.auth-page .map-page:has(.map-older) .map-view .inbox-map-credit {
+    top: auto;
+    bottom: calc(var(--app-bar-clearance) + 4px);
+    right: 6px;
+    left: auto;
+}
+
+/* tablet: the bar and the panel start after the rail; the controls centre on the right */
+@media (min-width: 48rem) {
+    .auth-page .map-chips,
+    .auth-page .map-older {
+        left: calc(var(--rail-w) + 4px);
+    }
+
+    .auth-page .map-ctl.inbox-map-ctl {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .auth-page .map-panel {
+        right: auto;
+        bottom: var(--map-inset);
+        left: calc(var(--rail-w) + 4px);
+    }
+
+    .auth-page .map-panel-handle {
+        display: none;
+    }
+
+    .auth-page .map-view .inbox-map-credit,
+    .auth-page .map-page:has(.map-panel) .map-view .inbox-map-credit,
+    .auth-page .map-page:has(.map-older) .map-view .inbox-map-credit {
+        top: auto;
+        right: 6px;
+        bottom: 6px;
+        left: auto;
+    }
+}
+
+/* laptop and up: the list docks beside the rail like the inbox list */
+@media (min-width: 80rem) {
+    .auth-page .map-chips,
+    .auth-page .map-older {
+        left: calc(var(--app-frame-inset) + var(--app-nav-w) + var(--app-list-w) + 40px);
+    }
+
+    .auth-page .map-page[data-list="closed"] .map-chips,
+    .auth-page .map-page[data-list="closed"] .map-older {
+        left: calc(var(--app-frame-inset) + var(--app-nav-w) + 40px + var(--map-collapse-size));
+    }
+
+    .auth-page .map-panel {
+        top: var(--app-frame-inset);
+        bottom: var(--app-frame-inset);
+        left: calc(var(--app-frame-inset) + var(--app-nav-w));
+        width: var(--app-list-w);
+        max-height: none;
+        border-left: 1px solid var(--hair);
+        border-radius: 0 var(--app-dock-radius) var(--app-dock-radius) 0;
+        box-shadow: var(--shadow-rest);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-page .map-pin {
+        transition: none;
+    }
+}
