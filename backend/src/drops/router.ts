@@ -1,14 +1,13 @@
 // Drop routes. The public send endpoint, and the signed-in inbox: list, read one, mark
-// read, delete, and the owner-only photo. The router does the transport checks (origin,
+// read, delete, and the owner-only photo. The router does the transport checks (same origin,
 // body size, content type, parse, per-user limit), then hands off to the service.
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type MiddlewareHandler } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { csrf } from "hono/csrf";
-import { HTTPException } from "hono/http-exception";
+import { createSameOriginGuard } from "../middleware/same-origin.js";
 import { requireUser, type AppEnv } from "../middleware/session.js";
 import { AppError } from "../shared/errors.js";
-import { createUserLimiter } from "./limits.js";
+import { createUserLimiter } from "../shared/user-limiter.js";
 import { inboxQuerySchema, readBodySchema } from "./model.js";
 import type { DropService } from "./service.js";
 
@@ -29,20 +28,7 @@ export function createDropRouter(
     { origin, inboxLimit = INBOX_LIMIT_PER_MINUTE, photoLimit = PHOTO_LIMIT_PER_MINUTE }: Options,
 ) {
     const router = new Hono<AppEnv>();
-    const checkOrigin = csrf({ origin });
-
-    // csrf throws a plain-text 403; turn it into the envelope the contract uses
-    const originGuard: MiddlewareHandler = async (c, next) => {
-        try {
-            await checkOrigin(c, next);
-        } catch (error) {
-            if (error instanceof HTTPException && error.status === 403) {
-                throw new AppError(403, "FORBIDDEN", "Request not allowed");
-            }
-
-            throw error;
-        }
-    };
+    const originGuard = createSameOriginGuard({ origin });
 
     const limitBody = bodyLimit({
         maxSize: BODY_LIMIT_BYTES,

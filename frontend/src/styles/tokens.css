@@ -469,8 +469,32 @@
     }
 }
 
-/* settings: one card of rows with a hair divider, the segmented theme choice and the full
-   row sign out button */
+/* statements: the quoted line on the send page and My link, the inbox banner and section
+   headers, and the picker on the map, which sits under the chips and pushes the older-drops
+   button down */
+:root {
+    --statement-fs-send: clamp(1.35rem, 1.15rem + 1vw, 1.85rem);
+    --statement-fs-card: clamp(1.25rem, 1.1rem + 0.8vw, 1.7rem);
+    --statement-fs-head: clamp(1.05rem, 1rem + 0.4vw, 1.3rem);
+    --statement-fs-banner: clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+    --statement-card-padding: 16px 18px;
+    --statement-card-radius: 22px;
+    --statement-card-fill: var(--ground);
+    --statement-head-lines: 2;
+    --statement-banner-padding: 10px 14px;
+    --statement-banner-radius: 18px;
+    --statement-chip-min-h: 36px;
+    --statement-chip-padding: 0 12px;
+    --statement-picker-top: 80px;
+    --statement-picker-max: 22rem;
+    --statement-picker-min-h: 44px;
+    --statement-picker-padding: 0 14px;
+    --statement-older-top: 136px;
+}
+
+/* settings: one card of rows with a hair divider, the segmented theme choice, the full
+   row buttons (sign out, delete account in the danger colour, the about links) and the
+   delete account panel */
 :root {
     --settings-max: 100%;
     --settings-row-min-h: 60px;
@@ -483,10 +507,25 @@
     --settings-seg-option-padding: 0 12px;
     --settings-fs-seg: clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem);
     --settings-fs-row: var(--type-body);
+    --settings-danger-ink: var(--accent-ink);
+    --settings-confirm-padding: 18px;
+    --settings-confirm-gap: 16px;
+    --settings-confirm-list-gap: 6px;
+    --settings-confirm-list-indent: 1.25em;
 }
 
 @media (min-width: 80rem) {
     :root {
         --settings-max: 36rem;
     }
+}
+
+/* legal pages (terms, privacy, safety): one reading column on the ground, capped for line
+   length and centred */
+:root {
+    --legal-max: 42rem;
+    --legal-line-height: 1.6;
+    --legal-logo-h: 30px;
+    --legal-list-gap: 6px;
+    --legal-list-indent: 1.25em;
 }

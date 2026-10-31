@@ -4,12 +4,15 @@
 // one is in, while the rest keep coming. "Load older drops" adds a few more pages behind a lock,
 // up to a cap. A failure never retries on its own: a failed first page shows the server's text
 // (including the wait after too many requests), and a later failed page keeps what loaded.
+// Each page also brings the statements behind its drops and the count from before statements,
+// kept for the statement picker.
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { setUnreadCount } from "@/hooks/drops/inbox-store";
 import { getSnapshot, subscribe, updateMap, type MapSnapshot } from "@/hooks/drops/map-store";
 import { ApiError } from "@/lib/api";
 import { listDrops } from "@/lib/drops/api";
 import { MAP_AUTO_PAGES, MAP_FRESH_MS, MAP_MAX_DROPS, MAP_PAGE_SIZE, type InboxItem } from "@/lib/drops/model";
+import type { Statement } from "@/lib/statements/model";
 
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
 
@@ -22,6 +25,17 @@ function merge(kept: InboxItem[], page: InboxItem[]) {
     const seen = new Set(kept.map((item) => item.id));
 
     return [...kept, ...page.filter((item) => !seen.has(item.id))];
+}
+
+// kept statements with a page's, a fresh copy replacing an old one in place
+function mergeStatements(kept: Statement[], page: Statement[]) {
+    const fresh = new Map(page.map((statement) => [statement.id, statement]));
+    const seen = new Set(kept.map((statement) => statement.id));
+
+    return [
+        ...kept.map((statement) => fresh.get(statement.id) ?? statement),
+        ...page.filter((statement) => !seen.has(statement.id)),
+    ];
 }
 
 export function useMapDrops(): MapSnapshot & { retry: () => void; loadOlder: () => Promise<void> } {
@@ -58,6 +72,7 @@ export function useMapDrops(): MapSnapshot & { retry: () => void; loadOlder: () 
         async function run() {
             let cursor: string | null = null;
             let items: InboxItem[] = [];
+            let statements: Statement[] = [];
 
             for (let page = 0; page < MAP_AUTO_PAGES; page += 1) {
                 try {
@@ -68,12 +83,15 @@ export function useMapDrops(): MapSnapshot & { retry: () => void; loadOlder: () 
                     }
 
                     items = merge(items, result.items);
+                    statements = mergeStatements(statements, result.statements);
                     cursor = result.next_cursor;
                     setUnreadCount(result.unread_count);
                     updateMap((current) => ({
                         ...current,
                         status: "ready",
                         items,
+                        statements,
+                        earlierCount: result.earlier_count,
                         nextCursor: cursor,
                         error: "",
                     }));
@@ -148,6 +166,8 @@ export function useMapDrops(): MapSnapshot & { retry: () => void; loadOlder: () 
                 updateMap((current) => ({
                     ...current,
                     items: merge(current.items, result.items),
+                    statements: mergeStatements(current.statements, result.statements),
+                    earlierCount: result.earlier_count,
                     nextCursor: cursor,
                 }));
             }

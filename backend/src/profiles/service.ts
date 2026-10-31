@@ -1,6 +1,9 @@
 // Profile business rules. Reads public and own profiles, creates the one profile an
-// account may own, and updates its settings. Uniqueness is decided by the database.
+// account may own, and updates its settings. Uniqueness is decided by the database. The
+// public profile carries the running statement (text and time left only), or null when
+// the link is closed; the own profile does not carry it.
 import { AppError } from "../shared/errors.js";
+import { toPublicStatement, type PublicStatement, type StatementView } from "../statements/model.js";
 import {
     USERNAME_TAKEN_MESSAGE,
     usernameSchema,
@@ -10,14 +13,21 @@ import {
 } from "./model.js";
 import type { ProfileRepository } from "./repository.js";
 
-export type PublicProfile = {
+type ProfileBase = {
     username: string;
     displayName: string;
     avatarUrl: string | null;
-    acceptingDrops: boolean;
 };
 
-export type OwnProfile = PublicProfile & {
+export type PublicProfile = ProfileBase & {
+    statement: PublicStatement | null;
+};
+
+type Dependencies = {
+    findRunningStatement: (profileId: string) => Promise<StatementView | null>;
+};
+
+export type OwnProfile = ProfileBase & {
     heatmapEnabled: boolean;
     notifyEmail: boolean;
     createdAt: string;
@@ -27,25 +37,24 @@ function notFound() {
     return new AppError(404, "NOT_FOUND", "Not found");
 }
 
-function toPublic(profile: Profile): PublicProfile {
+function toBase(profile: Profile): ProfileBase {
     return {
         username: profile.username,
         displayName: profile.displayName,
         avatarUrl: null,
-        acceptingDrops: profile.acceptingDrops,
     };
 }
 
 function toOwn(profile: Profile): OwnProfile {
     return {
-        ...toPublic(profile),
+        ...toBase(profile),
         heatmapEnabled: profile.heatmapEnabled,
         notifyEmail: profile.notifyEmail,
         createdAt: profile.createdAt.toISOString(),
     };
 }
 
-export function createProfileService(repository: ProfileRepository) {
+export function createProfileService(repository: ProfileRepository, { findRunningStatement }: Dependencies) {
     // public read
     async function getPublicProfile(username: string): Promise<PublicProfile> {
         const parsed = usernameSchema.safeParse(username);
@@ -60,7 +69,9 @@ export function createProfileService(repository: ProfileRepository) {
             throw notFound();
         }
 
-        return toPublic(profile);
+        const statement = await findRunningStatement(profile.id);
+
+        return { ...toBase(profile), statement: statement ? toPublicStatement(statement) : null };
     }
 
     // own read

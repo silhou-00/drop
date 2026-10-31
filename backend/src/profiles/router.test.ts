@@ -11,7 +11,6 @@ const own: OwnProfile = {
     username: "maya",
     displayName: "Maya",
     avatarUrl: null,
-    acceptingDrops: true,
     heatmapEnabled: false,
     notifyEmail: true,
     createdAt: "2026-10-29T00:00:00.000Z",
@@ -21,7 +20,7 @@ const publicShape: PublicProfile = {
     username: "maya",
     displayName: "Maya",
     avatarUrl: null,
-    acceptingDrops: true,
+    statement: { text: "Out tonight", ends_at: "2026-10-31T12:00:00.000Z", seconds_left: 600 },
 };
 
 const signedIn = (async () => ({ user: { id: "u1" }, session: { id: "s1" } })) as unknown as GetSession;
@@ -70,7 +69,8 @@ describe("GET /profiles/:username", () => {
 
         expect(res.status).toBe(200);
         expect(json).toEqual({ data: publicShape, error: null });
-        expect(Object.keys(json.data).sort()).toEqual(["acceptingDrops", "avatarUrl", "displayName", "username"]);
+        expect(Object.keys(json.data).sort()).toEqual(["avatarUrl", "displayName", "statement", "username"]);
+        expect(Object.keys(json.data.statement as object).sort()).toEqual(["ends_at", "seconds_left", "text"]);
     });
 
     it("returns 404 for an unknown name", async () => {
@@ -162,10 +162,16 @@ describe("/me/profile", () => {
     });
 
     it("PATCH returns 200", async () => {
-        const res = await send(buildApp(fakeService()), "PATCH", { acceptingDrops: false });
+        const res = await send(buildApp(fakeService()), "PATCH", { heatmapEnabled: false });
 
         expect(res.status).toBe(200);
         expect(await res.json()).toEqual({ data: own, error: null });
+    });
+
+    it("PATCH returns 422 for the removed acceptingDrops field", async () => {
+        const res = await send(buildApp(fakeService()), "PATCH", { acceptingDrops: false });
+
+        expect(res.status).toBe(422);
     });
 
     it("PATCH returns 422 on an empty body", async () => {

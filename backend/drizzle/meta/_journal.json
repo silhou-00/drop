@@ -43,6 +43,20 @@
             "when": 1793356805677,
             "tag": "0005_cuddly_robin_chapel",
             "breakpoints": true
+        },
+        {
+            "idx": 6,
+            "version": "7",
+            "when": 1793419975017,
+            "tag": "0006_statements",
+            "breakpoints": true
+        },
+        {
+            "idx": 7,
+            "version": "7",
+            "when": 1793421561877,
+            "tag": "0007_warm_dreaming_celestial",
+            "breakpoints": true
         }
     ]
 }

@@ -1,5 +1,6 @@
 // Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
-// Creates profiles that collide on username and on user, proves both are rejected, then cleans up.
+// Creates profiles that collide on username and on user, proves both are rejected, and that
+// a held username is refused as taken, then cleans up.
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
@@ -10,15 +11,18 @@ const DB_TIMEOUT_MS = 30_000;
 describe.skipIf(!run)("createProfile against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const userIds = ["db-test-user-a", "db-test-user-b"];
     const username = `dbtest_${Date.now().toString(36)}`;
+    const heldName = `dbheld_${Date.now().toString(36)}`;
 
     afterAll(async () => {
         const { db, closeDb } = await import("../shared/db/client.js");
         const { user } = await import("../auth/model.js");
+        const { usernameHolds } = await import("./model.js");
 
         for (const id of userIds) {
             await db.delete(user).where(eq(user.id, id));
         }
 
+        await db.delete(usernameHolds).where(eq(usernameHolds.username, heldName));
         await closeDb();
     });
 
@@ -27,7 +31,7 @@ describe.skipIf(!run)("createProfile against the database", { timeout: DB_TIMEOU
         const { user } = await import("../auth/model.js");
         const { createProfileRepository } = await import("./repository.js");
         const { createProfileService } = await import("./service.js");
-        const service = createProfileService(createProfileRepository(db));
+        const service = createProfileService(createProfileRepository(db), { findRunningStatement: async () => null });
 
         for (const id of userIds) {
             await db.delete(user).where(eq(user.id, id));
@@ -46,6 +50,16 @@ describe.skipIf(!run)("createProfile against the database", { timeout: DB_TIMEOU
         await expect(service.createProfile(userIds[0], { ...input, username: `${username}x` })).rejects.toMatchObject({
             status: 409,
             code: "PROFILE_EXISTS",
+        });
+
+        // a held name answers the same as a taken one
+        const { usernameHolds } = await import("./model.js");
+
+        await db.insert(usernameHolds).values({ username: heldName, releasedAt: new Date(Date.now() + 86_400_000) });
+
+        await expect(service.createProfile(userIds[1], { ...input, username: heldName })).rejects.toMatchObject({
+            status: 409,
+            code: "USERNAME_TAKEN",
         });
     });
 });

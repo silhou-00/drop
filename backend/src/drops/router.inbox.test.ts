@@ -5,7 +5,14 @@ import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createSessionMiddleware, type AppEnv, type GetSession } from "../middleware/session.js";
 import { AppError, errorHandler } from "../shared/errors.js";
-import { CURSOR_MESSAGE, FILTER_MESSAGE, IS_READ_MESSAGE, LIMIT_MESSAGE, type InboxItem } from "./model.js";
+import {
+    CURSOR_MESSAGE,
+    FILTER_MESSAGE,
+    IS_READ_MESSAGE,
+    LIMIT_MESSAGE,
+    STATEMENT_FILTER_MESSAGE,
+    type InboxItem,
+} from "./model.js";
 import { createDropRouter } from "./router.js";
 import type { DropService } from "./service.js";
 
@@ -20,6 +27,7 @@ const item: InboxItem = {
     location: { lat: 14.5995, lng: 120.9842, name: "Diliman", source: "gps" },
     has_photo: true,
     is_read: false,
+    statement_id: null,
     created_at: "2026-10-30T12:00:00.000Z",
 };
 
@@ -32,7 +40,7 @@ function notFound(): never {
 
 const service = {
     sendDrop: async () => ({ delivered: true as const }),
-    listInbox: async () => ({ items: [item], next_cursor: null, unread_count: 1 }),
+    listInbox: async () => ({ items: [item], next_cursor: null, unread_count: 1, statements: [], earlier_count: 1 }),
     getDrop: async (_user: string, id: string) => (id === MINE ? item : notFound()),
     markRead: async (_user: string, id: string, isRead: boolean) =>
         id === MINE ? { ...item, is_read: isRead } : notFound(),
@@ -55,7 +63,7 @@ function build(getSession: GetSession = signedIn, limits: Limits = {}) {
 function patch(app: Hono<AppEnv>, id: string, body: unknown) {
     return app.request(`/api/v1/drops/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { Origin: ORIGIN, "Content-Type": "application/json" },
         body: typeof body === "string" ? body : JSON.stringify(body),
     });
 }
@@ -88,7 +96,7 @@ describe("GET /drops", () => {
         expect(res.status).toBe(200);
         expect(res.headers.get("Cache-Control")).toBe("no-store");
         expect(await res.json()).toEqual({
-            data: { items: [item], next_cursor: null, unread_count: 1 },
+            data: { items: [item], next_cursor: null, unread_count: 1, statements: [], earlier_count: 1 },
             error: null,
         });
     });
@@ -103,6 +111,8 @@ describe("GET /drops", () => {
             ["cursor=%21%21", CURSOR_MESSAGE],
             ["filter=bad", FILTER_MESSAGE],
             ["filter=", FILTER_MESSAGE],
+            ["statement=nope", STATEMENT_FILTER_MESSAGE],
+            ["statement=", STATEMENT_FILTER_MESSAGE],
         ]) {
             const res = await app.request(`/api/v1/drops?${query}`);
 
@@ -111,6 +121,13 @@ describe("GET /drops", () => {
         }
 
         expect((await app.request("/api/v1/drops?sort=id")).status).toBe(422);
+    });
+
+    it("accepts a statement id and the word earlier", async () => {
+        const app = build();
+
+        expect((await app.request("/api/v1/drops?statement=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")).status).toBe(200);
+        expect((await app.request("/api/v1/drops?statement=earlier&filter=unread")).status).toBe(200);
     });
 });
 
@@ -192,6 +209,34 @@ describe("origin check", () => {
 
         expect(res.status).toBe(403);
         expect(await errorOf(res)).toEqual({ code: "FORBIDDEN", message: "Request not allowed" });
+    });
+
+    it("refuses a foreign Origin on a JSON mark read and a JSON delete", async () => {
+        const app = build();
+        const mark = await app.request(`/api/v1/drops/${MINE}`, {
+            method: "PATCH",
+            headers: { Origin: "https://evil.example", "Content-Type": "application/json" },
+            body: JSON.stringify({ is_read: true }),
+        });
+        const remove = await app.request(`/api/v1/drops/${MINE}`, {
+            method: "DELETE",
+            headers: { Origin: "https://evil.example", "Content-Type": "application/json" },
+            body: "{}",
+        });
+
+        expect(mark.status).toBe(403);
+        expect(await errorOf(mark)).toEqual({ code: "FORBIDDEN", message: "Request not allowed" });
+        expect(remove.status).toBe(403);
+    });
+
+    it("refuses a mark read with no Origin and no Sec-Fetch-Site", async () => {
+        const res = await build().request(`/api/v1/drops/${MINE}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_read: true }),
+        });
+
+        expect(res.status).toBe(403);
     });
 
     it("refuses a foreign Origin on a form-encoded mark read", async () => {

@@ -1,5 +1,6 @@
-/* Styles for the public send page: the wider send card, the message box and its counter, the
-   location button and GPS place row, the photo picker with its preview, and the sent mark. It builds on the auth page styles (card, buttons,
+/* Styles for the public send page: the wider send card, the running statement in its quoted
+   card with the time left, the message box and its counter, the location button and GPS place
+   row, the photo picker with its preview, and the sent mark. It builds on the auth page styles (card, buttons,
    type) and is scoped under the same auth root. Every value comes from tokens.css. */
 
 /* card: the sender column is wider than the auth card */
@@ -42,6 +43,25 @@
     font: 600 var(--type-mono) var(--family-meta);
     color: var(--ink-2);
     overflow-wrap: anywhere;
+}
+
+/* running statement: a quoted card in the large display type, then the time it stays open */
+.auth-page .send-statement {
+    padding: var(--statement-card-padding);
+    border-radius: var(--statement-card-radius);
+    background: var(--statement-card-fill);
+}
+
+.auth-page .send-statement-text {
+    font: 700 var(--statement-fs-send) / 1.15 var(--family-display);
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+.auth-page .send-statement-left {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+    font-variant-numeric: tabular-nums;
 }
 
 /* message box */

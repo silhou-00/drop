@@ -1,18 +1,21 @@
-// The inbox list for one filter. On top: the logo (phones only, where the nav has none), the
-// "Inbox" heading with the "N new" count from the server, and the filter chips, which put the
-// filter in the address. Below: today's drops, then an "Earlier" group, newest first, with
-// "Load more" while the server has another page. It has loading, failed (with retry) and
-// empty states; the empty state differs per filter, and for all drops it offers to share the
-// owner's link. The heading takes focus after a delete so keyboard users land somewhere sane.
-import { useNavigate } from "@tanstack/react-router";
+// The inbox list for one filter and, when the address names one, one statement. On top: the
+// logo (phones only, where the nav has none), the "Inbox" heading with the "N new" count from
+// the server, the banner saying whether the link is taking drops, and the filter chips, which
+// put the filter in the address. A scoped list adds a row to go back to every statement.
+// Below: one section per statement, newest first, then the drops from before statements, with
+// "Load more" while the server has another page. It has loading, failed (with retry) and empty
+// states; the empty state differs per filter, and for all drops it points to My link. The
+// heading takes focus after a delete so keyboard users land somewhere sane.
+import { Link, useNavigate } from "@tanstack/react-router";
 import { LinkSimple } from "@phosphor-icons/react";
 import { InboxCard } from "@/components/drops/inbox-card";
 import { FilterChips } from "@/components/drops/filter-chips";
+import { StatementBanner } from "@/components/statements/statement-banner";
+import { StatementHeader } from "@/components/statements/statement-header";
 import { useInbox } from "@/hooks/drops/use-inbox";
-import { useLinkShare } from "@/hooks/profiles/use-link-share";
-import { useOwnLink } from "@/hooks/profiles/use-own-link";
-import { groupByDay } from "@/lib/drops/helper";
+import { groupByStatement } from "@/lib/drops/helper";
 import type { InboxFilter, InboxItem } from "@/lib/drops/model";
+import type { Statement } from "@/lib/statements/model";
 
 const EMPTY_COPY: Record<InboxFilter, { title: string; body: string }> = {
     all: { title: "No drops yet", body: "Put your link in your story. Notes from real places land here." },
@@ -20,18 +23,16 @@ const EMPTY_COPY: Record<InboxFilter, { title: string; body: string }> = {
     photos: { title: "No photos yet", body: "Drops sent with a photo show up here." },
 };
 
-type InboxListProps = { filter: InboxFilter };
+type InboxListProps = { filter: InboxFilter; statement?: string };
 
-// one day group: a heading (hidden for today) and its cards
-function CardGroup({ title, hidden, items }: { title: string; hidden: boolean; items: InboxItem[] }) {
+type CardGroupProps = { statement: Statement | null; earlierCount: number; scoped: boolean; items: InboxItem[] };
+
+// one statement section: its header and its cards
+function CardGroup({ statement, earlierCount, scoped, items }: CardGroupProps) {
     return (
-        // day group
+        // statement section
         <div className="sub-section inbox-group">
-            <div className="placement">
-                <div className="container">
-                    <h2 className={hidden ? "inbox-sr" : "inbox-group-title"}>{title}</h2>
-                </div>
-            </div>
+            <StatementHeader statement={statement} earlierCount={earlierCount} scoped={scoped} />
             <ul className="placement inbox-cards">
                 {items.map((item) => (
                     <li key={item.id} className="container">
@@ -43,12 +44,11 @@ function CardGroup({ title, hidden, items }: { title: string; hidden: boolean; i
     );
 }
 
-export function InboxList({ filter }: InboxListProps) {
+export function InboxList({ filter, statement }: InboxListProps) {
     const navigate = useNavigate();
-    const inbox = useInbox(filter);
-    const own = useOwnLink();
-    const share = useLinkShare(own.link);
-    const groups = groupByDay(inbox.items);
+    const inbox = useInbox(filter, statement);
+    const groups = groupByStatement(inbox.items);
+    const scoped = statement !== undefined;
     const empty = EMPTY_COPY[filter];
     const loading = inbox.status === "loading";
 
@@ -59,6 +59,11 @@ export function InboxList({ filter }: InboxListProps) {
             search: (prev) => ({ ...prev, filter: next === "all" ? undefined : next }),
             replace: true,
         });
+    }
+
+    // every statement again, keeping the filter
+    function handleShowAll() {
+        void navigate({ to: ".", search: (prev) => ({ ...prev, statement: undefined }), replace: true });
     }
 
     return (
@@ -83,7 +88,20 @@ export function InboxList({ filter }: InboxListProps) {
                         </div>
                     )}
                 </div>
+                <StatementBanner />
                 <FilterChips value={filter} onChange={handleFilter} />
+                {scoped ? (
+                    <div className="placement inbox-scope">
+                        <div className="container">
+                            <p className="inbox-scope-text">Showing one statement</p>
+                        </div>
+                        <div className="container">
+                            <button className="statement-scope-btn" type="button" onClick={handleShowAll}>
+                                Show all
+                            </button>
+                        </div>
+                    </div>
+                ) : null}
             </div>
 
             {inbox.status === "error" && inbox.items.length === 0 ? (
@@ -123,19 +141,12 @@ export function InboxList({ filter }: InboxListProps) {
                         <div className="container">
                             <p className="inbox-empty-copy">{empty.body}</p>
                         </div>
-                        {filter === "all" && own.link ? (
+                        {filter === "all" && !scoped ? (
                             <div className="container">
-                                <button
-                                    className="auth-btn auth-btn-ink inbox-btn-large"
-                                    type="button"
-                                    disabled={share.busy}
-                                    onClick={() => {
-                                        void share.share();
-                                    }}
-                                >
+                                <Link className="auth-btn auth-btn-ink inbox-btn-large" to="/my-link">
                                     <LinkSimple className="inbox-cta-icon" weight="bold" aria-hidden="true" />
-                                    Share my link
-                                </button>
+                                    Go to My link
+                                </Link>
                             </div>
                         ) : null}
                         {filter === "all" ? null : (
@@ -151,20 +162,27 @@ export function InboxList({ filter }: InboxListProps) {
                                 </button>
                             </div>
                         )}
-                        <div className="container">
-                            <p className="auth-status" role="status">
-                                {share.message}
-                            </p>
-                        </div>
+                        {scoped ? (
+                            <div className="container">
+                                <button className="auth-btn auth-btn-paper" type="button" onClick={handleShowAll}>
+                                    Show all statements
+                                </button>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             ) : (
                 // drop list
                 <div className="sub-section inbox-groups" aria-busy={loading}>
-                    {groups.today.length > 0 ? <CardGroup title="Today" hidden items={groups.today} /> : null}
-                    {groups.earlier.length > 0 ? (
-                        <CardGroup title="Earlier" hidden={false} items={groups.earlier} />
-                    ) : null}
+                    {groups.map((group) => (
+                        <CardGroup
+                            key={group.id ?? "earlier"}
+                            statement={group.id === null ? null : inbox.sections[group.id]}
+                            earlierCount={inbox.earlierCount}
+                            scoped={scoped}
+                            items={group.items}
+                        />
+                    ))}
                 </div>
             )}
 

@@ -6,16 +6,20 @@
 // server checks it again from its bytes. Coordinates are sent as decimal strings and stay in
 // memory only. The inbox shapes and messages match the backend's inbox item and query rules,
 // and a drop id is checked as a UUID before it is put in any request path. The inbox filter is
-// one of all, unread or photos; each inbox page also carries the inbox-wide unread count, which
-// does not depend on the filter or the page. The map loads its pages in a fixed size, a few on
-// its own and more on request up to a cap, and reuses a recent load. A place in the address is
-// the six-decimal latitude and longitude every drop in that ~150 m cell shares.
+// one of all, unread or photos, and may be scoped to one statement or to "earlier" (drops from
+// before statements). Each inbox page also carries the inbox-wide unread count, which does not
+// depend on the filter or the page, the statements its drops belong to, and how many drops sit
+// in "earlier". A send to a link with no running statement is answered with the closed message.
+// The map loads its pages in a fixed size, a few on its own and more on request up to a cap, and
+// reuses a recent load. A place in the address is the six-decimal latitude and longitude every
+// drop in that ~150 m cell shares.
+import type { Statement } from "@/lib/statements/model";
 
 export const MESSAGE_MAX = 280;
 export const MESSAGE_MESSAGE = "Write a message up to 280 characters.";
 export const LOCATION_MESSAGE = "That location is not valid.";
 export const LOCATION_REQUIRED_MESSAGE = "Turn on your location to send a drop.";
-export const LINK_PAUSED_MESSAGE = "This link is not taking drops right now.";
+export const LINK_CLOSED_MESSAGE = "This link is not taking drops right now.";
 export const PHOTO_MAX_BYTES = 8 * 1024 * 1024;
 export const PHOTO_MESSAGE = "Use a JPEG, PNG or WebP photo up to 8 MB.";
 export const PHOTO_UNREADABLE_MESSAGE = "That photo could not be read.";
@@ -25,6 +29,7 @@ export const LIMIT_MESSAGE = "Choose a page size from 1 to 50.";
 export const CURSOR_MESSAGE = "That page link is not valid.";
 export const IS_READ_MESSAGE = "Send is_read as true or false.";
 export const FILTER_MESSAGE = "Choose a filter: all, unread or photos.";
+export const STATEMENT_FILTER_MESSAGE = "That statement is not valid.";
 
 export const INBOX_FILTERS = ["all", "unread", "photos"] as const;
 
@@ -54,10 +59,17 @@ export type InboxItem = {
     location: { lat: number; lng: number; name: string | null; source: LocationSource };
     has_photo: boolean;
     is_read: boolean;
+    statement_id: string | null;
     created_at: string;
 };
 
-export type InboxPage = { items: InboxItem[]; next_cursor: string | null; unread_count: number };
+export type InboxPage = {
+    items: InboxItem[];
+    next_cursor: string | null;
+    unread_count: number;
+    statements: Statement[];
+    earlier_count: number;
+};
 
 export type InboxFilter = (typeof INBOX_FILTERS)[number];
 
@@ -69,6 +81,11 @@ export function isDropId(value: string) {
 // one of the inbox filters the server accepts
 export function isInboxFilter(value: unknown): value is InboxFilter {
     return typeof value === "string" && (INBOX_FILTERS as readonly string[]).includes(value);
+}
+
+// a statement id in UUID form, or "earlier"
+export function isStatementFilter(value: unknown): value is string {
+    return typeof value === "string" && (value === "earlier" || DROP_ID_PATTERN.test(value));
 }
 
 // decimal string for a coordinate, never in exponent form

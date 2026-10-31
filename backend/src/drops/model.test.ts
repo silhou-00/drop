@@ -1,6 +1,7 @@
 // Tests for the drop input rules: message length in code points, coordinates, the
 // required GPS location, unknown fields, multipart array values, the optional photo,
-// and the inbox query (page size, filter, cursor) and read body.
+// and the inbox query (page size, filter, statement scope, cursor), read body and the
+// statement id on the inbox item.
 import { describe, expect, it } from "vitest";
 import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
 import {
@@ -10,10 +11,12 @@ import {
     LOCATION_MESSAGE,
     LOCATION_REQUIRED_MESSAGE,
     MESSAGE_MESSAGE,
+    STATEMENT_FILTER_MESSAGE,
     encodeCursor,
     inboxQuerySchema,
     readBodySchema,
     sendDropSchema,
+    toInboxItem,
 } from "./model.js";
 
 function firstMessage(input: unknown) {
@@ -164,6 +167,42 @@ describe("inboxQuerySchema", () => {
         for (const filter of ["pins", "", "UNREAD"]) {
             expect(messageOf({ filter })).toBe(FILTER_MESSAGE);
         }
+    });
+
+    it("accepts a statement id or earlier, and leaves the scope out by default", () => {
+        expect(inboxQuerySchema.parse({}).statement).toBeUndefined();
+        expect(inboxQuerySchema.parse({ statement: id }).statement).toBe(id);
+        expect(inboxQuerySchema.parse({ statement: "earlier" }).statement).toBe("earlier");
+    });
+
+    it("rejects any other statement value with the statement message", () => {
+        for (const statement of ["", "all", "EARLIER", "not-a-uuid", `${id}x`]) {
+            expect(messageOf({ statement })).toBe(STATEMENT_FILTER_MESSAGE);
+        }
+    });
+});
+
+describe("toInboxItem", () => {
+    const row = {
+        id: "11111111-1111-4111-8111-111111111111",
+        recipientId: "22222222-2222-4222-8222-222222222222",
+        message: "hi",
+        location: { lng: 120.9842, lat: 14.5995 },
+        locationSource: "gps" as const,
+        locationName: null,
+        photoKey: null,
+        statementId: null,
+        senderKey: "a".repeat(64),
+        deviceKey: null,
+        isRead: false,
+        createdAt: new Date("2026-10-30T12:00:00.000Z"),
+    };
+
+    it("carries the statement id, null for a drop from before statements", () => {
+        expect(toInboxItem(row).statement_id).toBeNull();
+        expect(toInboxItem({ ...row, statementId: "33333333-3333-4333-8333-333333333333" }).statement_id).toBe(
+            "33333333-3333-4333-8333-333333333333",
+        );
     });
 });
 

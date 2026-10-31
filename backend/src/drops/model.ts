@@ -3,16 +3,19 @@
 // same text for the same failure. The optional photo is checked here for size only; the
 // photos slice reads the bytes. The send body arrives as multipart text fields, so
 // numbers are decimal strings until parsed here. The inbox rules live here too: the list
-// query with its page size, filter (all, unread or photos) and opaque page cursor, the
-// read flag body and the one serializer for the inbox item. The unread count that the
-// list reports is not part of the query, it is counted in the repository. A malformed
-// drop id is answered 404, not 422, so ids cannot be probed.
+// query with its page size, filter (all, unread or photos), optional statement scope (a
+// statement id or "earlier") and opaque page cursor, the read flag body and the one
+// serializer for the inbox item. The counts the list reports are not part of the query,
+// they are counted in the repository. Each drop carries the id of the statement it was
+// sent under, null for a drop from before statements. A malformed drop id is answered
+// 404, not 422, so ids cannot be probed.
 import { sql } from "drizzle-orm";
 import { boolean, char, check, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { PHOTO_MAX_BYTES, PHOTO_MESSAGE } from "../photos/model.js";
 import { profiles } from "../profiles/model.js";
 import { geographyPoint } from "../shared/db/geography.js";
+import { statements } from "../statements/model.js";
 
 export const drops = pgTable(
     "drops",
@@ -26,6 +29,7 @@ export const drops = pgTable(
         locationSource: text("location_source", { enum: ["gps"] }).notNull(),
         locationName: varchar("location_name", { length: 100 }),
         photoKey: text("photo_key"),
+        statementId: uuid("statement_id").references(() => statements.id, { onDelete: "set null" }),
         senderKey: char("sender_key", { length: 64 }).notNull(),
         deviceKey: char("device_key", { length: 64 }),
         isRead: boolean("is_read").notNull().default(false),
@@ -35,6 +39,7 @@ export const drops = pgTable(
         check("drops_location_source_check", sql`${table.locationSource} in ('gps')`),
         index("drops_recipient_created_idx").on(table.recipientId, table.createdAt.desc()),
         index("drops_location_gist").using("gist", table.location),
+        index("drops_statement_created_idx").on(table.statementId, table.createdAt.desc(), table.id.desc()),
     ],
 );
 
@@ -42,7 +47,8 @@ export const MESSAGE_MAX = 280;
 export const MESSAGE_MESSAGE = "Write a message up to 280 characters.";
 export const LOCATION_MESSAGE = "That location is not valid.";
 export const LOCATION_REQUIRED_MESSAGE = "Turn on your location to send a drop.";
-export const LINK_PAUSED_MESSAGE = "This link is not taking drops right now.";
+export const LINK_CLOSED_MESSAGE = "This link is not taking drops right now.";
+export const STATEMENT_FILTER_MESSAGE = "That statement is not valid.";
 
 const COORDINATE_PATTERN = /^-?\d{1,3}(\.\d{1,15})?$/;
 const LAT_MAX = 90;
@@ -158,10 +164,16 @@ const cursorSchema = z
 // which drops the list shows, default all
 const filterSchema = z.enum(INBOX_FILTERS, FILTER_MESSAGE).default("all");
 
+// one statement by id, or the drops from before statements
+const statementScopeSchema = z
+    .union([z.uuid(STATEMENT_FILTER_MESSAGE), z.literal("earlier", STATEMENT_FILTER_MESSAGE)], STATEMENT_FILTER_MESSAGE)
+    .optional();
+
 export const inboxQuerySchema = z.strictObject({
     limit: limitSchema,
     cursor: cursorSchema,
     filter: filterSchema,
+    statement: statementScopeSchema,
 });
 
 export type InboxQuery = z.infer<typeof inboxQuerySchema>;
@@ -178,6 +190,7 @@ export type InboxItem = {
     location: { lat: number; lng: number; name: string | null; source: "gps" };
     has_photo: boolean;
     is_read: boolean;
+    statement_id: string | null;
     created_at: string;
 };
 
@@ -194,6 +207,7 @@ export function toInboxItem(row: DropRow): InboxItem {
         },
         has_photo: row.photoKey !== null,
         is_read: row.isRead,
+        statement_id: row.statementId,
         created_at: row.createdAt.toISOString(),
     };
 }

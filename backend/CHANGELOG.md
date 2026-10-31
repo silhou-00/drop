@@ -2,6 +2,21 @@
 
 ## October 31, 2026
 
+**Accounts:**
+
+- People can now delete their own account from Settings. It removes their profile, statements and every drop sent to them, with its photos, and signs them out on every device. They must type their link name to confirm.
+- A deleted link name is held for 30 days before anyone else can claim it.
+
+**Statements:**
+
+- A link now takes drops only while its owner has a statement running. A statement is one short line that opens the link for two hours, and the owner can end it early. Each drop is filed under the statement that was running, and the inbox can show them by statement. The pause switch is gone.
+- Every request that changes data, including marking a drop read and deleting one, is now checked to come from this site, whatever its content type.
+
+**Documentation:**
+
+- The product requirements, the technical reference and the progress notes now describe account deletion, held link names, the legal pages and the contact address setting.
+- The product requirements, the technical reference and the progress notes now describe statements.
+
 **Profiles:**
 
 - The name map is now reserved for the app's map page.

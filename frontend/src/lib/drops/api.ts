@@ -1,7 +1,8 @@
 // Drop calls to the API. Sending a drop to a profile by name: the body is multipart form data
 // with text fields, the message and, always, the GPS location as latitude, longitude and its
 // source, plus the photo file when there is one. The inbox calls list the signed-in user's
-// drops a page at a time (all, unread or with a photo), read one, set its read flag and delete it. The photo is never
+// drops a page at a time (all, unread or with a photo, optionally for one statement or for the
+// drops from before statements), read one, set its read flag and delete it. The photo is never
 // fetched here: the page loads it as an image from the path built below, and only for an id
 // that passes the UUID check. A failure arrives as an ApiError with the server's status and code.
 import { apiRequest } from "@/lib/api";
@@ -28,7 +29,12 @@ export function sendDrop(username: string, draft: DropDraft) {
 // one inbox page, newest first; "all" sends no filter, the cursor comes from the page before,
 // and the page size is the server's default unless given
 export function listDrops(
-    { cursor, filter, limit }: { cursor?: string | null; filter?: InboxFilter; limit?: number },
+    {
+        cursor,
+        filter,
+        limit,
+        statement,
+    }: { cursor?: string | null; filter?: InboxFilter; limit?: number; statement?: string },
     signal?: AbortSignal,
 ) {
     const params = new URLSearchParams();
@@ -43,6 +49,10 @@ export function listDrops(
 
     if (limit !== undefined) {
         params.set("limit", String(limit));
+    }
+
+    if (statement) {
+        params.set("statement", statement);
     }
 
     const text = params.toString();

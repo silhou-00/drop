@@ -18,6 +18,18 @@ describe("escapeHtml", () => {
 });
 
 describe("renderProfilePage", () => {
+    it("never carries the statement text", () => {
+        const profile = {
+            username: "maya",
+            displayName: "Maya",
+            statement: { text: "Out tonight at the pier", ends_at: "2026-10-31T12:00:00.000Z", seconds_left: 600 },
+        };
+        const html = renderProfilePage(template, profile, "https://drop.example");
+
+        expect(html).not.toContain("Out tonight");
+        expect(html).not.toContain("pier");
+    });
+
     it("sets the title and adds the Open Graph and Twitter tags", () => {
         const html = renderProfilePage(template, { username: "maya", displayName: "Maya" }, "https://drop.example");
 

@@ -12,6 +12,7 @@ The design system as built: colour, type, spacing, layout widths, motion and the
 | App shell (`--glass-*`, `--inverse-*`, `--app-*`)                            | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Inbox (`--inbox-*`)                                                          | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Share panel (`--share-*`)                                                    | `src/styles/tokens.css`    | CSS variables on `:root`                         |
+| Statements (`--statement-*`)                                                 | `src/styles/tokens.css`    | CSS variables on `:root`                         |
 | Motion                                                                       | `src/lib/motion/tokens.ts` | `motionDefaults`, `landingMotion`                |
 | Marble                                                                       | `src/lib/marble/tokens.ts` | `marbleDefaults`, `MARBLE_PIGMENTS`, `MARBLE_GL` |
 | Map, My link, Settings (`--map-*`, `--mylink-*`, `--settings-*`)             | `src/styles/tokens.css`    | CSS variables on `:root`                         |
@@ -142,7 +143,7 @@ Deviations from the comps:
 - My link and Settings are two pages; the comp shows one.
 - The map pin badge always shows the drop count, even for one drop.
 - The inbox header's moon button is left out (bundle budget at the time); Settings covers the theme.
-- Settings rows are trimmed to Appearance, Locations and Sign out. Alerts, pause link, blocked senders and delete account are left out.
+- Settings rows are trimmed to Appearance, Locations and Sign out. Alerts, blocked senders and delete account are left out.
 - Segmented choices are 44px tall, not about 30px, for tap size.
 - The map stays on the light palette in dark mode.
 - On 1280 and up, the docked map list shows all filtered drops when no place is chosen.
@@ -231,6 +232,7 @@ The public page at `/<name>`. Styles in `src/styles/send.css`, scoped under `.au
 - **Wrapper levels.** Section, sub-section (the card), placement and container are all present. The form uses `display: contents` so its placements sit directly in the card.
 - **Place row.** Once there is a GPS fix, a rounded row (`--send-place-padding`, `--send-place-radius`) shows the coordinates and a refresh button.
 - **Photo field.** A kept photo shows a square preview (`--send-photo-thumb`, `--send-photo-radius`) with its size and a remove button (`--send-icon-btn`).
+- **Statement card.** Above the form, the running statement sits in a quoted card (`--statement-card-padding`, `--statement-card-radius`, `--statement-card-fill`) with the text at `--statement-fs-send` and a line with the time left. A closed link shows the heading and the closed message and no form.
 
 | Token                  | Value                                    | Use                                 |
 | ---------------------- | ---------------------------------------- | ----------------------------------- |
@@ -252,7 +254,9 @@ The list at `/inbox` and a drop at `/inbox/<id>`, inside the app frame. Styles i
 
 - **Wrapper levels.** Each part of the page is a section with sub-sections, placements and containers. The card is a link whose inner spans carry the same structure as inline text rows.
 - **Heading and chips.** The title with an "N new" count, then the All, Unread and Photos pill chips (`--app-chip-min-h`, pressed state shown by `--inverse-fill`). On phones the logo sits above the title.
-- **Cards.** Paper cards grouped under Today and Earlier, with a `--inbox-item-border` border and `--inbox-item-radius` corners. Each shows the message (`--inbox-fs-card`, `--inbox-item-lines` lines), a place badge, a Photo badge and a compact age. An unread card has a red dot (`--inbox-dot-size`) ringed by `--app-ring-dot`. The open drop's card is marked active.
+- **Statement banner.** A strip over the filter chips (`--statement-banner-padding`, `--statement-banner-radius`, text at `--statement-fs-banner`): "Live:" with the statement and the time left, or a closed note linking to My link.
+- **Statement sections.** Each section has a header (`--statement-fs-head`, the statement cut to `--statement-head-lines` lines, its start, its drop count, a Live mark while it runs, and an "Only this one" button of `--statement-chip-min-h`). The drops from before statements form the last section, "Earlier". A scoped list adds a row "Showing one statement" with a "Show all" button.
+- **Cards.** Paper cards grouped under their statement section, with a `--inbox-item-border` border and `--inbox-item-radius` corners. Each shows the message (`--inbox-fs-card`, `--inbox-item-lines` lines), a place badge, a Photo badge and a compact age. An unread card has a red dot (`--inbox-dot-size`) ringed by `--app-ring-dot`. The open drop's card is marked active.
 - **Empty states.** A marble patch (`--app-patch-image`, `--inbox-patch-w`, `--inbox-patch-ratio`) with the card pinned to its foot; the stage is at least `--inbox-empty-min-h` tall.
 - **Drop page.** A bar with a back button (hidden from 80rem, where the list is beside it), the day and time, and a round read toggle. The message sits large (`--inbox-fs-read`) in a padded card (`--inbox-message-padding`). Below: the place and GPS badges, then the media row: the map and the photo stacked on phones, side by side from 48rem. From 80rem the drop fills the paper reading pane, its body scrolls and its actions stay pinned.
 - **Photo.** A circle, `--inbox-photo-w` wide, ringed by `--inbox-photo-ring` (`--inbox-photo-ring-w` thick). It is blurred by `--inbox-photo-blur` under a veil of `--inbox-photo-veil` and a "Tap to view photo" label until tapped, then clear. A second tap opens the whole photo uncropped in a 4:5 frame (`--inbox-photo-ratio`, `--inbox-photo-radius`) across the media row. A failed load shows text.
@@ -344,9 +348,11 @@ The map page at `/map`. Styles in `src/styles/map.css`, scoped under `.auth-page
 | `--map-note-radius`            | `22px`                                                   | Note radius                           |
 | `--map-empty-max`              | `28rem`                                                  | Empty state card width                |
 
+The statement picker sits under the chips on the map: a native select at `--statement-picker-top` from the top, up to `--statement-picker-max` wide and at least `--statement-picker-min-h` tall (`--statement-picker-padding`). The "Load older drops" button moves down to `--statement-older-top` to make room.
+
 ## My link
 
-The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), then a card with the caption "Put this in your story", the link in large text, Copy and Share buttons, and a tilted preview of the story image in a white ring.
+The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), a Statement card (while one runs: a Live mark with the time left, the statement in large quoted type at `--statement-fs-card`, the drop count and "End now", then a "New statement" toggle; while closed: the start form), then a card with the caption "Put this in your story", the link in large text, Copy and Share buttons, and a tilted preview of the story image in a white ring. While the link is closed the card keeps Copy and shows a note in place of Share and the preview.
 
 | Token                      | Value                                   | Use                      |
 | -------------------------- | --------------------------------------- | ------------------------ |
@@ -359,23 +365,71 @@ The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/style
 | `--mylink-preview-padding` | `12px 0`                                | Space around the preview |
 | `--mylink-wait-padding`    | `12px`                                  | "Making the image" note  |
 
+### Statement tokens
+
+| Token                        | Value                                          | Use                              |
+| ---------------------------- | ---------------------------------------------- | -------------------------------- |
+| `--statement-fs-send`        | `clamp(1.35rem, 1.15rem + 1vw, 1.85rem)`       | Statement text on the send page  |
+| `--statement-fs-card`        | `clamp(1.25rem, 1.1rem + 0.8vw, 1.7rem)`       | Statement text on My link        |
+| `--statement-fs-head`        | `clamp(1.05rem, 1rem + 0.4vw, 1.3rem)`         | Inbox section header             |
+| `--statement-fs-banner`      | `clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem)` | Inbox banner                     |
+| `--statement-card-padding`   | `16px 18px`                                    | Quoted card padding              |
+| `--statement-card-radius`    | `22px`                                         | Quoted card radius               |
+| `--statement-card-fill`      | `var(--ground)`                                | Quoted card fill                 |
+| `--statement-head-lines`     | `2`                                            | Header lines before the cut      |
+| `--statement-banner-padding` | `10px 14px`                                    | Banner padding                   |
+| `--statement-banner-radius`  | `18px`                                         | Banner radius                    |
+| `--statement-chip-min-h`     | `36px`                                         | "Only this one" button height    |
+| `--statement-chip-padding`   | `0 12px`                                       | "Only this one" button padding   |
+| `--statement-picker-top`     | `80px`                                         | Map picker offset from the top   |
+| `--statement-picker-max`     | `22rem`                                        | Map picker width cap             |
+| `--statement-picker-min-h`   | `44px`                                         | Map picker height                |
+| `--statement-picker-padding` | `0 14px`                                       | Map picker padding               |
+| `--statement-older-top`      | `136px`                                        | "Load older drops" offset on map |
+
 ## Settings
 
 The page at `/settings`. Styles in `src/styles/settings.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), one card of rows with a hair divider (Appearance with a segmented Light, Dark, Auto choice; Locations with "Rounded to about 150 m"), and a full-width Sign out row.
 
-| Token                           | Value                                        | Use                        |
-| ------------------------------- | -------------------------------------------- | -------------------------- |
-| `--settings-max`                | `100%`; 80rem `36rem`                        | Page width cap             |
-| `--settings-row-min-h`          | `60px`                                       | Row height                 |
-| `--settings-row-padding`        | `10px 18px`                                  | Row padding                |
-| `--settings-rows-radius`        | `22px`                                       | Rows card radius           |
-| `--settings-icon`               | `20px`                                       | Row icon size              |
-| `--settings-label-gap`          | `12px`                                       | Gap between icon and label |
-| `--settings-seg-padding`        | `3px`                                        | Segmented control padding  |
-| `--settings-seg-min-h`          | `44px`                                       | Segmented option height    |
-| `--settings-seg-option-padding` | `0 12px`                                     | Segmented option padding   |
-| `--settings-fs-seg`             | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem)` | Segmented option text      |
-| `--settings-fs-row`             | `var(--type-body)`                           | Row label text             |
+| Token                            | Value                                        | Use                        |
+| -------------------------------- | -------------------------------------------- | -------------------------- |
+| `--settings-max`                 | `100%`; 80rem `36rem`                        | Page width cap             |
+| `--settings-row-min-h`           | `60px`                                       | Row height                 |
+| `--settings-row-padding`         | `10px 18px`                                  | Row padding                |
+| `--settings-rows-radius`         | `22px`                                       | Rows card radius           |
+| `--settings-icon`                | `20px`                                       | Row icon size              |
+| `--settings-label-gap`           | `12px`                                       | Gap between icon and label |
+| `--settings-seg-padding`         | `3px`                                        | Segmented control padding  |
+| `--settings-seg-min-h`           | `44px`                                       | Segmented option height    |
+| `--settings-seg-option-padding`  | `0 12px`                                     | Segmented option padding   |
+| `--settings-fs-seg`              | `clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem)` | Segmented option text      |
+| `--settings-fs-row`              | `var(--type-body)`                           | Row label text             |
+| `--settings-danger-ink`          | `var(--accent-ink)`                          | Delete account row text    |
+| `--settings-confirm-padding`     | `18px`                                       | Delete panel padding       |
+| `--settings-confirm-gap`         | `16px`                                       | Gap between panel parts    |
+| `--settings-confirm-list-gap`    | `6px`                                        | Gap between list items     |
+| `--settings-confirm-list-indent` | `1.25em`                                     | Panel list indent          |
+
+Settings also has a second rows card, "About Drop", with Terms, Privacy and Safety as link rows (`Scroll`, `LockKey`, `Lifebuoy` icons and a `CaretRight` pushed to the far end by `.settings-caret`, colour `--ink-2`). `.settings-row-btn` removes the underline so a link row looks like the Sign out button row.
+
+- **Danger row.** Delete account is a row button with class `settings-row-danger`: the text takes `--settings-danger-ink`, which is `--accent-ink` (`#B3001B` light, `#FF6B6B` dark). It carries the `Trash` icon, `aria-expanded` and `aria-controls="delete-account-panel"`.
+- **Confirm panel.** `.settings-confirm` is a paper panel (`--paper`) with a 1px `--accent-soft` border (`#DFA9AA` light, `#6E3637` dark), radius `--settings-rows-radius` (22px), padding `--settings-confirm-padding` and gap `--settings-confirm-gap`, capped at `--settings-max`. The title uses the subheading type, the consequence list (`.settings-confirm-list`) is `--ink-2` with bullets, and the two actions (`.settings-confirm-actions`, never wrapping, each container `flex: 1 1 0`) are Cancel and the danger button `.settings-btn-danger`: `--accent-fill` (`#FF3131`) fill with `--on-accent` (`#0A0A0A`) text. The input and Cancel reuse the inbox confirm classes.
+
+## Legal pages
+
+The Terms, Privacy and Safety pages. Styles in `src/styles/legal.css`, every rule scoped under `.legal-page`; tokens in `src/styles/tokens.css`. One reading column on `--ground`, in Onest body text. The pages follow the person's light or dark choice through the shared tokens, unlike the landing, which stays light. The logo swaps between `logo.svg` and `logo-dark.svg` by theme in CSS (`prefers-color-scheme` unless `data-theme` says otherwise).
+
+| Token                 | Value    | Use                                       |
+| --------------------- | -------- | ----------------------------------------- |
+| `--legal-max`         | `42rem`  | Reading column width cap (`.section` max) |
+| `--legal-line-height` | `1.6`    | Body line height                          |
+| `--legal-logo-h`      | `30px`   | Header logo height                        |
+| `--legal-list-gap`    | `6px`    | Gap between list items                    |
+| `--legal-list-indent` | `1.25em` | List indent                               |
+
+- **Classes.** `.legal-page` (flex column, `min-height: 100svh`, ground and ink colours), `.legal-body` (grows to push the footer down), `.legal-h1` (display font, `--type-heading`, line height 1.04), `.legal-h2` (display font, `--type-subheading`, line height 1.1), `.legal-updated` (`--ink-2`, `--type-caption`), `.legal-text` (full-width column), `.legal-list` (bulleted column), `.legal-foot` (hair top border) and `.legal-foot-links a` (44px minimum tap height). Links inside text are underlined with a 3px offset and break long addresses.
+- **Wrappers.** Four levels everywhere, with the shared level tokens. The legal section component adds a heading sub-section and a body sub-section, and each page wraps every paragraph or list in a container.
+- **Focus.** The ring is `--auth-focus-ring`.
 
 ## Share panel
 

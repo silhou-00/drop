@@ -1,0 +1,116 @@
+/* The legal pages (Terms, Privacy, Safety): one reading column on the ground colour, capped
+   for line length and centred, with Unbounded headings and Onest body text. Colours follow
+   the light and dark tokens, so the pages match the person's theme. Every rule is scoped
+   under the legal root, and every size comes from tokens.css. */
+
+.legal-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--family-body);
+    font-size: var(--type-body);
+    line-height: var(--legal-line-height);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+}
+
+.legal-page :focus-visible {
+    outline: none;
+    box-shadow: var(--auth-focus-ring);
+}
+
+.legal-page .section {
+    max-width: var(--legal-max);
+}
+
+.legal-page .legal-body {
+    flex: 1;
+}
+
+/* logo: the light or dark file follows the theme */
+.legal-page .legal-home {
+    display: inline-flex;
+    border-radius: 12px;
+}
+
+.legal-page .legal-logo {
+    display: block;
+    width: auto;
+    height: var(--legal-logo-h);
+}
+
+.legal-page .legal-logo-dark {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .legal-page .legal-logo-light {
+        display: none;
+    }
+
+    :root:not([data-theme="light"]) .legal-page .legal-logo-dark {
+        display: block;
+    }
+}
+
+:root[data-theme="dark"] .legal-page .legal-logo-light {
+    display: none;
+}
+
+:root[data-theme="dark"] .legal-page .legal-logo-dark {
+    display: block;
+}
+
+/* type */
+.legal-page .legal-h1 {
+    font: 700 var(--type-heading) / 1.04 var(--family-display);
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+}
+
+.legal-page .legal-h2 {
+    font: 700 var(--type-subheading) / 1.1 var(--family-display);
+    letter-spacing: -0.01em;
+}
+
+.legal-page .legal-updated {
+    color: var(--ink-2);
+    font-size: var(--type-caption);
+    font-weight: 600;
+}
+
+/* body: paragraphs and lists stack full width */
+.legal-page .legal-text {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.legal-page .legal-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--legal-list-gap);
+    padding-inline-start: var(--legal-list-indent);
+    list-style: disc;
+}
+
+.legal-page .legal-text a {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+}
+
+/* footer links */
+.legal-page .legal-foot {
+    border-top: 1px solid var(--hair);
+}
+
+.legal-page .legal-foot-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+}

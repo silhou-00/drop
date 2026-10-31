@@ -1,5 +1,6 @@
 /* Styles for the inbox and a drop's page. The list: its heading with the "N new" count, the
-   filter chips, the day groups and the paper cards with their badges and ringed unread dot,
+   statement banner, the filter chips, the scope row, the statement sections with their
+   headers, and the paper cards with their badges and ringed unread dot,
    the empty stage over a marble patch, and the "Pick a drop" pane. A drop's page: its bar,
    the large message, the place and GPS badges, the map plate with its glass controls and the
    circled photo that opens full size, then the actions and the delete confirm. From laptops
@@ -58,11 +59,126 @@
     color: var(--inverse-ink);
 }
 
-/* day groups and cards */
+/* the "Pick a drop" heading */
 .auth-page .inbox-group-title {
     font: 700 var(--type-subheading) / 1.1 var(--family-display);
 }
 
+/* statement banner: live with the statement and time left, or closed with a link */
+.auth-page .statement-banner {
+    flex-wrap: nowrap;
+    padding: var(--statement-banner-padding);
+    border-radius: var(--statement-banner-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .statement-banner[data-state="closed"] {
+    background: var(--inverse-fill);
+    color: var(--inverse-ink);
+}
+
+.auth-page .statement-banner-text {
+    flex: 1 1 auto;
+}
+
+.auth-page .statement-banner-line {
+    overflow: hidden;
+    font: 600 var(--statement-fs-banner) / 1.3 var(--family-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.auth-page .statement-banner-label {
+    font-weight: 700;
+}
+
+.auth-page .statement-banner-left {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.auth-page .statement-banner-link {
+    color: inherit;
+    font: 700 var(--statement-fs-banner) / 1.3 var(--family-body);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+}
+
+/* scope row and the small pill buttons that change the scope */
+.auth-page .inbox-scope {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.auth-page .inbox-scope-text {
+    color: var(--ink-2);
+    font: 600 var(--type-caption) / 1.2 var(--family-body);
+}
+
+.auth-page .statement-scope-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--statement-chip-min-h);
+    padding: var(--statement-chip-padding);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font: 600 var(--app-fs-chip) / 1 var(--family-body);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* statement section headers */
+.auth-page .statement-head {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+}
+
+.auth-page .statement-head-text {
+    flex: 1 1 auto;
+}
+
+.auth-page .statement-head-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font: 700 var(--statement-fs-head) / 1.2 var(--family-display);
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--statement-head-lines);
+    line-clamp: var(--statement-head-lines);
+}
+
+.auth-page .statement-live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--placement-gap);
+    padding: var(--inbox-badge-padding);
+    border-radius: 999px;
+    background: var(--paper);
+    font: 700 var(--inbox-fs-badge) / var(--inbox-badge-min-h) var(--family-body);
+    white-space: nowrap;
+}
+
+.auth-page .statement-head-meta {
+    flex-wrap: wrap;
+}
+
+.auth-page .statement-head-when,
+.auth-page .statement-head-count {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+}
+
+.auth-page .statement-head-scope {
+    margin-left: auto;
+}
+
+/* cards */
 .auth-page .inbox-cards {
     flex-direction: column;
     flex-wrap: nowrap;

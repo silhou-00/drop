@@ -1,12 +1,15 @@
 // Data access for drops. Insert a drop inside a transaction that locks the recipient's
-// profile row, so a pause that lands first is seen and the insert is refused. The inbox
-// queries list (optionally only unread or only with a photo), count the unread, read,
-// mark and delete a drop; each one filters by recipient and id so a drop that belongs to
-// someone else is never matched.
-import { and, count, desc, eq, getTableColumns, isNotNull, sql } from "drizzle-orm";
+// profile row and the running statement, so a statement that ends first is seen and the
+// insert is refused. The drop is filed under the statement the database found, never
+// one the caller names. The inbox queries list (optionally only unread, only with a
+// photo, or one statement), count the unread and the earlier drops, read, mark and
+// delete a drop; each one filters by recipient and id so a drop that belongs to someone
+// else is never matched.
+import { and, desc, eq, getTableColumns, isNotNull, isNull, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { profiles } from "../profiles/model.js";
 import type { LngLat } from "../shared/db/geography.js";
+import { runningSql, statements } from "../statements/model.js";
 import { drops, type DropRow, type InboxCursor, type InboxFilter } from "./model.js";
 
 export type NewDropRow = {
@@ -20,7 +23,7 @@ export type NewDropRow = {
     deviceKey: string;
 };
 
-export type InsertDropResult = "inserted" | "paused" | "missing";
+export type InsertDropResult = "inserted" | "closed" | "missing";
 
 // a listed row carries its time at microsecond precision, for the page cursor
 export type ListedDropRow = DropRow & { cursorAt: string };
@@ -30,21 +33,28 @@ const CURSOR_AT_SQL = sql<string>`to_char(${drops.createdAt} at time zone 'utc',
 export function createDropRepository(db: NodePgDatabase) {
     async function insertDrop(row: NewDropRow): Promise<InsertDropResult> {
         return db.transaction(async (tx) => {
-            const rows = await tx
-                .select({ acceptingDrops: profiles.acceptingDrops })
+            const owners = await tx
+                .select({ id: profiles.id })
                 .from(profiles)
                 .where(eq(profiles.id, row.recipientId))
                 .for("share");
 
-            if (rows.length === 0) {
+            if (owners.length === 0) {
                 return "missing";
             }
 
-            if (!rows[0].acceptingDrops) {
-                return "paused";
+            const running = await tx
+                .select({ id: statements.id })
+                .from(statements)
+                .where(and(eq(statements.profileId, row.recipientId), runningSql(statements)))
+                .limit(1)
+                .for("share");
+
+            if (running.length === 0) {
+                return "closed";
             }
 
-            await tx.insert(drops).values(row);
+            await tx.insert(drops).values({ ...row, statementId: running[0].id });
 
             return "inserted";
         });
@@ -56,6 +66,7 @@ export function createDropRepository(db: NodePgDatabase) {
         limit: number,
         cursor: InboxCursor | undefined,
         filter: InboxFilter,
+        statement?: string,
     ): Promise<ListedDropRow[]> {
         const after = cursor
             ? sql`(${drops.createdAt}, ${drops.id}) < (${cursor.createdAt}::timestamptz, ${cursor.id}::uuid)`
@@ -63,22 +74,32 @@ export function createDropRepository(db: NodePgDatabase) {
         const narrow =
             filter === "unread" ? eq(drops.isRead, false) : filter === "photos" ? isNotNull(drops.photoKey) : undefined;
 
+        const scope =
+            statement === undefined
+                ? undefined
+                : statement === "earlier"
+                  ? isNull(drops.statementId)
+                  : eq(drops.statementId, statement);
+
         return db
             .select({ ...getTableColumns(drops), cursorAt: CURSOR_AT_SQL })
             .from(drops)
-            .where(and(eq(drops.recipientId, profileId), narrow, after))
+            .where(and(eq(drops.recipientId, profileId), narrow, scope, after))
             .orderBy(desc(drops.createdAt), desc(drops.id))
             .limit(limit + 1);
     }
 
-    // every unread drop of the recipient, whatever the list filter
-    async function countUnread(profileId: string): Promise<number> {
+    // every unread drop and every drop from before statements, whatever the list filter
+    async function countInbox(profileId: string): Promise<{ unread: number; earlier: number }> {
         const rows = await db
-            .select({ total: count() })
+            .select({
+                unread: sql<number>`(count(*) filter (where not ${drops.isRead}))::int`,
+                earlier: sql<number>`(count(*) filter (where ${drops.statementId} is null))::int`,
+            })
             .from(drops)
-            .where(and(eq(drops.recipientId, profileId), eq(drops.isRead, false)));
+            .where(eq(drops.recipientId, profileId));
 
-        return rows[0]?.total ?? 0;
+        return { unread: rows[0]?.unread ?? 0, earlier: rows[0]?.earlier ?? 0 };
     }
 
     async function findForRecipient(profileId: string, id: string): Promise<DropRow | null> {
@@ -110,7 +131,7 @@ export function createDropRepository(db: NodePgDatabase) {
         return rows[0] ?? null;
     }
 
-    return { insertDrop, listForRecipient, countUnread, findForRecipient, setRead, deleteForRecipient };
+    return { insertDrop, listForRecipient, countInbox, findForRecipient, setRead, deleteForRecipient };
 }
 
 export type DropRepository = ReturnType<typeof createDropRepository>;

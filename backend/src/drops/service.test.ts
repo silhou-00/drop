@@ -1,5 +1,6 @@
-// Tests for the send service with fakes: the order of the checks, what reaches the
-// repository, the place-name fallback, and the photo save and cleanup order.
+// Tests for the send service with fakes: the order of the checks (the closed link comes
+// before the limits), what reaches the repository, the place-name fallback, and the
+// photo save and cleanup order.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
@@ -13,11 +14,12 @@ const PHOTO_KEY = "123e4567-e89b-42d3-a456-426614174000.webp";
 const photo = new File([new Uint8Array([1, 2, 3])], "a.jpg", { type: "image/jpeg" });
 
 const keys = createKeyMaker("s".repeat(40));
-const recipient = { id: "r1", acceptingDrops: true };
+const recipient = { id: "r1" };
 
 type Options = {
     recipient?: typeof recipient | null;
-    result?: "inserted" | "paused" | "missing";
+    result?: "inserted" | "closed" | "missing";
+    running?: boolean;
     placeName?: string | null;
     insertError?: Error;
     cleanError?: Error;
@@ -26,6 +28,7 @@ type Options = {
 function build({
     recipient: found = recipient,
     result = "inserted",
+    running = true,
     placeName = "Diliman, Quezon City",
     insertError,
     cleanError,
@@ -37,9 +40,11 @@ function build({
     const service = createDropService({
         findOwnProfile: async () => null,
         findRecipient: async () => found,
+        findRunningStatementId: async () => (running ? "s1" : null),
+        findStatementSummaries: async () => [],
         drops: {
             listForRecipient: async () => [],
-            countUnread: async () => 0,
+            countInbox: async () => ({ unread: 0, earlier: 0 }),
             findForRecipient: async () => null,
             setRead: async () => null,
             deleteForRecipient: async () => null,
@@ -97,15 +102,27 @@ describe("sendDrop", () => {
         ).rejects.toMatchObject({ status: 404 });
     });
 
-    it("answers 409 before the limit and before validation", async () => {
-        const { service } = build({ recipient: { id: "r1", acceptingDrops: false } });
+    it("answers 409 LINK_CLOSED before the limit and before validation", async () => {
+        const { service, rows } = build({ running: false });
 
         for (let i = 0; i < 10; i += 1) {
             await expect(service.sendDrop({ ...base, fields: {} })).rejects.toMatchObject({
                 status: 409,
-                code: "LINK_PAUSED",
+                code: "LINK_CLOSED",
+                message: "This link is not taking drops right now.",
             });
         }
+
+        expect(rows).toHaveLength(0);
+    });
+
+    it("answers 422 for a statement_id sent by the client", async () => {
+        const { service, rows } = build();
+
+        await expect(
+            service.sendDrop({ ...base, fields: { message: "hi", ...gps, statement_id: "s9" } }),
+        ).rejects.toMatchObject({ status: 422, code: "VALIDATION_ERROR" });
+        expect(rows).toHaveLength(0);
     });
 
     it("applies the limit before validation", async () => {
@@ -178,10 +195,10 @@ describe("sendDrop", () => {
         expect(rows[0].locationName).toBeNull();
     });
 
-    it("answers 409 when the pause lands at insert time, and 404 when the profile is gone", async () => {
+    it("answers 409 when the statement ends at insert time, and 404 when the profile is gone", async () => {
         await expect(
-            build({ result: "paused" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
-        ).rejects.toMatchObject({ status: 409, code: "LINK_PAUSED" });
+            build({ result: "closed" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
+        ).rejects.toMatchObject({ status: 409, code: "LINK_CLOSED" });
         await expect(
             build({ result: "missing" }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),
         ).rejects.toMatchObject({ status: 404 });
@@ -206,8 +223,8 @@ describe("sendDrop", () => {
         expect(rows[0].photoKey).toBe(PHOTO_KEY);
     });
 
-    it("removes the saved photo and answers 409 when the insert returns paused", async () => {
-        const { service, saved, removed } = build({ result: "paused" });
+    it("removes the saved photo and answers 409 when the insert returns closed", async () => {
+        const { service, saved, removed } = build({ result: "closed" });
 
         await expect(service.sendDrop({ ...base, fields: { message: "hi", ...gps, photo } })).rejects.toMatchObject({
             status: 409,

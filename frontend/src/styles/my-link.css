@@ -1,10 +1,58 @@
-/* The My link page: the link card, capped and start-aligned on wide screens, with a caption,
-   the link in large mono type that breaks anywhere, and the story preview tilted inside a
-   white ring. Every size comes from tokens.css. */
+/* The My link page: the statement card or the form that starts one, then the link card, all
+   capped and start-aligned on wide screens. The running statement shows a Live mark, the time
+   left and the statement in large quoted type; the form has its count under the text box. The
+   link card has a caption, the link in large mono type that breaks anywhere, and the story
+   preview tilted inside a white ring. Every size comes from tokens.css. */
 
-.auth-page .mylink-card {
+.auth-page .mylink-card,
+.auth-page .mylink-running,
+.auth-page .mylink-statement-form {
     width: 100%;
     max-width: var(--mylink-card-max);
+}
+
+/* running statement */
+.auth-page .mylink-running-top {
+    justify-content: space-between;
+}
+
+.auth-page .mylink-live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--placement-gap);
+    font: 700 var(--type-caption) / 1 var(--family-body);
+}
+
+.auth-page .mylink-left {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+    font-variant-numeric: tabular-nums;
+}
+
+.auth-page .mylink-statement-text {
+    font: 700 var(--statement-fs-card) / 1.15 var(--family-display);
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+/* statement form: the note on the left, the count on the right */
+.auth-page .mylink-statement-meta {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.auth-page .mylink-count-wrap {
+    margin-left: auto;
+}
+
+.auth-page .mylink-count {
+    color: var(--ink-2);
+    font: 600 var(--type-mono) var(--family-meta);
+    font-variant-numeric: tabular-nums;
+}
+
+.auth-page .mylink-count[data-over="true"] {
+    color: var(--accent-ink);
 }
 
 .auth-page .mylink-caption {

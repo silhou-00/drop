@@ -1,8 +1,11 @@
 // Public send page at drop.link/<name>. Anyone can write the owner an anonymous drop here,
-// with its GPS place. A name with capitals is sent on to its lowercase form. The page
-// shows loading, a friendly not-found (also for invalid or reserved names), a load error, a
-// paused link (no form), the form, and the sent confirmation. Static pages such as /sign-in
-// and /claim rank above this route. The server checks every rule again on send.
+// with its GPS place, while the owner has a statement running. A name with capitals is sent on
+// to its lowercase form. The page shows loading, a friendly not-found (also for invalid or
+// reserved names), a load error, the open link (the statement in a quoted card with the time
+// left, then the form), the closed link, and the sent confirmation. The link closes on screen
+// when the countdown reaches zero or a send is turned away as closed, with no new request.
+// Static pages such as /sign-in and /claim rank above this route. The server checks every
+// rule again on send.
 import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -10,8 +13,10 @@ import { DropForm } from "@/components/drops/drop-form";
 import { SentCard } from "@/components/drops/sent-card";
 import { useSendDrop } from "@/hooks/drops/use-send-drop";
 import { usePublicProfile } from "@/hooks/profiles/use-public-profile";
-import { LINK_PAUSED_MESSAGE } from "@/lib/drops/model";
+import { useCountdown } from "@/hooks/statements/use-countdown";
+import { LINK_CLOSED_MESSAGE } from "@/lib/drops/model";
 import type { PublicProfile } from "@/lib/profiles/model";
+import { timeLeftLabel } from "@/lib/statements/helper";
 import "@/styles/send.css";
 
 export const Route = createFileRoute("/$username")({
@@ -51,7 +56,7 @@ function SendCard({ children }: { children: ReactNode }) {
     );
 }
 
-function ProfileHeading({ profile }: { profile: PublicProfile }) {
+function ProfileHeading({ profile, closed }: { profile: PublicProfile; closed: boolean }) {
     const avatar = safeAvatarUrl(profile.avatarUrl);
     const initial = Array.from(profile.displayName.trim())[0]?.toUpperCase() ?? "";
 
@@ -77,7 +82,9 @@ function ProfileHeading({ profile }: { profile: PublicProfile }) {
             <div className="placement auth-stack">
                 <div className="container">
                     <h1 id="send-title" className="auth-title">
-                        Send {profile.displayName} an anonymous drop
+                        {closed
+                            ? `${profile.displayName} is not taking drops right now`
+                            : `Send ${profile.displayName} an anonymous drop`}
                     </h1>
                 </div>
             </div>
@@ -85,10 +92,29 @@ function ProfileHeading({ profile }: { profile: PublicProfile }) {
     );
 }
 
+// the running statement as a quoted card, with the time it stays open
+function StatementCard({ text, msLeft }: { text: string; msLeft: number }) {
+    return (
+        // statement
+        <div className="placement auth-stack">
+            <div className="container send-statement">
+                <p className="send-statement-text">“{text}”</p>
+            </div>
+            <div className="container">
+                <p className="send-statement-left" role="timer" aria-live="off">
+                    Open for {timeLeftLabel(msLeft).replace(" left", "")}
+                </p>
+            </div>
+        </div>
+    );
+}
+
 function SendPage() {
     const { username } = Route.useParams();
     const page = usePublicProfile(username);
     const drop = useSendDrop(username);
+    const statement = page.profile?.statement ?? null;
+    const countdown = useCountdown(statement ? statement.seconds_left : null, statement?.ends_at ?? "none");
     const displayName = page.profile?.displayName ?? "";
 
     // page title follows the owner's display name
@@ -173,36 +199,39 @@ function SendPage() {
         );
     }
 
-    const paused = !page.profile.acceptingDrops || drop.paused;
+    const closed = !statement || countdown.done || drop.closed;
 
     return (
         <AuthShell>
             <SendCard>
-                <ProfileHeading profile={page.profile} />
+                <ProfileHeading profile={page.profile} closed={closed} />
 
-                {paused ? (
-                    // paused link: no form
+                {closed || !statement ? (
+                    // closed link: no form
                     <div className="placement auth-stack">
                         <div className="container">
                             <p className="auth-lede" role="status">
-                                {LINK_PAUSED_MESSAGE}
+                                {LINK_CLOSED_MESSAGE}
                             </p>
                         </div>
                         <div className="container">
-                            <Link className="auth-btn auth-btn-paper" to="/">
-                                Go to Drop
+                            <Link className="auth-btn auth-btn-ink" to="/claim">
+                                Get your own drop.link
                             </Link>
                         </div>
                     </div>
                 ) : (
-                    <DropForm
-                        displayName={displayName}
-                        sending={drop.status === "sending"}
-                        error={drop.status === "error" ? drop.error : null}
-                        onSend={(draft) => {
-                            void drop.send(draft);
-                        }}
-                    />
+                    <>
+                        <StatementCard text={statement.text} msLeft={countdown.msLeft} />
+                        <DropForm
+                            displayName={displayName}
+                            sending={drop.status === "sending"}
+                            error={drop.status === "error" ? drop.error : null}
+                            onSend={(draft) => {
+                                void drop.send(draft);
+                            }}
+                        />
+                    </>
                 )}
             </SendCard>
         </AuthShell>

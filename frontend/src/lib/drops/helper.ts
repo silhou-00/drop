@@ -1,10 +1,11 @@
 // Time labels and grouping for the inbox. A list card shows a compact age ("now", "2m", "3h",
 // "1d", then a short date), the drop page shows the day and clock time, and the full local date
-// and time sits beside both for a title or a time element. The list splits into today and
-// earlier by the local calendar day, keeping the server's order. All read the ISO time the
-// server sends and never change it. For the map, drops sent from the same ~150 m cell share
-// exact coordinates, so they group by a key built from those coordinates; the filter chips
-// narrow the kept drops on the page without asking the server again.
+// and time sits beside both for a title or a time element. The list splits into one section per
+// statement the drops were sent under, keeping the server's order, with the drops from before
+// statements last. All read the ISO time the server sends and never change it. For the map,
+// drops sent from the same ~150 m cell share exact coordinates, so they group by a key built
+// from those coordinates; the filter chips and the statement picker narrow the kept drops on
+// the page without asking the server again.
 import type { InboxFilter, InboxItem } from "@/lib/drops/model";
 
 const MINUTE = 60;
@@ -82,23 +83,37 @@ export function dayTime(iso: string, now = Date.now()) {
     return `${day}, ${clock.format(at)}`;
 }
 
-// drops from today's local day, then the rest, each in the order given
-export function groupByDay(items: InboxItem[], now = Date.now()) {
-    const todayKey = dayKey(new Date(now));
-    const today: InboxItem[] = [];
+export type StatementGroup = { id: string | null; items: InboxItem[] };
+
+// drops by the statement they were sent under, in order of first appearance; the drops from
+// before statements (no id) come last
+export function groupByStatement(items: InboxItem[]) {
+    const groups = new Map<string, StatementGroup>();
     const earlier: InboxItem[] = [];
 
     for (const item of items) {
-        const at = parse(item.created_at);
-
-        if (at && dayKey(at) === todayKey) {
-            today.push(item);
-        } else {
+        if (item.statement_id === null) {
             earlier.push(item);
+            continue;
         }
+
+        let group = groups.get(item.statement_id);
+
+        if (!group) {
+            group = { id: item.statement_id, items: [] };
+            groups.set(item.statement_id, group);
+        }
+
+        group.items.push(item);
     }
 
-    return { today, earlier };
+    const result = [...groups.values()];
+
+    if (earlier.length > 0) {
+        result.push({ id: null, items: earlier });
+    }
+
+    return result;
 }
 
 // full local date and time
@@ -150,15 +165,23 @@ export function groupByPlace(items: InboxItem[]) {
     return [...groups.values()];
 }
 
-// the kept drops that match a filter chip
-export function filterDrops(items: InboxItem[], filter: InboxFilter) {
+// the kept drops that match a filter chip and, when given, one statement or "earlier"
+export function filterDrops(items: InboxItem[], filter: InboxFilter, statement?: string) {
+    let kept = items;
+
+    if (statement) {
+        const id = statement === "earlier" ? null : statement;
+
+        kept = kept.filter((item) => item.statement_id === id);
+    }
+
     if (filter === "unread") {
-        return items.filter((item) => !item.is_read);
+        return kept.filter((item) => !item.is_read);
     }
 
     if (filter === "photos") {
-        return items.filter((item) => item.has_photo);
+        return kept.filter((item) => item.has_photo);
     }
 
-    return items;
+    return kept;
 }

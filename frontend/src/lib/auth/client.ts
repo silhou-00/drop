@@ -2,8 +2,8 @@
 // check it, which sets the httpOnly session cookie on this origin. Failures become the
 // shared ApiError so pages show one kind of error. A signed-in session read by the route
 // guards is reused in memory for 30 seconds, so moving between pages does not ask the server
-// each time; it is forgotten on sign-out and on any 401 from the API. A missing session is
-// never reused. Nothing about the session is kept in browser storage.
+// each time; it is forgotten on sign-out, after an account is deleted, and on any 401 from the
+// API. A missing session is never reused. Nothing about the session is kept in browser storage.
 import { emailOTPClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { ApiError, rateLimitMessage, setUnauthorizedHandler } from "@/lib/api";
@@ -22,7 +22,7 @@ type Session = NonNullable<Awaited<ReturnType<typeof authClient.getSession>>["da
 
 let reused: { session: Session; at: number } | null = null;
 
-function forgetSession() {
+export function forgetSession() {
     reused = null;
 }
 

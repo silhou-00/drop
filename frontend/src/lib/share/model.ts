@@ -3,8 +3,8 @@
 // Marbled Bath story comp: the logo on top, the message on a paper card, the photo in a round
 // frame with ice and red rings, the place on a white pill and the link on a black pill. The
 // colours are the light palette from tokens.css and the hero-intensity marble pigments, because
-// the card is always light whatever the device theme is. The My link card uses a fixed line in
-// place of a drop's message, inviting viewers to send one.
+// the card is always light whatever the device theme is. The My link card uses the running
+// statement's text in place of a drop's message.
 
 export const CARD_WIDTH = 1080;
 export const CARD_HEIGHT = 1920;
@@ -12,7 +12,6 @@ export const CARD_HEIGHT = 1920;
 export const STORY_FILE_NAME = "drop-story.png";
 export const STORY_FILE_TYPE = "image/png";
 export const STORY_LOGO_PATH = "/brand/logo.svg";
-export const LINK_STORY_MESSAGE = "Saw me somewhere? Send me an anonymous drop.";
 
 // a saved download keeps its button locked this long, so a double click saves once
 export const DOWNLOAD_LOCK_MS = 800;

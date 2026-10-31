@@ -1,13 +1,17 @@
 // The drops kept for the map in this tab. They live in memory only and are never written to
 // storage, so a quick return to the map reuses them without a new request. Readers subscribe
 // and get a fresh snapshot on every change. A drop marked read or deleted anywhere in the app
-// is updated or removed here too, through the inbox store's change listener.
+// is updated or removed here too, through the inbox store's change listener. The statements
+// behind the kept drops, newest first, and the count from before statements feed the picker.
 import { onDropChange } from "@/hooks/drops/inbox-store";
 import type { InboxItem } from "@/lib/drops/model";
+import type { Statement } from "@/lib/statements/model";
 
 export type MapSnapshot = {
     status: "idle" | "loading" | "ready" | "error";
     items: InboxItem[];
+    statements: Statement[];
+    earlierCount: number;
     nextCursor: string | null;
     loadedAt: number;
     error: string;
@@ -20,6 +24,8 @@ const listeners = new Set<() => void>();
 let snapshot: MapSnapshot = {
     status: "idle",
     items: [],
+    statements: [],
+    earlierCount: 0,
     nextCursor: null,
     loadedAt: 0,
     error: "",

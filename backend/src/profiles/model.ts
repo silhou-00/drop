@@ -1,6 +1,6 @@
-// Profile table and the input rules for profiles. The error messages are exported
+// Profile table, the username holds table and the input rules for profiles. The error messages are exported
 // as constants so the frontend can show the same text for the same failure.
-import { boolean, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { user } from "../auth/model.js";
 import { citext } from "../shared/db/citext.js";
@@ -14,7 +14,6 @@ export const profiles = pgTable("profiles", {
     username: citext("username").notNull().unique(),
     displayName: varchar("display_name", { length: 50 }).notNull(),
     avatarKey: text("avatar_key"),
-    acceptingDrops: boolean("accepting_drops").notNull().default(true),
     heatmapEnabled: boolean("heatmap_enabled").notNull().default(false),
     notifyEmail: boolean("notify_email").notNull().default(true),
     ageConfirmedAt: timestamp("age_confirmed_at", { withTimezone: true }),
@@ -22,6 +21,18 @@ export const profiles = pgTable("profiles", {
 });
 
 export type Profile = typeof profiles.$inferSelect;
+
+// a deleted link name stays unclaimable until released_at
+export const usernameHolds = pgTable(
+    "username_holds",
+    {
+        username: citext("username").primaryKey(),
+        releasedAt: timestamp("released_at", { withTimezone: true }).notNull(),
+    },
+    (table) => [index("username_holds_released_at_idx").on(table.releasedAt)],
+);
+
+export const USERNAME_HOLD_DAYS = 30;
 
 export const RESERVED_USERNAMES: readonly string[] = [
     "api",
@@ -95,7 +106,6 @@ export const createProfileSchema = z.strictObject({
 export const updateProfileSchema = z
     .strictObject({
         displayName: displayNameSchema.optional(),
-        acceptingDrops: z.boolean().optional(),
         heatmapEnabled: z.boolean().optional(),
         notifyEmail: z.boolean().optional(),
     })

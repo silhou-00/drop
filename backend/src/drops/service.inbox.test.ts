@@ -1,11 +1,13 @@
 // Tests for the inbox side of the drop service with an in-memory repository: ownership,
-// the shared 404, paging with the cursor, the filter and the unread count, mark read, delete with its file (and a file
-// failure that is swallowed), and the photo read.
+// the shared 404, paging with the cursor, the filter, the statement scope, the unread and
+// earlier counts, the statements a page carries, mark read, delete with its file (and a
+// file failure that is swallowed), and the photo read.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
 import { inboxQuerySchema, type DropRow } from "./model.js";
 import type { DropRepository, ListedDropRow } from "./repository.js";
+import type { StatementView } from "../statements/model.js";
 import { createDropService } from "./service.js";
 
 const USER = "user-1";
@@ -17,8 +19,16 @@ const DROP_C = "33333333-3333-4333-8333-333333333333";
 const FOREIGN = "44444444-4444-4444-8444-444444444444";
 const MISSING = "55555555-5555-4555-8555-555555555555";
 const PHOTO_KEY = "123e4567-e89b-42d3-a456-426614174000.webp";
+const STATEMENT_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const STATEMENT_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
-function row(id: string, recipientId: string, photoKey: string | null, minute: number): DropRow {
+function row(
+    id: string,
+    recipientId: string,
+    photoKey: string | null,
+    minute: number,
+    statementId: string | null = null,
+): DropRow {
     return {
         id,
         recipientId,
@@ -27,10 +37,25 @@ function row(id: string, recipientId: string, photoKey: string | null, minute: n
         locationSource: "gps",
         locationName: "Diliman",
         photoKey,
+        statementId,
         senderKey: "a".repeat(64),
         deviceKey: null,
         isRead: false,
         createdAt: new Date(Date.UTC(2026, 9, 30, 12, minute)),
+    };
+}
+
+function view(id: string, profileId: string, dropCount: number): StatementView {
+    return {
+        id,
+        profileId,
+        text: `statement ${id.slice(0, 1)}`,
+        startedAt: new Date(Date.UTC(2026, 9, 30, 11, 0)),
+        endsAt: new Date(Date.UTC(2026, 9, 30, 13, 0)),
+        endedAt: null,
+        running: true,
+        secondsLeft: 600,
+        dropCount,
     };
 }
 
@@ -46,13 +71,21 @@ function build(initial: DropRow[], options: Options = {}) {
     const removed: string[] = [];
     const read: string[] = [];
     const filters: string[] = [];
+    const summaryCalls: string[][] = [];
     const drops: DropRepository = {
         insertDrop: async () => "inserted",
-        listForRecipient: async (profileId, limit, cursor, filter) => {
+        listForRecipient: async (profileId, limit, cursor, filter, statement) => {
             filters.push(filter);
 
             const mine = rows
                 .filter((item) => item.recipientId === profileId)
+                .filter((item) => {
+                    if (statement === undefined) {
+                        return true;
+                    }
+
+                    return statement === "earlier" ? item.statementId === null : item.statementId === statement;
+                })
                 .filter((item) => (filter === "unread" ? !item.isRead : filter === "photos" ? item.photoKey : true))
                 .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
             const start = cursor ? mine.findIndex((item) => item.id === cursor.id) + 1 : 0;
@@ -62,8 +95,13 @@ function build(initial: DropRow[], options: Options = {}) {
                 cursorAt: item.createdAt.toISOString().replace("Z", "000Z"),
             }));
         },
-        countUnread: async (profileId) => {
-            return rows.filter((item) => item.recipientId === profileId && !item.isRead).length;
+        countInbox: async (profileId) => {
+            const mine = rows.filter((item) => item.recipientId === profileId);
+
+            return {
+                unread: mine.filter((item) => !item.isRead).length,
+                earlier: mine.filter((item) => item.statementId === null).length,
+            };
         },
         findForRecipient: async (profileId, id) => {
             return rows.find((item) => item.recipientId === profileId && item.id === id) ?? null;
@@ -92,6 +130,12 @@ function build(initial: DropRow[], options: Options = {}) {
     const service = createDropService({
         findOwnProfile: async (userId) => (options.profile === false || userId !== USER ? null : { id: PROFILE }),
         findRecipient: async () => null,
+        findRunningStatementId: async () => null,
+        findStatementSummaries: async (profileId, ids) => {
+            summaryCalls.push(ids);
+
+            return ids.map((id) => view(id, profileId, rows.filter((item) => item.statementId === id).length));
+        },
         drops,
         limiter: createSendLimiter(),
         keys: createKeyMaker("s".repeat(40)),
@@ -119,7 +163,7 @@ function build(initial: DropRow[], options: Options = {}) {
         newPhotoKey: () => PHOTO_KEY,
     });
 
-    return { service, removed, read, filters };
+    return { service, removed, read, filters, summaryCalls };
 }
 
 const query = (input: Record<string, string> = {}) => inboxQuerySchema.parse(input);
@@ -150,6 +194,7 @@ describe("inbox service", () => {
             location: { lat: 14.5995, lng: 120.9842, name: "Diliman", source: "gps" },
             has_photo: true,
             is_read: false,
+            statement_id: null,
             created_at: "2026-10-30T12:02:00.000Z",
         });
     });
@@ -206,6 +251,49 @@ describe("inbox service", () => {
         await service.markRead(USER, DROP_A, true);
 
         expect((await service.listInbox(USER, query({ filter: "unread" }))).unread_count).toBe(2);
+    });
+
+    it("scopes the list to one statement or to the earlier drops", async () => {
+        const mixed = [
+            row(DROP_A, PROFILE, null, 1),
+            row(DROP_B, PROFILE, null, 2, STATEMENT_A),
+            row(DROP_C, PROFILE, null, 3, STATEMENT_B),
+            row(FOREIGN, OTHER_PROFILE, null, 4, STATEMENT_A),
+        ];
+        const { service } = build(mixed);
+        const one = await service.listInbox(USER, query({ statement: STATEMENT_A }));
+        const earlier = await service.listInbox(USER, query({ statement: "earlier" }));
+
+        expect(one.items.map((item) => item.id)).toEqual([DROP_B]);
+        expect(one.items[0].statement_id).toBe(STATEMENT_A);
+        expect(earlier.items.map((item) => item.id)).toEqual([DROP_A]);
+    });
+
+    it("returns the statements on the page and the earlier count", async () => {
+        const mixed = [
+            row(DROP_A, PROFILE, null, 1),
+            row(DROP_B, PROFILE, null, 2, STATEMENT_A),
+            row(DROP_C, PROFILE, null, 3, STATEMENT_A),
+        ];
+        const { service, summaryCalls } = build(mixed);
+        const page = await service.listInbox(USER, query());
+
+        expect(summaryCalls).toEqual([[STATEMENT_A]]);
+        expect(page.earlier_count).toBe(1);
+        expect(page.statements).toHaveLength(1);
+        expect(page.statements[0]).toMatchObject({ id: STATEMENT_A, running: true, drop_count: 2, seconds_left: 600 });
+    });
+
+    it("includes the scoped statement on an empty page, and asks for none when there is no scope", async () => {
+        const { service, summaryCalls } = build([row(DROP_A, PROFILE, null, 1)]);
+        const scoped = await service.listInbox(USER, query({ statement: STATEMENT_B }));
+
+        expect(scoped.items).toEqual([]);
+        expect(scoped.statements.map((item) => item.id)).toEqual([STATEMENT_B]);
+
+        await service.listInbox(USER, query({ statement: "earlier" }));
+
+        expect(summaryCalls).toEqual([[STATEMENT_B], []]);
     });
 
     it("answers the same 404 for a missing drop, another user's drop and a bad id", async () => {

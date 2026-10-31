@@ -1,10 +1,8 @@
 // The landing's footer on plain paper: the logo and a one-line summary, four common questions
-// that open in place, the page links and the fine print. Links scroll through the landing's
-// smooth scroller. The legal pages do not exist yet, so those links lead back to the top.
-// "Sign in" opens the sign-in page.
-import type { MouseEvent } from "react";
+// that open in place, the page links and the fine print. Privacy, Terms and Safety open their
+// own pages, which start at the top, and "Sign in" opens the sign-in page. Drop has no block
+// or report button, so the answer about mean notes points to deleting and the Safety page.
 import { Link } from "@tanstack/react-router";
-import { useLanding } from "@/hooks/landing/use-scroll-timeline";
 
 const QUESTIONS = [
     {
@@ -21,23 +19,16 @@ const QUESTIONS = [
     },
     {
         q: "What if a note is mean?",
-        a: "Block it and it is deleted, silently. Report it and a moderator looks at it.",
+        a: "Delete it. Drop has no block or report button yet, so read the Safety page for what you can do.",
     },
 ];
 const LINKS = [
-    { label: "Privacy", href: "#top" },
-    { label: "Terms", href: "#top" },
-    { label: "Safety", href: "#top" },
-];
+    { label: "Privacy", to: "/privacy" },
+    { label: "Terms", to: "/terms" },
+    { label: "Safety", to: "/safety" },
+] as const;
 
 export function SiteFooter() {
-    const { scrollToTarget } = useLanding();
-
-    function handleAnchor(event: MouseEvent<HTMLAnchorElement>) {
-        event.preventDefault();
-        scrollToTarget(event.currentTarget.hash);
-    }
-
     return (
         <footer className="section footer">
             {/* questions and links */}
@@ -69,9 +60,9 @@ export function SiteFooter() {
                 <div className="placement">
                     <div className="container links">
                         {LINKS.map((link) => (
-                            <a key={link.label} href={link.href} onClick={handleAnchor}>
+                            <Link key={link.label} to={link.to}>
                                 {link.label}
-                            </a>
+                            </Link>
                         ))}
                         <Link to="/sign-in">Sign in</Link>
                     </div>

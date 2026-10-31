@@ -1,6 +1,6 @@
 /* The map page. The map fills the screen behind everything; the filter chips sit on a glass
-   bar at the top and the zoom buttons in a glass column at the right, the only two glass
-   pieces besides the nav. The list of drops is a paper sheet over the map on phones, a
+   bar at the top with the statement picker under them, and the zoom buttons in a glass column
+   at the right, the only glass pieces besides the nav. The list of drops is a paper sheet over the map on phones, a
    floating paper panel beside the rail on tablets, and a docked pane beside the rail from
    laptops, where a round button folds it away. Loading, failure and the empty state sit on
    the plain ground. Every size comes from tokens.css. */
@@ -53,6 +53,41 @@
     box-shadow: var(--shadow-rest);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+/* statement picker: a glass pill under the chips, holding a native select */
+.auth-page .statement-picker {
+    position: fixed;
+    top: var(--statement-picker-top);
+    left: var(--map-inset);
+    z-index: 2;
+    max-width: min(
+        var(--statement-picker-max),
+        calc(100% - var(--map-inset) * 2 - var(--inbox-map-ctl) - var(--map-ctl-right))
+    );
+}
+
+.auth-page .statement-picker-wrap {
+    width: 100%;
+}
+
+.auth-page .statement-select {
+    width: 100%;
+    min-height: var(--statement-picker-min-h);
+    padding: var(--statement-picker-padding);
+    border: var(--glass-edge);
+    border-radius: 999px;
+    background: var(--glass-fill);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+    font: 600 var(--app-fs-chip) / 1 var(--family-body);
+    text-overflow: ellipsis;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.auth-page .map-page:has(.statement-picker) .map-older {
+    top: var(--statement-older-top);
 }
 
 /* zoom and fit: the glass column at the right */
@@ -286,6 +321,10 @@
     left: var(--map-inset);
 }
 
+.auth-page .map-page:has(.statement-picker):has(.map-panel) .map-view .inbox-map-credit {
+    top: var(--statement-older-top);
+}
+
 .auth-page .map-page:has(.map-older) .map-view .inbox-map-credit {
     top: auto;
     bottom: calc(var(--app-bar-clearance) + 4px);
@@ -296,7 +335,8 @@
 /* tablet: the bar and the panel start after the rail; the controls centre on the right */
 @media (min-width: 48rem) {
     .auth-page .map-chips,
-    .auth-page .map-older {
+    .auth-page .map-older,
+    .auth-page .statement-picker {
         left: calc(var(--rail-w) + 4px);
     }
 
@@ -328,12 +368,14 @@
 /* laptop and up: the list docks beside the rail like the inbox list */
 @media (min-width: 80rem) {
     .auth-page .map-chips,
-    .auth-page .map-older {
+    .auth-page .map-older,
+    .auth-page .statement-picker {
         left: calc(var(--app-frame-inset) + var(--app-nav-w) + var(--app-list-w) + 40px);
     }
 
     .auth-page .map-page[data-list="closed"] .map-chips,
-    .auth-page .map-page[data-list="closed"] .map-older {
+    .auth-page .map-page[data-list="closed"] .map-older,
+    .auth-page .map-page[data-list="closed"] .statement-picker {
         left: calc(var(--app-frame-inset) + var(--app-nav-w) + 40px + var(--map-collapse-size));
     }
 

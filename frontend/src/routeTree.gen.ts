@@ -14,7 +14,10 @@ import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as AppMapRouteImport } from './routes/_app.map'
 import { Route as AppMyLinkRouteImport } from './routes/_app.my-link'
@@ -50,9 +53,24 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppInboxRoute = AppInboxRouteImport.update({
@@ -111,7 +129,10 @@ export interface FileRoutesByFullPath {
   '/$username': typeof UsernameRoute
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/inbox': typeof AppInboxRouteWithChildren
   '/map': typeof AppMapRoute
   '/my-link': typeof AppMyLinkRoute
@@ -128,7 +149,10 @@ export interface FileRoutesByTo {
   '/$username': typeof UsernameRoute
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/map': typeof AppMapRoute
   '/my-link': typeof AppMyLinkRoute
   '/settings': typeof AppSettingsRoute
@@ -146,7 +170,10 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/claim': typeof ClaimRoute
   '/home': typeof HomeRoute
+  '/privacy': typeof PrivacyRoute
+  '/safety': typeof SafetyRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/_app/inbox': typeof AppInboxRouteWithChildren
   '/_app/map': typeof AppMapRoute
   '/_app/my-link': typeof AppMyLinkRoute
@@ -165,7 +192,10 @@ export interface FileRouteTypes {
     | '/$username'
     | '/claim'
     | '/home'
+    | '/privacy'
+    | '/safety'
     | '/sign-in'
+    | '/terms'
     | '/inbox'
     | '/map'
     | '/my-link'
@@ -182,7 +212,10 @@ export interface FileRouteTypes {
     | '/$username'
     | '/claim'
     | '/home'
+    | '/privacy'
+    | '/safety'
     | '/sign-in'
+    | '/terms'
     | '/map'
     | '/my-link'
     | '/settings'
@@ -199,7 +232,10 @@ export interface FileRouteTypes {
     | '/_app'
     | '/claim'
     | '/home'
+    | '/privacy'
+    | '/safety'
     | '/sign-in'
+    | '/terms'
     | '/_app/inbox'
     | '/_app/map'
     | '/_app/my-link'
@@ -218,7 +254,10 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   ClaimRoute: typeof ClaimRoute
   HomeRoute: typeof HomeRoute
+  PrivacyRoute: typeof PrivacyRoute
+  SafetyRoute: typeof SafetyRoute
   SignInRoute: typeof SignInRoute
+  TermsRoute: typeof TermsRoute
   PlaygroundGooRoute: typeof PlaygroundGooRoute
   PlaygroundMarbleRoute: typeof PlaygroundMarbleRoute
   PlaygroundMotionRoute: typeof PlaygroundMotionRoute
@@ -262,11 +301,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/inbox': {
@@ -378,7 +438,10 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   ClaimRoute: ClaimRoute,
   HomeRoute: HomeRoute,
+  PrivacyRoute: PrivacyRoute,
+  SafetyRoute: SafetyRoute,
   SignInRoute: SignInRoute,
+  TermsRoute: TermsRoute,
   PlaygroundGooRoute: PlaygroundGooRoute,
   PlaygroundMarbleRoute: PlaygroundMarbleRoute,
   PlaygroundMotionRoute: PlaygroundMotionRoute,

@@ -2,7 +2,7 @@
 // showing that place's drops; from laptops it stays docked beside the rail and lists every drop
 // that matches the filter until a place is chosen. It is not a dialog: the map stays usable
 // behind it. Its heading takes focus when it opens, and Close hands focus back to the page.
-// Each card opens the drop with only the filter in the address.
+// Each card opens the drop with only the filter and the statement in the address.
 import { X } from "@phosphor-icons/react";
 import type { RefObject } from "react";
 import { InboxCard } from "@/components/drops/inbox-card";
@@ -12,7 +12,7 @@ type MapPanelProps = {
     title: string;
     count: number;
     items: InboxItem[];
-    search: { filter?: "unread" | "photos" };
+    search: { filter?: "unread" | "photos"; statement?: string };
     closable: boolean;
     onClose: () => void;
     headingRef: RefObject<HTMLHeadingElement | null>;

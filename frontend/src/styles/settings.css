@@ -1,7 +1,9 @@
 /* The settings page: paper cards of rows split by a hair line, each row an icon and a label
    on the left and its control on the right. Appearance is a segmented choice on the ground
-   colour with the chosen option raised on paper, and Sign out is a full-width row button.
-   Capped and start-aligned on wide screens. Every size comes from tokens.css. */
+   colour with the chosen option raised on paper; Sign out, Delete account (in the danger
+   colour) and the About Drop links are full-width rows. Delete account opens a paper panel
+   with an accent edge that asks for the link name. Capped and start-aligned on wide screens.
+   Every size comes from tokens.css. */
 
 .auth-page .settings-section {
     max-width: none;
@@ -113,4 +115,57 @@
 .auth-page .settings-row-btn:disabled {
     opacity: 0.6;
     cursor: default;
+}
+
+.auth-page .settings-row-btn {
+    text-decoration: none;
+}
+
+/* delete account: the row in the danger colour */
+.auth-page .settings-row-danger {
+    color: var(--settings-danger-ink);
+}
+
+/* link rows: the caret sits at the far end */
+.auth-page .settings-caret {
+    margin-inline-start: auto;
+    color: var(--ink-2);
+}
+
+/* the delete account panel */
+.auth-page .settings-confirm {
+    width: 100%;
+    max-width: var(--settings-max);
+    gap: var(--settings-confirm-gap);
+    padding: var(--settings-confirm-padding);
+    border: 1px solid var(--accent-soft);
+    border-radius: var(--settings-rows-radius);
+    background: var(--paper);
+}
+
+.auth-page .settings-confirm-title {
+    font: 700 var(--type-subheading) / 1.1 var(--family-display);
+    letter-spacing: -0.01em;
+}
+
+.auth-page .settings-confirm-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--settings-confirm-list-gap);
+    padding-inline-start: var(--settings-confirm-list-indent);
+    color: var(--ink-2);
+    list-style: disc;
+}
+
+.auth-page .settings-confirm-actions {
+    flex-wrap: nowrap;
+}
+
+.auth-page .settings-confirm-actions > .container {
+    flex: 1 1 0;
+}
+
+.auth-page .settings-btn-danger {
+    background: var(--accent-fill);
+    color: var(--on-accent);
 }

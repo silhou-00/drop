@@ -1,7 +1,7 @@
 // Sending a drop to one profile. The draft is checked with the shared rules first, and a
 // failure there becomes a 422 error with no request. A lock held in a ref means a double click
-// can never fire two requests. A 409 LINK_PAUSED marks the link as paused. The server checks
-// every rule again.
+// can never fire two requests. A 409 LINK_CLOSED marks the link as closed: no statement is
+// running. The server checks every rule again.
 import { useRef, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { sendDrop } from "@/lib/drops/api";
@@ -15,7 +15,7 @@ export function useSendDrop(username: string) {
     const lockRef = useRef(false);
     const [status, setStatus] = useState<SendDropStatus>("idle");
     const [error, setError] = useState<ApiError | null>(null);
-    const [paused, setPaused] = useState(false);
+    const [closed, setClosed] = useState(false);
 
     // runs one send; a second call while one is in flight does nothing
     async function send(draft: DropDraft) {
@@ -42,8 +42,8 @@ export function useSendDrop(username: string) {
         } catch (caught) {
             const failure = caught instanceof ApiError ? caught : new ApiError(0, "UNKNOWN_ERROR", FALLBACK_MESSAGE);
 
-            if (failure.status === 409 && failure.code === "LINK_PAUSED") {
-                setPaused(true);
+            if (failure.status === 409 && failure.code === "LINK_CLOSED") {
+                setClosed(true);
             }
 
             setStatus("error");
@@ -58,5 +58,5 @@ export function useSendDrop(username: string) {
         setError(null);
     }
 
-    return { status, error, paused, send, reset };
+    return { status, error, closed, send, reset };
 }

@@ -1,18 +1,21 @@
 // Business rules for drops. Sending runs a fixed order: find the recipient, check the
-// send limits, validate the input, clean the photo, round the location, look up a place
-// name, store the photo, then insert. Only the rounded cell centre ever reaches the
-// repository. A photo saved before a failed insert is removed again. The inbox side
-// resolves the signed-in user's profile first, then lists (with the filter and the
-// unread count), reads, marks, deletes and serves the photo of drops that belong to it.
-// A drop that is missing, malformed or someone else's gets the same 404.
+// link has a running statement, check the send limits, validate the input, clean the
+// photo, round the location, look up a place name, store the photo, then insert. The
+// insert checks the statement again inside its transaction. Only the rounded cell centre
+// ever reaches the repository. A photo saved before a failed insert is removed again.
+// The inbox side resolves the signed-in user's profile first, then lists (with the
+// filter, the statement scope, the counts and the statements the page needs), reads,
+// marks, deletes and serves the photo of drops that belong to it. A drop that is
+// missing, malformed or someone else's gets the same 404.
 import { usernameSchema, type Profile } from "../profiles/model.js";
 import { AppError } from "../shared/errors.js";
 import { snapToGrid, type SnappedPoint } from "../shared/geo.js";
 import type { FileStore } from "../shared/storage/model.js";
+import { toStatement, type Statement, type StatementView } from "../statements/model.js";
 import type { KeyMaker } from "./keys.js";
 import type { SendLimiter } from "./limits.js";
 import {
-    LINK_PAUSED_MESSAGE,
+    LINK_CLOSED_MESSAGE,
     dropIdSchema,
     encodeCursor,
     sendDropSchema,
@@ -24,7 +27,9 @@ import type { DropRepository, InsertDropResult } from "./repository.js";
 
 type Dependencies = {
     findOwnProfile: (userId: string) => Promise<Pick<Profile, "id"> | null>;
-    findRecipient: (username: string) => Promise<Pick<Profile, "id" | "acceptingDrops"> | null>;
+    findRecipient: (username: string) => Promise<Pick<Profile, "id"> | null>;
+    findRunningStatementId: (profileId: string) => Promise<string | null>;
+    findStatementSummaries: (profileId: string, ids: string[]) => Promise<StatementView[]>;
     drops: DropRepository;
     limiter: SendLimiter;
     keys: KeyMaker;
@@ -45,19 +50,23 @@ export type InboxPage = {
     items: InboxItem[];
     next_cursor: string | null;
     unread_count: number;
+    statements: Statement[];
+    earlier_count: number;
 };
 
 function notFound() {
     return new AppError(404, "NOT_FOUND", "Not found");
 }
 
-function paused() {
-    return new AppError(409, "LINK_PAUSED", LINK_PAUSED_MESSAGE);
+function closed() {
+    return new AppError(409, "LINK_CLOSED", LINK_CLOSED_MESSAGE);
 }
 
 export function createDropService({
     findOwnProfile,
     findRecipient,
+    findRunningStatementId,
+    findStatementSummaries,
     drops,
     limiter,
     keys,
@@ -75,8 +84,9 @@ export function createDropService({
             throw notFound();
         }
 
-        if (!recipient.acceptingDrops) {
-            throw paused();
+        // a closed link never uses up a send limit
+        if (!(await findRunningStatementId(recipient.id))) {
+            throw closed();
         }
 
         // rate limits
@@ -138,8 +148,8 @@ export function createDropService({
             throw notFound();
         }
 
-        if (result === "paused") {
-            throw paused();
+        if (result === "closed") {
+            throw closed();
         }
 
         return { delivered: true };
@@ -167,19 +177,36 @@ export function createDropService({
         return parsed.data;
     }
 
-    async function listInbox(userId: string, { limit, cursor, filter }: InboxQuery): Promise<InboxPage> {
+    async function listInbox(userId: string, { limit, cursor, filter, statement }: InboxQuery): Promise<InboxPage> {
         const profileId = await ownProfileId(userId);
-        const [rows, unreadCount] = await Promise.all([
-            drops.listForRecipient(profileId, limit, cursor, filter),
-            drops.countUnread(profileId),
+        const [rows, counts] = await Promise.all([
+            drops.listForRecipient(profileId, limit, cursor, filter, statement),
+            drops.countInbox(profileId),
         ]);
         const page = rows.slice(0, limit);
         const last = page[page.length - 1];
 
+        // the statements on this page, plus the scoped one so its header shows on an empty page
+        const ids = new Set<string>();
+
+        for (const row of page) {
+            if (row.statementId) {
+                ids.add(row.statementId);
+            }
+        }
+
+        if (statement && statement !== "earlier") {
+            ids.add(statement);
+        }
+
+        const summaries = await findStatementSummaries(profileId, [...ids]);
+
         return {
             items: page.map(toInboxItem),
             next_cursor: rows.length > limit && last ? encodeCursor({ createdAt: last.cursorAt, id: last.id }) : null,
-            unread_count: unreadCount,
+            unread_count: counts.unread,
+            statements: summaries.map(toStatement),
+            earlier_count: counts.earlier,
         };
     }
 

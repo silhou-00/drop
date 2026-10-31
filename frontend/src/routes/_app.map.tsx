@@ -1,19 +1,19 @@
 // The map page: every drop the owner has received, pinned at the place it was sent from. The
-// filter (?filter=unread or ?filter=photos) and the chosen place (?place=lat,lng) live in the
-// address, each checked here so anything else is dropped. The map fills the screen behind
-// glass chips and controls. Choosing a place opens its drops in a sheet on phones and tablets
-// and in the docked list from laptops, where the list otherwise shows every matching drop and
-// can be folded away. MapLibre loads only once drops have arrived; with no drops at all the page
-// shows an invitation to share the link instead. The chips filter what is already loaded.
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+// filter (?filter=unread or ?filter=photos), the statement (?statement= and its id, or
+// "earlier") and the chosen place (?place=lat,lng) live in the address, each checked here so
+// anything else is dropped. The map fills the screen behind glass chips, the statement picker
+// and controls. Choosing a place opens its drops in a sheet on phones and tablets and in the
+// docked list from laptops, where the list otherwise shows every matching drop and can be
+// folded away. MapLibre loads only once drops have arrived; with no drops at all the page
+// points to My link instead. The chips and the picker filter what is already loaded.
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CaretLeft, CaretRight, LinkSimple } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { FilterChips } from "@/components/drops/filter-chips";
 import { MapPanel } from "@/components/drops/map-panel";
+import { StatementPicker } from "@/components/statements/statement-picker";
 import { useMapDrops } from "@/hooks/drops/use-map-drops";
 import { useWide } from "@/hooks/layout/use-wide";
-import { useLinkShare } from "@/hooks/profiles/use-link-share";
-import { useOwnLink } from "@/hooks/profiles/use-own-link";
 import { filterDrops, groupByPlace } from "@/lib/drops/helper";
 import {
     MAP_AUTO_PAGES,
@@ -21,6 +21,7 @@ import {
     MAP_PAGE_SIZE,
     PLACE_KEY_PATTERN,
     isInboxFilter,
+    isStatementFilter,
     type InboxFilter,
 } from "@/lib/drops/model";
 import "@/styles/inbox.css";
@@ -44,11 +45,15 @@ const NO_MATCH: Record<Exclude<InboxFilter, "all">, string> = {
     photos: "No photos yet",
 };
 
-type MapSearch = { filter?: Exclude<InboxFilter, "all">; place?: string };
+const NO_STATEMENT_MATCH = "No drops from this statement";
+const EARLIER_TITLE = "Earlier drops";
+
+type MapSearch = { filter?: Exclude<InboxFilter, "all">; statement?: string; place?: string };
 
 export const Route = createFileRoute("/_app/map")({
     validateSearch: (search: Record<string, unknown>): MapSearch => ({
         filter: isInboxFilter(search.filter) && search.filter !== "all" ? search.filter : undefined,
+        statement: isStatementFilter(search.statement) ? search.statement : undefined,
         place: typeof search.place === "string" && PLACE_KEY_PATTERN.test(search.place) ? search.place : undefined,
     }),
     component: MapPage,
@@ -64,6 +69,7 @@ function measureInsets() {
     const nav = rectOf(".app-nav-bar");
     const list = rectOf("#map-list");
     const chips = rectOf(".map-chips");
+    const picker = rectOf(".statement-picker");
     const controls = rectOf(".map-ctl");
     let top = 0;
     let right = 0;
@@ -90,6 +96,10 @@ function measureInsets() {
         top = Math.max(top, chips.bottom);
     }
 
+    if (picker) {
+        top = Math.max(top, picker.bottom);
+    }
+
     if (controls) {
         right = Math.max(right, window.innerWidth - controls.left);
     }
@@ -99,17 +109,18 @@ function measureInsets() {
 
 function MapPage() {
     const navigate = useNavigate();
-    const { filter, place } = Route.useSearch();
+    const { filter, statement, place } = Route.useSearch();
     const data = useMapDrops();
     const wide = useWide();
-    const own = useOwnLink();
-    const share = useLinkShare(own.link);
     const [listOpen, setListOpen] = useState(true);
     const headingRef = useRef<HTMLHeadingElement>(null);
     const lastPinKeyRef = useRef<string | null>(null);
     const focusPendingRef = useRef(false);
     const active = filter ?? "all";
-    const groups = useMemo(() => groupByPlace(filterDrops(data.items, active)), [data.items, active]);
+    const groups = useMemo(
+        () => groupByPlace(filterDrops(data.items, active, statement)),
+        [data.items, active, statement],
+    );
     const selected = groups.find((group) => group.key === place) ?? null;
     const panelShown = wide ? listOpen : selected !== null;
     const hasDrops = data.items.length > 0;
@@ -118,6 +129,8 @@ function MapPage() {
         data.items.length >= MAP_AUTO_PAGES * MAP_PAGE_SIZE &&
         data.items.length < MAP_MAX_DROPS;
     const lateError = data.moreError || (hasDrops && data.status === "error" ? data.error : "");
+    const hasStatements = data.statements.length > 0 || data.earlierCount > 0;
+    const chosenStatement = data.statements.find((kept) => kept.id === statement) ?? null;
 
     // the chosen place goes in the address; its list heading takes focus
     function select(key: string | null) {
@@ -158,7 +171,7 @@ function MapPage() {
 
     // a new filter keeps the place only while it still has matching drops
     function handleFilter(next: InboxFilter) {
-        const kept = groupByPlace(filterDrops(data.items, next)).some((group) => group.key === place);
+        const kept = groupByPlace(filterDrops(data.items, next, statement)).some((group) => group.key === place);
 
         void navigate({
             to: ".",
@@ -167,6 +180,26 @@ function MapPage() {
                 filter: next === "all" ? undefined : next,
                 place: kept ? prev.place : undefined,
             }),
+            replace: true,
+        });
+    }
+
+    // a new statement keeps the place only while it still has matching drops
+    function handleStatement(next: string | undefined) {
+        const kept = groupByPlace(filterDrops(data.items, active, next)).some((group) => group.key === place);
+
+        void navigate({
+            to: ".",
+            search: (prev) => ({ ...prev, statement: next, place: kept ? prev.place : undefined }),
+            replace: true,
+        });
+    }
+
+    // every drop again: no filter and no statement
+    function handleShowAll() {
+        void navigate({
+            to: ".",
+            search: (prev) => ({ ...prev, filter: undefined, statement: undefined, place: undefined }),
             replace: true,
         });
     }
@@ -191,6 +224,12 @@ function MapPage() {
     });
 
     let panelTitle = LIST_TITLES[active];
+
+    if (statement === "earlier") {
+        panelTitle = EARLIER_TITLE;
+    } else if (chosenStatement) {
+        panelTitle = `“${chosenStatement.text}”`;
+    }
     let panelItems = groups.flatMap((group) => group.items);
 
     if (selected) {
@@ -212,6 +251,14 @@ function MapPage() {
                         </div>
                     </div>
                     {hasDrops ? <FilterChips className="map-chips" value={active} onChange={handleFilter} /> : null}
+                    {hasDrops && hasStatements ? (
+                        <StatementPicker
+                            statements={data.statements}
+                            earlierCount={data.earlierCount}
+                            value={statement}
+                            onChange={handleStatement}
+                        />
+                    ) : null}
                     {showOlder || lateError ? (
                         <div className="placement map-older">
                             {showOlder ? (
@@ -323,43 +370,23 @@ function MapPage() {
                             <div className="container">
                                 <p className="inbox-empty-copy">Drops show up at the place they were sent from.</p>
                             </div>
-                            {own.link ? (
-                                <div className="container">
-                                    <button
-                                        className="auth-btn auth-btn-ink inbox-btn-large"
-                                        type="button"
-                                        disabled={share.busy}
-                                        onClick={() => {
-                                            void share.share();
-                                        }}
-                                    >
-                                        <LinkSimple className="inbox-cta-icon" weight="bold" aria-hidden="true" />
-                                        Share my link
-                                    </button>
-                                </div>
-                            ) : null}
                             <div className="container">
-                                <p className="auth-status" role="status">
-                                    {share.message}
-                                </p>
+                                <Link className="auth-btn auth-btn-ink inbox-btn-large" to="/my-link">
+                                    <LinkSimple className="inbox-cta-icon" weight="bold" aria-hidden="true" />
+                                    Go to My link
+                                </Link>
                             </div>
                         </div>
                     </div>
-                ) : groups.length === 0 && filter ? (
-                    // nothing matches the filter
+                ) : groups.length === 0 && (filter || statement) ? (
+                    // nothing matches the filter or the statement
                     <div className="sub-section map-note">
                         <div className="placement map-note-card">
                             <div className="container">
-                                <p className="map-note-title">{NO_MATCH[filter]}</p>
+                                <p className="map-note-title">{filter ? NO_MATCH[filter] : NO_STATEMENT_MATCH}</p>
                             </div>
                             <div className="container">
-                                <button
-                                    className="auth-btn auth-btn-paper"
-                                    type="button"
-                                    onClick={() => {
-                                        handleFilter("all");
-                                    }}
-                                >
+                                <button className="auth-btn auth-btn-paper" type="button" onClick={handleShowAll}>
                                     Show all drops
                                 </button>
                             </div>
@@ -373,7 +400,7 @@ function MapPage() {
                     title={panelTitle}
                     count={panelItems.length}
                     items={panelItems}
-                    search={{ filter }}
+                    search={{ filter, statement }}
                     closable={selected !== null}
                     onClose={closeSelection}
                     headingRef={headingRef}

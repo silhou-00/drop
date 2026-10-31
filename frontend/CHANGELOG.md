@@ -2,6 +2,20 @@
 
 ## October 31, 2026
 
+**Legal and accounts:**
+
+- New Terms, Privacy and Safety pages in plain words, open to everyone and following the person's light or dark choice.
+- Settings has a Delete account row that explains what will be removed and asks the person to type their link name, plus an About Drop card linking to the three pages.
+- The landing footer now opens the three pages, and its answer about mean notes no longer promises a block or report button.
+- The contact address on the pages is set when the app is built, and a build without a valid one stops.
+
+**Statements:**
+
+- My link lets the owner start a statement that opens the link for two hours, with a live countdown and an "End now" button.
+- The public link page shows the statement and the time left, and switches to a closed message when the time runs out.
+- The inbox is grouped by statement, with a strip showing whether the link is open, and "Only this one" to narrow to a single statement. The map has a statement picker.
+- The story image made from My link carries the statement.
+
 **App shell:**
 
 - The Map page shows every drop as a pin on a map, with filters and a list of the drops at each place.

@@ -1,7 +1,9 @@
 // Profile rules and shapes for the web app. The username rule, the reserved names and every
 // error message are copied from backend/src/profiles/model.ts and must stay in step with that
 // file, so the same input fails the same way on both sides. The server still decides; these
-// checks only save a round trip. The types match what the profile endpoints answer.
+// checks only save a round trip. The types match what the profile endpoints answer: the public
+// profile carries the running statement (or null while the link is closed), the own one does not.
+import type { PublicStatement } from "@/lib/statements/model";
 
 export const RESERVED_USERNAMES: readonly string[] = [
     "api",
@@ -53,14 +55,18 @@ export const DISPLAY_NAME_MAX = 50;
 const USERNAME_PATTERN = /^[a-z0-9_.]+$/;
 const USERNAME_MIN = 3;
 
-export type PublicProfile = {
+type ProfileBase = {
     username: string;
     displayName: string;
     avatarUrl: string | null;
-    acceptingDrops: boolean;
 };
 
-export type OwnProfile = PublicProfile & {
+// the running statement, or null while the link is closed
+export type PublicProfile = ProfileBase & {
+    statement: PublicStatement | null;
+};
+
+export type OwnProfile = ProfileBase & {
     heatmapEnabled: boolean;
     notifyEmail: boolean;
     createdAt: string;
@@ -70,7 +76,6 @@ export type CreateProfileInput = { username: string; displayName: string };
 
 export type UpdateProfileInput = {
     displayName?: string;
-    acceptingDrops?: boolean;
     heatmapEnabled?: boolean;
     notifyEmail?: boolean;
 };

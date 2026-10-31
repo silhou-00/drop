@@ -1,6 +1,7 @@
 // Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
-// Inserts a drop with a rounded location, checks the stored point, the pause check, and
-// the 48-hour place-name window, and a drop with a photo key, then cleans up.
+// Inserts a drop with a rounded location, checks the stored point, that the drop is filed
+// under the running statement, the closed answer when no statement is running, has ended
+// or has run out, the 48-hour place-name window, and a drop with a photo key, then cleans up.
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -27,10 +28,11 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
         await closeDb();
     });
 
-    it("stores the cell centre, refuses a paused profile, and respects the cache window", async () => {
+    it("stores the cell centre, files the drop under the running statement, refuses a closed link, and respects the cache window", async () => {
         const { db } = await import("../shared/db/client.js");
         const { user } = await import("../auth/model.js");
-        const { profiles } = await import("../profiles/model.js");
+        const { createStatementRepository } = await import("../statements/repository.js");
+        const { statements } = await import("../statements/model.js");
         const { createProfileRepository } = await import("../profiles/repository.js");
         const { createPlaceRepository } = await import("../places/repository.js");
         const { placeNames } = await import("../places/model.js");
@@ -61,7 +63,14 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
             deviceKey: "b".repeat(64),
         };
 
-        // insert with a location
+        const statementRepo = createStatementRepository(db);
+
+        // no statement running: the link is closed
+        expect(await repo.insertDrop(row)).toBe("closed");
+
+        // insert with a location, under the running statement
+        const first = await statementRepo.start(recipientId, "Out tonight");
+
         expect(await repo.insertDrop(row)).toBe("inserted");
 
         const stored = await db
@@ -76,6 +85,13 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
         expect(Number(stored[0].lat)).toBeCloseTo(cell.lat, 6);
         expect(Number(stored[0].lng)).toBeCloseTo(cell.lng, 6);
 
+        const filed = await db
+            .select({ statementId: drops.statementId })
+            .from(drops)
+            .where(eq(drops.recipientId, recipientId));
+
+        expect(filed[0].statementId).toBe(first.id);
+
         // a drop sent with a photo stores its key and a clean WebP file
         const uploads = await mkdtemp(path.join(tmpdir(), "drop-db-uploads-"));
 
@@ -88,6 +104,8 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
             const service = createDropService({
                 findOwnProfile: createProfileRepository(db).findByUserId,
                 findRecipient: createProfileRepository(db).findByUsername,
+                findRunningStatementId: statementRepo.findRunningId,
+                findStatementSummaries: statementRepo.summariesFor,
                 drops: repo,
                 limiter: createSendLimiter(),
                 keys: createKeyMaker("s".repeat(40)),
@@ -101,7 +119,6 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
                 .withExif({ IFD3: { GPSLatitudeRef: "N" } })
                 .toBuffer();
 
-            await db.update(profiles).set({ acceptingDrops: true }).where(eq(profiles.id, recipientId));
             await db.delete(drops).where(eq(drops.recipientId, recipientId));
             await service.sendDrop({
                 username,
@@ -133,11 +150,33 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
             await db.delete(drops).where(eq(drops.recipientId, recipientId));
         }
 
-        // paused profile
-        await db.update(profiles).set({ acceptingDrops: false }).where(eq(profiles.id, recipientId));
+        // an ended statement closes the link
+        expect((await statementRepo.end(recipientId, first.id)).status).toBe("ended");
+        expect(await repo.insertDrop(row)).toBe("closed");
 
-        expect(await repo.insertDrop(row)).toBe("paused");
+        // a statement past its end time closes the link without any job
+        await db.insert(statements).values({
+            profileId: recipientId,
+            text: "Expired",
+            startedAt: sql`now() - interval '3 hours'`,
+            endsAt: sql`now() - interval '1 hour'`,
+        });
+
+        expect(await statementRepo.findRunning(recipientId)).toBeNull();
+        expect(await repo.insertDrop(row)).toBe("closed");
+
+        // a new statement opens it again, and a missing profile is reported
+        const second = await statementRepo.start(recipientId, "Back again");
+
+        expect(await repo.insertDrop(row)).toBe("inserted");
         expect(await repo.insertDrop({ ...row, recipientId: "00000000-0000-0000-0000-000000000000" })).toBe("missing");
+
+        const [latest] = await db
+            .select({ statementId: drops.statementId })
+            .from(drops)
+            .where(eq(drops.statementId, second.id));
+
+        expect(latest.statementId).toBe(second.id);
 
         // the database refuses a drop without a location
         await expect(

@@ -4,11 +4,17 @@
 // toggle or a delete on one screen shows at once on the others. The unread count is the
 // server's inbox-wide number, moved by one on each local change and never below zero. Other
 // keepers of drops (the map) hear each read change and delete through a change listener, and
-// may set the unread count from a page they loaded.
+// may set the unread count from a page they loaded. The list may be scoped to one statement
+// or to the drops from before statements; the statements behind the kept drops are kept by
+// id for the section headers, and a delete lowers its section's count.
 import type { InboxFilter, InboxItem } from "@/lib/drops/model";
+import type { Statement } from "@/lib/statements/model";
 
 export type InboxSnapshot = {
     filter: InboxFilter;
+    statement: string | undefined;
+    sections: Record<string, Statement>;
+    earlierCount: number;
     status: "loading" | "ready" | "error";
     items: InboxItem[];
     nextCursor: string | null;
@@ -25,6 +31,9 @@ const changeListeners = new Set<(change: DropChange) => void>();
 
 let snapshot: InboxSnapshot = {
     filter: "all",
+    statement: undefined,
+    sections: {},
+    earlierCount: 0,
     status: "loading",
     items: [],
     nextCursor: null,
@@ -102,10 +111,37 @@ export function applyReadChange(item: InboxItem, wasRead: boolean) {
     emitChange({ kind: "read", item });
 }
 
-// a deleted drop leaves the list, and an unread one lowers the count
+// a section count after one of its drops is deleted
+function lowerSection(current: InboxSnapshot, id: string) {
+    const removed = current.items.find((kept) => kept.id === id);
+
+    if (!removed) {
+        return current;
+    }
+
+    const section = removed.statement_id === null ? null : current.sections[removed.statement_id];
+
+    if (removed.statement_id === null) {
+        return { ...current, earlierCount: Math.max(0, current.earlierCount - 1) };
+    }
+
+    if (!section) {
+        return current;
+    }
+
+    return {
+        ...current,
+        sections: {
+            ...current.sections,
+            [section.id]: { ...section, drop_count: Math.max(0, section.drop_count - 1) },
+        },
+    };
+}
+
+// a deleted drop leaves the list and its section count, and an unread one lowers the count
 export function applyRemoval(id: string, wasUnread: boolean) {
     update((current) => ({
-        ...current,
+        ...lowerSection(current, id),
         items: current.items.filter((kept) => kept.id !== id),
         unreadCount: shiftCount(current.unreadCount, wasUnread ? -1 : 0),
     }));

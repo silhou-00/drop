@@ -5,6 +5,9 @@ import path from "node:path";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { createAccountRepository } from "./accounts/repository.js";
+import { createAccountRouter } from "./accounts/router.js";
+import { createAccountService } from "./accounts/service.js";
 import { auth } from "./auth/auth.js";
 import { createAuthRouter } from "./auth/router.js";
 import { config } from "./config/env.js";
@@ -28,6 +31,9 @@ import { createPlaceService } from "./places/service.js";
 import { createProfileRepository } from "./profiles/repository.js";
 import { createProfileRouter } from "./profiles/router.js";
 import { createProfileService } from "./profiles/service.js";
+import { createStatementRepository } from "./statements/repository.js";
+import { createStatementRouter } from "./statements/router.js";
+import { createStatementService } from "./statements/service.js";
 import { closeDb, db } from "./shared/db/client.js";
 import { errorHandler } from "./shared/errors.js";
 import { createLocalDiskStore } from "./shared/storage/local-disk.js";
@@ -37,8 +43,16 @@ const FRONTEND_DIST = path.relative(process.cwd(), path.resolve(import.meta.dirn
 const ORIGIN = new URL(config.BETTER_AUTH_URL).origin;
 const SECURE = new URL(config.BETTER_AUTH_URL).protocol === "https:";
 
+const store = createLocalDiskStore({ dir: config.UPLOADS_DIR });
 const profileRepository = createProfileRepository(db);
-const profileService = createProfileService(profileRepository);
+const statementRepository = createStatementRepository(db);
+const profileService = createProfileService(profileRepository, {
+    findRunningStatement: statementRepository.findRunning,
+});
+const statementService = createStatementService({
+    findOwnProfile: profileRepository.findByUserId,
+    statements: statementRepository,
+});
 const placeService = createPlaceService({
     repo: createPlaceRepository(db),
     client: createLocationIqClient({ apiKey: config.LOCATIONIQ_API_KEY }),
@@ -46,14 +60,21 @@ const placeService = createPlaceService({
 const dropService = createDropService({
     findOwnProfile: profileRepository.findByUserId,
     findRecipient: profileRepository.findByUsername,
+    findRunningStatementId: statementRepository.findRunningId,
+    findStatementSummaries: statementRepository.summariesFor,
     drops: createDropRepository(db),
     limiter: createSendLimiter(),
     keys: createKeyMaker(config.SENDER_KEY_SECRET),
     lookupPlaceName: placeService.lookupPlaceName,
-    store: createLocalDiskStore({ dir: config.UPLOADS_DIR }),
+    store,
     cleanPhoto,
     newPhotoKey,
 });
+
+const accountService = createAccountService({ accounts: createAccountRepository(db), store });
+
+// Better Auth's own sign-out clears the cookies; the headers are copied onto the reply
+const clearSession = async (headers: Headers) => (await auth.api.signOut({ headers, returnHeaders: true })).headers;
 
 const app = new Hono<AppEnv>();
 
@@ -73,6 +94,8 @@ app.route("/", createAuthRouter());
 app.route("/api/v1", createHealthRouter(createHealthService(db).checkDatabase));
 app.route("/api/v1", createProfileRouter(profileService));
 app.route("/api/v1", createDropRouter(dropService, { origin: ORIGIN }));
+app.route("/api/v1", createStatementRouter(statementService, { origin: ORIGIN }));
+app.route("/api/v1", createAccountRouter(accountService, { origin: ORIGIN, clearSession }));
 
 app.all("/api/*", (c) => {
     return c.json({ data: null, error: { code: "NOT_FOUND", message: "Not found" } }, 404);

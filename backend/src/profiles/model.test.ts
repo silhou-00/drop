@@ -94,7 +94,7 @@ describe("createProfileSchema", () => {
 
 describe("updateProfileSchema", () => {
     it("accepts one or more known fields", () => {
-        expect(updateProfileSchema.parse({ acceptingDrops: false })).toEqual({ acceptingDrops: false });
+        expect(updateProfileSchema.parse({ heatmapEnabled: false })).toEqual({ heatmapEnabled: false });
         expect(updateProfileSchema.parse({ displayName: " Mi ", notifyEmail: true })).toEqual({
             displayName: "Mi",
             notifyEmail: true,
@@ -104,5 +104,6 @@ describe("updateProfileSchema", () => {
     it("rejects an empty body and unknown fields", () => {
         expect(updateProfileSchema.safeParse({}).success).toBe(false);
         expect(updateProfileSchema.safeParse({ username: "maya" }).success).toBe(false);
+        expect(updateProfileSchema.safeParse({ acceptingDrops: false }).success).toBe(false);
     });
 });
