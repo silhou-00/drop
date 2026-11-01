@@ -2,6 +2,10 @@
 
 ## November 1, 2026
 
+**Landing:**
+
+- The landing no longer promises blocking or reports to moderators. Its safety facts now show quiet deleting and statements that open the link for two hours, and the questions explain when people can send notes.
+
 **Legal:**
 
 - The Privacy page now names Supabase and Singapore, says sender codes are cleared after 90 days, and says Drop keeps no backup copies.
