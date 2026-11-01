@@ -31,8 +31,8 @@ function credentialsWithCa(ca: string) {
     };
 }
 
-// a relative path is read from the backend folder, as in the app
-const ca = caPath ? readFileSync(path.resolve(import.meta.dirname, caPath), "utf8") : undefined;
+// Drizzle Kit runs from the backend folder, so a relative path resolves there, as in the app
+const ca = caPath ? readFileSync(path.resolve(caPath), "utf8") : undefined;
 
 export default defineConfig({
     dialect: "postgresql",
