@@ -1,4 +1,4 @@
-// Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
+// Integration test against a development database (never the live one), run only when RUN_DB_TESTS=1.
 // Creates profiles that collide on username and on user, proves both are rejected, and that
 // a held username is refused as taken, then cleans up.
 import { eq } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { afterAll, describe, expect, it } from "vitest";
 const run = process.env.RUN_DB_TESTS === "1";
 const DB_TIMEOUT_MS = 30_000;
 
-// round trips to Neon can exceed the 5 s default
+// round trips to the database can exceed the 5 s default
 describe.skipIf(!run)("createProfile against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const userIds = ["db-test-user-a", "db-test-user-b"];
     const username = `dbtest_${Date.now().toString(36)}`;

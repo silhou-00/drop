@@ -1,4 +1,4 @@
-// Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
+// Integration test against a development database (never the live one), run only when RUN_DB_TESTS=1.
 // Checks statements for real: the exact two-hour length, that a second start closes the
 // first, that two starts at once leave one open row, ending early and ending twice, a
 // statement past its end time closing at its true end time, and the drop counts, which
@@ -13,7 +13,7 @@ const OWNER = `db-stmt-owner-${SUFFIX}`;
 const OTHER = `db-stmt-other-${SUFFIX}`;
 const RACER = `db-stmt-racer-${SUFFIX}`;
 
-// round trips to Neon can exceed the 5 s default
+// round trips to the database can exceed the 5 s default
 describe.skipIf(!run)("statements against the database", { timeout: DB_TIMEOUT_MS }, () => {
     afterAll(async () => {
         const { db, closeDb } = await import("../shared/db/client.js");

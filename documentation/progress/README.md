@@ -17,3 +17,4 @@
 | 12b | [App shell](12b-app-shell.md)                                         | Done     | October 31, 2026 |
 | 13  | [Statements](13-statements.md)                                        | Done     | October 31, 2026 |
 | 13b | [Legal pages and account deletion](13b-legal-and-account-deletion.md) | Done     | October 31, 2026 |
+| 14  | [Supabase move](14-supabase-move.md)                                  | Done     | November 1, 2026 |

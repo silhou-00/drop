@@ -37,13 +37,22 @@ import { createStatementService } from "./statements/service.js";
 import { closeDb, db } from "./shared/db/client.js";
 import { errorHandler } from "./shared/errors.js";
 import { createLocalDiskStore } from "./shared/storage/local-disk.js";
+import { createSupabaseStore } from "./shared/storage/supabase.js";
 
 const FRONTEND_DIST = path.relative(process.cwd(), path.resolve(import.meta.dirname, "../../frontend/dist"));
 
 const ORIGIN = new URL(config.BETTER_AUTH_URL).origin;
 const SECURE = new URL(config.BETTER_AUTH_URL).protocol === "https:";
 
-const store = createLocalDiskStore({ dir: config.UPLOADS_DIR });
+// photos go to Supabase when it is configured, else to the local uploads folder
+const store =
+    config.SUPABASE_URL && config.SUPABASE_SECRET_KEY
+        ? createSupabaseStore({
+              url: config.SUPABASE_URL,
+              secretKey: config.SUPABASE_SECRET_KEY,
+              bucket: config.SUPABASE_PHOTO_BUCKET,
+          })
+        : createLocalDiskStore({ dir: config.UPLOADS_DIR });
 const profileRepository = createProfileRepository(db);
 const statementRepository = createStatementRepository(db);
 const profileService = createProfileService(profileRepository, {

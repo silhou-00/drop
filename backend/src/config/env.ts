@@ -13,30 +13,60 @@ const DEFAULT_UPLOADS_DIR = path.resolve(import.meta.dirname, "../../../uploads"
 // a relative DATABASE_CA_PATH is read from the backend folder
 const BACKEND_DIR = path.resolve(import.meta.dirname, "../..");
 
-const envSchema = z.object({
-    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-    PORT: z.coerce.number().int().min(1).max(65535).default(3000),
-    DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
-    DATABASE_CA_PATH: z
-        .string()
-        .optional()
-        .transform((value) => (value ? path.resolve(BACKEND_DIR, value) : undefined))
-        .refine((value) => value === undefined || existsSync(value), "Certificate file not found."),
-    BETTER_AUTH_SECRET: z.string().min(32),
-    BETTER_AUTH_URL: z.url(),
-    RESEND_API_KEY: z.string().startsWith("re_"),
-    EMAIL_FROM: z.string().min(1),
-    SENDER_KEY_SECRET: z.string().min(32),
-    LOCATIONIQ_API_KEY: z.string().regex(/^pk\./),
-    TILES_DIR: z
-        .string()
-        .optional()
-        .transform((value) => path.resolve(value || DEFAULT_TILES_DIR)),
-    UPLOADS_DIR: z
-        .string()
-        .optional()
-        .transform((value) => path.resolve(value || DEFAULT_UPLOADS_DIR)),
-});
+const envSchema = z
+    .object({
+        NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+        PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+        DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+        DATABASE_CA_PATH: z
+            .string()
+            .optional()
+            .transform((value) => (value ? path.resolve(BACKEND_DIR, value) : undefined))
+            .refine((value) => value === undefined || existsSync(value), "Certificate file not found."),
+        BETTER_AUTH_SECRET: z.string().min(32),
+        BETTER_AUTH_URL: z.url(),
+        RESEND_API_KEY: z.string().startsWith("re_"),
+        EMAIL_FROM: z.string().min(1),
+        SENDER_KEY_SECRET: z.string().min(32),
+        LOCATIONIQ_API_KEY: z.string().regex(/^pk\./),
+        TILES_DIR: z
+            .string()
+            .optional()
+            .transform((value) => path.resolve(value || DEFAULT_TILES_DIR)),
+        UPLOADS_DIR: z
+            .string()
+            .optional()
+            .transform((value) => path.resolve(value || DEFAULT_UPLOADS_DIR)),
+        SUPABASE_URL: z
+            .union([z.url(), z.literal("")])
+            .optional()
+            .transform((value) => value || undefined),
+        SUPABASE_SECRET_KEY: z
+            .union([z.string().regex(/^(sb_secret_|eyJ)/), z.literal("")])
+            .optional()
+            .transform((value) => value || undefined),
+        SUPABASE_PHOTO_BUCKET: z
+            .string()
+            .regex(/^[a-z0-9-]{3,63}$/)
+            .default("photos"),
+    })
+    .superRefine((value, ctx) => {
+        const hasUrl = Boolean(value.SUPABASE_URL);
+        const hasKey = Boolean(value.SUPABASE_SECRET_KEY);
+        const required = value.NODE_ENV === "production";
+
+        if ((required || hasKey) && !hasUrl) {
+            ctx.addIssue({ code: "custom", path: ["SUPABASE_URL"], message: "SUPABASE_URL is required." });
+        }
+
+        if ((required || hasUrl) && !hasKey) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["SUPABASE_SECRET_KEY"],
+                message: "SUPABASE_SECRET_KEY is required.",
+            });
+        }
+    });
 
 const parsed = envSchema.safeParse(process.env);
 

@@ -12,7 +12,7 @@ export const Route = createFileRoute("/privacy")({
     component: PrivacyPage,
 });
 
-const LAST_UPDATED = "October 31, 2026";
+const LAST_UPDATED = "November 1, 2026";
 const NPC_URL = "https://privacy.gov.ph";
 
 function PrivacyPage() {
@@ -67,7 +67,7 @@ function PrivacyPage() {
                         <li>
                             Two scrambled codes made from the sender&apos;s network address and device. They cannot be
                             turned back into an address, and we use them only to limit how many drops one person can
-                            send.
+                            send. We clear them after 90 days.
                         </li>
                     </ul>
                 </div>
@@ -98,7 +98,7 @@ function PrivacyPage() {
             <LegalSection id="helpers" title="Who helps us run Drop">
                 <div className="container">
                     <ul className="legal-list">
-                        <li>A database and file storage provider.</li>
+                        <li>Supabase, which holds the database and photos in Singapore.</li>
                         <li>A hosting and network provider.</li>
                         <li>Resend, which delivers the sign-in emails.</li>
                         <li>LocationIQ, which names places. It receives only the rounded point.</li>
@@ -116,7 +116,8 @@ function PrivacyPage() {
                         <li>Sign-in records: 7 days.</li>
                         <li>Place names: 48 hours.</li>
                         <li>A deleted link name: locked for 30 days, so nobody else can take it right away.</li>
-                        <li>Copies may stay in our database provider&apos;s backups for a short time after that.</li>
+                        <li>Scrambled sender codes on drops: 90 days.</li>
+                        <li>We keep no backup copies, so anything deleted is gone for good.</li>
                     </ul>
                 </div>
             </LegalSection>

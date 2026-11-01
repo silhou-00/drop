@@ -2,6 +2,10 @@
 
 ## November 1, 2026
 
+**Legal:**
+
+- The Privacy page now names Supabase and Singapore, says sender codes are cleared after 90 days, and says Drop keeps no backup copies.
+
 **Settings:**
 
 - Full-width setting rows show their focus ring inside the row, and the delete account buttons wrap on narrow screens instead of squeezing.

@@ -30,7 +30,7 @@ export const drops = pgTable(
         locationName: varchar("location_name", { length: 100 }),
         photoKey: text("photo_key"),
         statementId: uuid("statement_id").references(() => statements.id, { onDelete: "set null" }),
-        senderKey: char("sender_key", { length: 64 }).notNull(),
+        senderKey: char("sender_key", { length: 64 }),
         deviceKey: char("device_key", { length: 64 }),
         isRead: boolean("is_read").notNull().default(false),
         createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

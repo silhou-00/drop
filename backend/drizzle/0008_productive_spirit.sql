@@ -1,0 +1,1 @@
+ALTER TABLE "drops" ALTER COLUMN "sender_key" DROP NOT NULL;

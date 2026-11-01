@@ -1,4 +1,4 @@
-// Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
+// Integration test against a development database (never the live one), run only when RUN_DB_TESTS=1.
 // Seeds a user with a session, an auth account, a profile, statements and drops (one with
 // a photo file), then proves a wrong name deletes nothing, the right name removes every
 // row and the file, the name is held for 30 days, a concurrent send leaves no drop, and
@@ -13,7 +13,7 @@ import { afterAll, describe, expect, it } from "vitest";
 const run = process.env.RUN_DB_TESTS === "1";
 const DB_TIMEOUT_MS = 60_000;
 
-// round trips to Neon can exceed the 5 s default
+// round trips to the database can exceed the 5 s default
 describe.skipIf(!run)("deleting an account against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const stamp = Date.now().toString(36);
     const userIds = [`db-test-del-a-${stamp}`, `db-test-del-b-${stamp}`, `db-test-del-c-${stamp}`];

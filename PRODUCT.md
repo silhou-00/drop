@@ -56,7 +56,7 @@ place and a photo. The guess ("someone was at the library at 3pm... who?") is th
 - **Stack (fixed):** React 19 + Vite, Tailwind CSS v4 with CSS-variable tokens, shadcn/ui on Radix
   primitives, Phosphor icons (shadcn components switched from Lucide). Maps: MapLibre GL JS + `pmtiles` +
   `react-map-gl/maplibre`, Protomaps PMTiles (Philippines) on R2. Backend: one Node + Hono service on
-  Railway, Better Auth, Neon (Postgres + PostGIS) via Drizzle, Cloudflare R2 for photos.
+  Railway, Better Auth, Supabase (Postgres + PostGIS and photo storage) via Drizzle.
 - **Recipient features:** inbox, drop detail, mark read/unread, delete, block sender (and delete), report
   (harassment, threat, sexual, self-harm, other), notifications, pause link, delete account, opt-in public
   heatmap (500 m cells, last 30 days, at least 5 drops from 3 senders per cell).

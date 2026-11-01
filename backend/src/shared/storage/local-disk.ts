@@ -5,22 +5,19 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertValidKey } from "./key.js";
 import type { FileStore } from "./model.js";
 
 type Options = {
     dir: string;
 };
 
-const KEY_PATTERN = /^[a-z0-9-]{36}\.webp$/;
-
 export function createLocalDiskStore({ dir }: Options): FileStore {
     const root = path.resolve(dir);
 
     // key check and path containment
     function pathFor(key: string): string {
-        if (!KEY_PATTERN.test(key)) {
-            throw new Error("Invalid file key");
-        }
+        assertValidKey(key);
 
         const target = path.resolve(root, key);
 

@@ -2,6 +2,18 @@
 
 ## November 1, 2026
 
+**Storage:**
+
+- Photos can now be kept in a private Supabase bucket, and the server requires it in production.
+
+**Database:**
+
+- The database moves to Supabase: every table is locked down with row level security, the public Supabase roles lose their rights, and sender codes on drops are cleared after 90 days by a daily job.
+
+**Documentation:**
+
+- The PRD, technical reference and progress notes describe the Supabase move and the choice to launch without an automatic text or photo check.
+
 **Database:**
 
 - The server and the migration command can now require an encrypted database connection checked against a given certificate, ready for the move to Supabase.

@@ -1,4 +1,4 @@
-// Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
+// Integration test against a development database (never the live one), run only when RUN_DB_TESTS=1.
 // Checks the inbox queries for real: newest-first order, keyset paging across equal
 // timestamps, the unread and photo filters, the statement and earlier scopes (alone and
 // with unread), the unread and earlier counts, the statements a page carries, mark read,
@@ -15,7 +15,7 @@ const OWNER = `db-inbox-owner-${SUFFIX}`;
 const STRANGER = `db-inbox-stranger-${SUFFIX}`;
 const PHOTO_KEY = "123e4567-e89b-42d3-a456-426614174000.webp";
 
-// round trips to Neon can exceed the 5 s default
+// round trips to the database can exceed the 5 s default
 describe.skipIf(!run)("inbox against the database", { timeout: DB_TIMEOUT_MS }, () => {
     afterAll(async () => {
         const { db, closeDb } = await import("../shared/db/client.js");

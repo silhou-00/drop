@@ -1,4 +1,4 @@
-// Integration test against the Neon development database, run only when RUN_DB_TESTS=1.
+// Integration test against a development database (never the live one), run only when RUN_DB_TESTS=1.
 // Inserts a drop with a rounded location, checks the stored point, that the drop is filed
 // under the running statement, the closed answer when no statement is running, has ended
 // or has run out, the 48-hour place-name window, and a drop with a photo key, then cleans up.
@@ -12,7 +12,7 @@ import { afterAll, describe, expect, it } from "vitest";
 const run = process.env.RUN_DB_TESTS === "1";
 const DB_TIMEOUT_MS = 30_000;
 
-// round trips to Neon can exceed the 5 s default
+// round trips to the database can exceed the 5 s default
 describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEOUT_MS }, () => {
     const userId = "db-test-drop-user";
     const username = `dbdrop_${Date.now().toString(36)}`;
