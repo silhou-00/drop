@@ -1,5 +1,6 @@
 // Central config. Reads the environment once at boot, validates it, and exports a
 // frozen config object. A missing or malformed variable stops the server at startup.
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 
@@ -9,10 +10,18 @@ const DEFAULT_TILES_DIR = path.resolve(import.meta.dirname, "../../../tiles");
 // the uploads folder at the drop-app root unless UPLOADS_DIR says otherwise
 const DEFAULT_UPLOADS_DIR = path.resolve(import.meta.dirname, "../../../uploads");
 
+// a relative DATABASE_CA_PATH is read from the backend folder
+const BACKEND_DIR = path.resolve(import.meta.dirname, "../..");
+
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+    DATABASE_CA_PATH: z
+        .string()
+        .optional()
+        .transform((value) => (value ? path.resolve(BACKEND_DIR, value) : undefined))
+        .refine((value) => value === undefined || existsSync(value), "Certificate file not found."),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     RESEND_API_KEY: z.string().startsWith("re_"),

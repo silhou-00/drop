@@ -2,6 +2,10 @@
 
 ## November 1, 2026
 
+**Database:**
+
+- The server and the migration command can now require an encrypted database connection checked against a given certificate, ready for the move to Supabase.
+
 **Documentation:**
 
 - The technical reference, design reference and progress notes now describe the restyled statement controls, the legal page buttons, and the bottom bar on tablets.
