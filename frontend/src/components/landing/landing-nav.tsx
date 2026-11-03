@@ -1,43 +1,37 @@
-// The landing's floating nav: the logo, "Sign in" and "Claim your link". The glass pill darkens
-// while it floats over the dark ground and turns solid paper once the bath has lifted off for
-// the claim. In-page links scroll through the landing's smooth scroller, so they glide like the
-// wheel; "Sign in" opens the sign-in page.
-import { useRef, type MouseEvent } from "react";
+// The landing's nav: a slim glass bar with the logo, "Sign in" and "Claim your link", over a
+// soft blur strip so copy scrolling under it stays out of the way. On hover the button labels
+// roll their letters, in CSS only, and not at all under reduced motion; screen readers get the
+// plain label. The logo scrolls back to the top through the landing's smooth scroller.
+import { type CSSProperties, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { groundAt } from "@/lib/landing/timeline";
-import { useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
+import { useLanding } from "@/hooks/landing/use-scroll-timeline";
+
+// a label whose letters roll up on hover; each letter carries its own copy underneath
+function RollText({ text }: { text: string }) {
+    return (
+        <>
+            <span className="roll" aria-hidden="true">
+                {Array.from(text).map((letter, k) => {
+                    const shown = letter === " " ? " " : letter;
+
+                    return (
+                        <span className="rl" data-l={shown} style={{ "--i": k } as CSSProperties} key={k}>
+                            {shown}
+                        </span>
+                    );
+                })}
+            </span>
+            <span className="sr-only">{text}</span>
+        </>
+    );
+}
 
 export function LandingNav() {
     const { openClaim, scrollToTarget } = useLanding();
-    const navRef = useRef<HTMLElement>(null);
-    const lastRef = useRef({ dark: false, solid: false });
 
-    useTimelineFrame(({ L, S, changed }) => {
-        const nav = navRef.current;
-        const last = lastRef.current;
-
-        if (!nav || !changed) {
-            return;
-        }
-
-        const dark = groundAt(S.y, L) === "dark";
-        const solid = S.p7 > 0.55;
-
-        if (dark !== last.dark) {
-            last.dark = dark;
-            nav.classList.toggle("over-dark", dark);
-        }
-
-        if (solid !== last.solid) {
-            last.solid = solid;
-            nav.classList.toggle("solid", solid);
-        }
-    });
-
-    // in-page links
-    function handleAnchor(event: MouseEvent<HTMLAnchorElement>) {
+    function handleHome(event: MouseEvent<HTMLAnchorElement>) {
         event.preventDefault();
-        scrollToTarget(event.currentTarget.hash);
+        scrollToTarget("#top");
     }
 
     function handleClaim(event: MouseEvent<HTMLAnchorElement>) {
@@ -46,25 +40,25 @@ export function LandingNav() {
     }
 
     return (
-        <header className="section nav-band" ref={navRef}>
-            {/* pill */}
+        <header className="section nav-band">
+            {/* glass bar */}
             <div className="sub-section">
                 {/* logo and actions */}
                 <div className="placement">
                     <div className="container">
-                        <a className="home" href="#top" aria-label="Drop home" onClick={handleAnchor}>
+                        <a className="home" href="#top" aria-label="Drop home" onClick={handleHome}>
                             <img className="logo" src="/brand/logo.svg" alt="Drop" />
                         </a>
                     </div>
                     <div className="row">
                         <div className="container">
                             <Link className="btn btn-ghost" to="/sign-in">
-                                Sign in
+                                <RollText text="Sign in" />
                             </Link>
                         </div>
                         <div className="container nav-claim">
                             <a className="btn btn-ink" href="#claim-band" onClick={handleClaim}>
-                                Claim your link
+                                <RollText text="Claim your link" />
                             </a>
                         </div>
                     </div>

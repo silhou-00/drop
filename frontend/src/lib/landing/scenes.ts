@@ -1,37 +1,22 @@
 // Landing scenes: the pure maths behind what the bath and its objects do at each scroll point.
 // The plate is a window onto the one marble shader: its rectangle, corner radius and camera (a
-// point on the red pin held at a screen anchor, with a zoom) are keyframed per beat. The street
-// map repeats the shader's own sums, so pins, rings and the peeled note sit exactly on the lines
-// the shader draws. Also the note's path through beats 03 to 05, the kept-quiet ring, the
-// sliding exits and the paper lift. Nothing here touches the page; components apply the numbers.
+// point on the red pin held at a screen anchor, with a zoom) are keyframed for the hero (full
+// screen) and the three plate beats: the map window, the dive and the lens. The street map
+// repeats the shader's own sums, so pins, rings and the peeled note sit exactly on the lines
+// the shader draws. Also the note's path through the dive and the lens, the sender scramble and
+// the small helpers the sections ease with. Nothing here touches the page; components apply
+// the numbers.
 import { COMB_ANGLE, type MarbleFrame } from "@/lib/marble/renderer";
 import { EASINGS } from "@/lib/motion/easings";
 import type { LandingTokens } from "./tokens";
 
 export type Point = [number, number];
 export type Rect = { x: number; y: number; w: number; h: number; r: number };
-export type Plate = Rect & { sx: number; sy: number; z: number; comb: number; calm: number };
-export type Keyframes = {
-    hero: Plate;
-    claim: Plate;
-    b2: Plate;
-    b3: Plate;
-    b4: Plate;
-    b5a: Plate;
-    b5b: Plate;
-    b6a: Plate;
-    f: Plate[];
-};
+export type Plate = Rect & { sx: number; sy: number; z: number; comb: number };
+export type Keyframes = { hero: Plate; b2: Plate; b3: Plate; b4: Plate };
 export type RedPin = { q: Point; row: number; cross: number; i: number; k: number };
 export type ScenePin = { q: Point; d: number; s: Point };
-export type SceneShape = {
-    K: Keyframes;
-    card3: Point;
-    story: Point;
-    storyK: number;
-    kqRect: Rect;
-    kqTop: number | null;
-};
+export type SceneShape = { K: Keyframes; card3: Point };
 
 const CROSS_OFFSETS = [0, 8, 14, 24, 31];
 const MEET_STEPS = 5;
@@ -41,6 +26,7 @@ const PIN_TOP = 40;
 const RING_LINES = 7;
 
 export const easeIO = EASINGS.easeInOutCubic;
+export const easeCubic = EASINGS.easeOutCubic;
 
 export function clamp(x: number, a = 0, b = 1) {
     return Math.min(b, Math.max(a, x));
@@ -138,50 +124,30 @@ export function findRedPin(map: StreetMap, frame: MarbleFrame): RedPin {
     return { q: found.q, row: found.row, cross: found.cross, i: found.i, k: found.k };
 }
 
-function plateOf(rect: Rect, anchor: Point, z: number, comb: number, calm: number): Plate {
-    return { ...rect, sx: anchor[0], sy: anchor[1], z, comb, calm };
+function plateOf(rect: Rect, anchor: Point, z: number, comb: number): Plate {
+    return { ...rect, sx: anchor[0], sy: anchor[1], z, comb };
 }
 
 function middle(rect: Rect): Point {
     return [rect.x + rect.w / 2, rect.y + rect.h / 2];
 }
 
-// 06: one camera per fact inside the same window; the 150 m ring is drawn to the map's scale
-function factFrames(rect: Rect, frame: MarbleFrame, tokens: LandingTokens) {
-    const ringZ = (tokens.kq.ringFit * Math.min(rect.w, rect.h)) / (frame.gap * RING_LINES * frame.cover);
-    const f = tokens.kq.zoom.map((z, k) => {
-        const [ax, ay] = tokens.kq.anchor[k];
-        const zoom = k === 1 ? Math.min(z, ringZ) : z;
-
-        return plateOf(rect, [rect.x + ax * rect.w, rect.y + ay * rect.h], zoom, 0, 1);
-    });
-
-    return { f, b6a: { ...f[0], y: rect.y + rect.h / 2, h: 0 } };
-}
-
-// plate keyframes per beat: rectangle, camera anchor, zoom, comb and calm
+// plate keyframes per beat: rectangle, camera anchor, zoom and comb
 export function keyframes(
     width: number,
     height: number,
     wide: boolean,
     baseS: Point,
-    gutter: number,
-    frame: MarbleFrame,
     tokens: LandingTokens,
 ): SceneShape {
     const W = width;
     const H = height;
     const Z = wide ? tokens.zoom.wide : tokens.zoom.tall;
     const full: Rect = { x: 0, y: 0, w: W, h: H, r: 0 };
-    const hero = plateOf(full, baseS, 1, 0, 0);
-    const claim = plateOf(full, baseS, 1, 0, 0.6);
+    const hero = plateOf(full, baseS, 1, 0);
     let b2: Plate;
     let b3: Plate;
     let b4: Plate;
-    let b5a: Plate;
-    let b5b: Plate;
-    let kqRect: Rect;
-    let kqTop: number | null = null;
     let card3: Point;
 
     if (wide) {
@@ -189,51 +155,27 @@ export function keyframes(
         const w2: Rect = { x: 0.03 * W, y: m, w: 0.55 * W, h: 0.8 * H, r: 28 };
         const R = Math.min(0.36 * H, 0.2 * W);
         const lc: Point = [0.7 * W, 0.5 * H];
-        const ph = 0.76 * H;
-        const pw = (ph * 9) / 16;
-        const py = 0.12 * H;
 
-        b2 = plateOf(w2, middle(w2), Z.b2, 1, 0);
-        b3 = plateOf(full, [0.66 * W, 0.47 * H], Z.b3, 1, 0);
-        b4 = plateOf({ x: lc[0] - R, y: lc[1] - R, w: 2 * R, h: 2 * R, r: R }, lc, Z.b4, tokens.comb.b4, 0);
-        b5a = plateOf({ x: 0.72 * W - pw / 2, y: py, w: pw, h: ph, r: 30 }, [0.72 * W, py + ph / 2], Z.b5, 0, 0);
-        b5b = plateOf({ x: 0.24 * W - pw / 2, y: py, w: pw, h: ph, r: 30 }, [0.24 * W, py + ph / 2], Z.b5, 0, 0);
-        kqRect = { x: 0.5 * W, y: 0.13 * H, w: 0.5 * W - gutter, h: 0.77 * H, r: 28 };
+        b2 = plateOf(w2, middle(w2), Z.b2, 1);
+        b3 = plateOf(full, [0.66 * W, 0.47 * H], Z.b3, 1);
+        b4 = plateOf({ x: lc[0] - R, y: lc[1] - R, w: 2 * R, h: 2 * R, r: R }, lc, Z.b4, tokens.comb.b4);
         card3 = [0.8 * W, 0.38 * H];
     } else {
         const m = Math.max(86, 0.1 * H);
         const w2: Rect = { x: 0.035 * W, y: m, w: 0.93 * W, h: 0.6 * H - m, r: 24 };
         const R = Math.min(0.43 * W, 0.27 * H);
         const lc: Point = [0.5 * W, 0.36 * H];
-        const ph = Math.min(0.5 * H, 1.6 * W);
-        const pw = (ph * 9) / 16;
-        const bh = Math.max(tokens.kq.band[0] * H, Math.min(tokens.kq.band[1] * H, H - m - 470));
 
-        b2 = plateOf(w2, middle(w2), Z.b2, 1, 0);
-        b3 = plateOf(full, [0.5 * W, 0.55 * H], Z.b3, 1, 0);
-        b4 = plateOf({ x: lc[0] - R, y: lc[1] - R, w: 2 * R, h: 2 * R, r: R }, lc, Z.b4, tokens.comb.b4, 0);
-        b5a = plateOf({ x: 0.56 * W - pw / 2, y: m, w: pw, h: ph, r: 26 }, [0.56 * W, m + ph / 2], Z.b5, 0, 0);
-        b5b = plateOf({ x: 0.44 * W - pw / 2, y: m, w: pw, h: ph, r: 26 }, [0.44 * W, m + ph / 2], Z.b5, 0, 0);
-        kqRect = { x: 0.035 * W, y: m, w: 0.93 * W, h: bh, r: 22 };
-        kqTop = Math.round(m + bh + 18);
+        b2 = plateOf(w2, middle(w2), Z.b2, 1);
+        b3 = plateOf(full, [0.5 * W, 0.55 * H], Z.b3, 1);
+        b4 = plateOf({ x: lc[0] - R, y: lc[1] - R, w: 2 * R, h: 2 * R, r: R }, lc, Z.b4, tokens.comb.b4);
         card3 = [0.5 * W, 0.4 * H];
     }
 
-    const facts = factFrames(kqRect, frame, tokens);
-    // the story card is designed at 400 px tall at least and scaled into the phone
-    const base = Math.max(b5a.h, 400);
-
-    return {
-        K: { hero, claim, b2, b3, b4, b5a, b5b, b6a: facts.b6a, f: facts.f },
-        card3,
-        story: [(b5a.w * base) / b5a.h, base],
-        storyK: b5a.h / base,
-        kqRect,
-        kqTop,
-    };
+    return { K: { hero, b2, b3, b4 }, card3 };
 }
 
-// pins for beat 02: street corners near the red pin that land inside the 02 window
+// pins for the map window: street corners near the red pin that land inside the window
 export function pickPins(map: StreetMap, red: RedPin, b2: Plate, cover: number): ScenePin[] {
     const sc = cover * b2.z;
     const found: ScenePin[] = [];
@@ -302,28 +244,12 @@ export function mixPlates(a: Plate, b: Plate, t: number): Plate {
         sy: lerp(a.sy, b.sy, t),
         z: Math.exp(lerp(Math.log(a.z), Math.log(b.z), t)),
         comb: lerp(a.comb, b.comb, t),
-        calm: lerp(a.calm, b.calm, t),
     };
 }
 
-// the note's centre through 03 (lift), 04 (lens) and 05 (into the phone)
-export function noteCentre(
-    plate: Plate,
-    K: Keyframes,
-    card3: Point,
-    progress: { u: number; lens: number; frame: number },
-): Point {
+// the note's centre through the dive (lift) and the lens
+export function noteCentre(plate: Plate, K: Keyframes, card3: Point, progress: { u: number; lens: number }): Point {
     const lc: Point = [K.b4.sx, K.b4.sy];
-
-    if (progress.frame >= 1) {
-        return [plate.x + plate.w / 2, plate.y + plate.h / 2];
-    }
-
-    if (progress.frame > 0) {
-        const e = easeIO(progress.frame);
-
-        return [lerp(lc[0], K.b5a.x + K.b5a.w / 2, e), lerp(lc[1], K.b5a.y + K.b5a.h / 2, e)];
-    }
 
     if (progress.lens > 0) {
         const e = easeIO(progress.lens);
@@ -334,17 +260,6 @@ export function noteCentre(
     const eu = easeIO(progress.u);
 
     return [lerp(plate.sx, card3[0], eu), lerp(plate.sy, card3[1], eu)];
-}
-
-// the paper lift of the bath at the claim, as a CSS transform
-export function liftTransform(p: number, tokens: LandingTokens) {
-    if (p <= 0) {
-        return "";
-    }
-
-    const e = p * p * (3 - 2 * p);
-
-    return `rotate3d(-1,1,0,${(e * tokens.lift.deg).toFixed(2)}deg) translate3d(${(-e * tokens.lift.x).toFixed(2)}vw,${(-e * tokens.lift.y).toFixed(2)}vh,0)`;
 }
 
 const GLYPHS = "abcdefghijklmnopqrstuvwxyz#%&?*+";

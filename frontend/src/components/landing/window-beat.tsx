@@ -13,7 +13,7 @@ const PIN_SLOTS = [0, 1, 2, 3, 4, 5, 6];
 export function WindowBeat() {
     const sectionRef = useRef<HTMLElement>(null);
 
-    useExitGroup(2, () => Array.from(sectionRef.current?.querySelectorAll<HTMLElement>("h2 .ln") ?? []));
+    useExitGroup(0, () => Array.from(sectionRef.current?.querySelectorAll<HTMLElement>("h2 .ln") ?? []));
 
     return (
         <section className="section beat" id="b2" aria-labelledby="h2-b2" ref={sectionRef}>
@@ -22,7 +22,7 @@ export function WindowBeat() {
                 {/* copy card */}
                 <div className="placement copy-r card-c">
                     <div className="container">
-                        <span className="num">02 / 07</span>
+                        <span className="num">02 / 08</span>
                     </div>
                     <div className="container">
                         <h2 id="h2-b2" data-rise="">

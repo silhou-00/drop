@@ -1,13 +1,17 @@
-// The landing's footer on plain paper: the logo and a one-line summary, four common questions
-// that open in place, the page links and the fine print. Privacy, Terms and Safety open their
-// own pages, which start at the top, and "Sign in" opens the sign-in page. Drop has no block
-// or report button, so the answer about mean notes points to deleting and the Safety page.
+// The landing's footer, on the calmed marble: the logo and a one-line summary with the page
+// links and the fine print right under it, then five common questions as a message thread whose
+// reply bubbles arrive as they scroll into view. Privacy, Terms and Safety open their own pages, and "Sign in"
+// opens the sign-in page. Under reduced motion every reply is shown at once.
 import { Link } from "@tanstack/react-router";
 
 const QUESTIONS = [
     {
         q: "Do my friends need an account to send?",
         a: "No. They open your link, write, share their location, and drop it.",
+    },
+    {
+        q: "When can people send me notes?",
+        a: "Only while you have a statement up. Start one from My link and your link opens for two hours, or until you end it.",
     },
     {
         q: "Can I find out who sent a note?",
@@ -19,7 +23,7 @@ const QUESTIONS = [
     },
     {
         q: "What if a note is mean?",
-        a: "Delete it. Drop has no block or report button yet, so read the Safety page for what you can do.",
+        a: "Delete it, or end your statement to close your link. Drop has no block or report button, so read the Safety page for what you can do.",
     },
 ];
 const LINKS = [
@@ -31,33 +35,18 @@ const LINKS = [
 export function SiteFooter() {
     return (
         <footer className="section footer">
-            {/* questions and links */}
+            {/* summary, questions and links */}
             <div className="sub-section">
-                {/* summary and questions */}
-                <div className="placement foot-grid">
-                    <div className="foot-brand">
-                        <div className="container">
-                            <img className="logo foot-logo" src="/brand/logo.svg" alt="Drop" />
-                        </div>
-                        <div className="container">
-                            <p className="legal foot-sum">
-                                Anonymous notes from real places. Accessible by All. Places rounded to about 150 m.
-                            </p>
-                        </div>
+                {/* logo, summary, links and fine print */}
+                <div className="placement foot-brand" data-calm="">
+                    <div className="container">
+                        <img className="logo foot-logo" src="/brand/logo.svg" alt="Drop" />
                     </div>
-                    <div className="container faq">
-                        <h3>Questions</h3>
-                        {QUESTIONS.map((item) => (
-                            <details key={item.q}>
-                                <summary>{item.q}</summary>
-                                <p>{item.a}</p>
-                            </details>
-                        ))}
+                    <div className="container">
+                        <p className="legal foot-sum">
+                            Anonymous notes from real places. Accessible by All. Places rounded to about 150 m.
+                        </p>
                     </div>
-                </div>
-
-                {/* links and fine print */}
-                <div className="placement">
                     <div className="container links">
                         {LINKS.map((link) => (
                             <Link key={link.label} to={link.to}>
@@ -69,6 +58,23 @@ export function SiteFooter() {
                     <div className="container">
                         <p className="legal">Sample notes and coordinates are examples.</p>
                     </div>
+                </div>
+
+                {/* questions as a thread */}
+                <div className="placement thread" data-calm="">
+                    <div className="container">
+                        <h3>Questions</h3>
+                    </div>
+                    {QUESTIONS.map((item) => (
+                        <div className="exchange" key={item.q}>
+                            <div className="container bubble ask">
+                                <p>{item.q}</p>
+                            </div>
+                            <div className="container bubble reply" data-fade="">
+                                <p>{item.a}</p>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </footer>

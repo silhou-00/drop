@@ -1,22 +1,26 @@
-// The landing page (concept A, "The Bath"). One marble bath sits under seven beats: the hero
-// drop, the map window, the note that lifts off it, the lens, the phone track, the safety index
-// and the claim. One frame loop drives everything: it advances Lenis for smooth wheel
-// scrolling, reads the scroll position and hands the state to every beat, the bath, the nav
-// and the scrollbar. Under reduced motion there is no Lenis and no live shader;
-// the still bath and the final states show instead. The page is always shown in light mode.
+// The landing page. One marble bath sits behind the whole page, from the hero to the bottom of
+// the footer, and keeps one calm pattern all the way down: the hero's flowing contour lines,
+// drifting slowly, thinned behind the copy in view. The three beats after the hero are the
+// exception: the bath becomes a map window, dives in and closes to a lens, with its pins, ring
+// and the travelling note in a scene layer above it. One frame loop drives everything: it
+// advances Lenis for smooth wheel scrolling, reads the scroll position and hands the state to
+// every section, the bath, the scene and the scrollbar. Under reduced motion there is no Lenis
+// and no live shader; the still bath and every section's final state show instead. The page is
+// always shown in light mode.
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { BathPlate } from "@/components/landing/bath-plate";
 import { Claim } from "@/components/landing/claim";
 import { ClaimIris, type ClaimRequest } from "@/components/landing/claim-iris";
 import { DiveBeat, NoteScene } from "@/components/landing/dive-beat";
-import { Hero, HeroScene } from "@/components/landing/hero";
-import { KeptQuiet, KeptQuietScene } from "@/components/landing/kept-quiet";
+import { Hero } from "@/components/landing/hero";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LensBeat } from "@/components/landing/lens-beat";
-import { PhoneTrack } from "@/components/landing/phone-track";
+import { MarbleBath } from "@/components/landing/marble-bath";
+import { Redaction } from "@/components/landing/redaction";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { StatementLine } from "@/components/landing/statement-line";
 import { WindowBeat, WindowScene } from "@/components/landing/window-beat";
+import { YourAnswer } from "@/components/landing/your-answer";
 import { ScrollHairline, type HairlineSource } from "@/components/layout/scroll-hairline";
 import { useLenis } from "@/hooks/landing/use-lenis";
 import { LandingContext, useScrollTimeline, type LandingContextValue } from "@/hooks/landing/use-scroll-timeline";
@@ -74,7 +78,7 @@ function LandingPage() {
         };
     }, []);
 
-    // the scene layer shows once the first frame has placed it
+    // the page shows once the first frame has placed it
     useEffect(() => {
         const stop = subscribe(() => {
             rootRef.current?.classList.add("ready");
@@ -84,8 +88,9 @@ function LandingPage() {
         return stop;
     }, [subscribe]);
 
+    // one claim step at a time, so a double click opens it once
     const openClaim = useCallback((opener: HTMLElement, name = "") => {
-        setClaim({ opener, name });
+        setClaim((current) => current ?? { opener, name });
     }, []);
 
     // in-page links glide through Lenis when there is one
@@ -133,16 +138,13 @@ function LandingPage() {
     return (
         <LandingContext.Provider value={context}>
             <div className={rootClass} ref={rootRef}>
-                <BathPlate />
+                <MarbleBath />
 
-                {/* scene: objects that ride the bath; the copy says the same */}
+                {/* scene: pins, ring and the travelling note over the bath */}
                 <section className="section scene" aria-hidden="true">
-                    {/* scene objects */}
                     <div className="sub-section">
-                        <HeroScene />
                         <WindowScene />
                         <NoteScene />
-                        <KeptQuietScene />
                     </div>
                 </section>
 
@@ -153,8 +155,9 @@ function LandingPage() {
                     <WindowBeat />
                     <DiveBeat />
                     <LensBeat />
-                    <PhoneTrack />
-                    <KeptQuiet />
+                    <StatementLine />
+                    <YourAnswer />
+                    <Redaction />
                     <Claim />
                     <SiteFooter />
                 </main>

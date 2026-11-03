@@ -1,10 +1,13 @@
 // The landing's one frame loop. Each animation frame it advances Lenis (when there is one),
 // reads the scroll position, turns it into the timeline state and hands that to every
-// subscribed component, which writes its own styles. The bath plate also draws the shader from
-// here, so the page never runs a second loop. The layout is measured again when the window
-// changes size for real (in-app browser toolbars that only nudge the height are ignored), when
-// the fonts arrive and when the tokens change. The loop stops while the tab is hidden.
-// Headings and copy rise when they scroll into view, through one IntersectionObserver.
+// subscribed component, which writes its own transforms, opacities and classes. The marble
+// bath also draws the shader from here, so the page never runs a second loop. The plate beats'
+// copy slides off through exit groups while its frame leaves. The page is read
+// only when it is laid out again: when the window changes size for real (in-app browser
+// toolbars that only nudge the height are ignored), when the fonts arrive and when the tokens
+// change. That read finds the sections and the copy blocks the marble stays calm under. The
+// loop stops while the tab is hidden. Copy and replies rise when they scroll into view, through
+// one IntersectionObserver.
 import { createContext, useContext, useEffect, useRef, useState, type RefObject } from "react";
 import type Lenis from "lenis";
 import type { LandingTokens } from "@/lib/landing/tokens";
@@ -14,6 +17,8 @@ import {
     exitOffset,
     exitSpans,
     readScroll,
+    SECTION_IDS,
+    type CalmEntry,
     type LandingLayout,
     type LandingMeasure,
     type ScrollState,
@@ -41,7 +46,6 @@ type TimelineOptions = {
     tokens: LandingTokens;
 };
 
-const BEAT_IDS = ["b2", "b3", "b4", "b5", "b6"];
 const TOOLBAR_SLACK = 120;
 
 export const LandingContext = createContext<LandingContextValue | null>(null);
@@ -105,17 +109,40 @@ export function useExitGroup(group: number, collect: () => HTMLElement[]) {
     });
 }
 
-function measure(root: HTMLElement): LandingMeasure {
-    const beats = BEAT_IDS.map((id) => root.querySelector<HTMLElement>(`#${id}`));
-    const gutter = parseFloat(getComputedStyle(root).getPropertyValue("--landing-gutter"));
+// sections and calm blocks, read once per layout; nothing pins under reduced motion
+function measure(root: HTMLElement, reduced: boolean): LandingMeasure {
+    const H = window.innerHeight;
+    const sy = window.scrollY;
+    const pins = new Map<Element, [number, number]>();
+
+    const sections = SECTION_IDS.map((id) => {
+        const section = root.querySelector<HTMLElement>(`#${id}`);
+
+        if (!section) {
+            return { top: 0, h: H };
+        }
+
+        const top = section.getBoundingClientRect().top + sy;
+        const h = section.offsetHeight;
+
+        pins.set(section, reduced ? [0, 0] : [top, top + Math.max(1, h - H)]);
+
+        return { top, h };
+    });
+
+    const calm = Array.from(root.querySelectorAll<HTMLElement>("[data-calm]")).map((el): CalmEntry => {
+        const r = el.getBoundingClientRect();
+        const section = el.closest("[data-pin]");
+        const [a, b] = (section && pins.get(section)) || [0, 0];
+
+        return { x: r.left, w: r.width, h: r.height, off: r.top - clamp(sy, a, b) + sy, a, b };
+    });
 
     return {
         width: window.innerWidth,
-        height: window.innerHeight,
-        gutter: Number.isFinite(gutter) ? gutter : 18,
-        tops: beats.map((beat) => (beat ? beat.getBoundingClientRect().top + window.scrollY : 0)),
-        b6Height: beats[4]?.offsetHeight ?? 0,
-        scrollHeight: document.documentElement.scrollHeight,
+        height: H,
+        sections,
+        calm,
     };
 }
 
@@ -125,7 +152,6 @@ function applyCssTokens(root: HTMLElement, tokens: LandingTokens) {
     root.style.setProperty("--rise-stagger", `${tokens.rise.stagger}ms`);
     root.style.setProperty("--pop-dur", `${tokens.rise.pop}ms`);
     root.style.setProperty("--drop-fall", `${tokens.load.fall}ms`);
-    root.style.setProperty("--kq-tick", `${tokens.kq.tick}ms`);
 }
 
 // headings rise when they enter, and again on the way back
@@ -194,7 +220,7 @@ export function useScrollTimeline({ rootRef, lenis, reduced, tokens }: TimelineO
         }
 
         const listeners = listenersRef.current;
-        let layout = buildLayout(measure(root), tokensRef.current);
+        let layout = buildLayout(measure(root, reduced), tokensRef.current);
         let state: ScrollState | null = null;
         let relaid = true;
         let lastY = -1;
@@ -203,7 +229,7 @@ export function useScrollTimeline({ rootRef, lenis, reduced, tokens }: TimelineO
         let lastH = window.innerHeight;
 
         function relayout() {
-            layout = buildLayout(measure(root as HTMLElement), tokensRef.current);
+            layout = buildLayout(measure(root as HTMLElement, reduced), tokensRef.current);
             relaid = true;
         }
 

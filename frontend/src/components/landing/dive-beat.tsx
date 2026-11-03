@@ -1,11 +1,11 @@
 // Beat 03, "Someone finds it". The camera dives into the red pin on the full-bleed street map;
 // a dashed line cuts a note out of the bath, which peels up like paper, turns white and shows
-// the message. The same note then rides through beat 04 (inside the lens, its sender
-// scrambling and never resolving) and beat 05 (it flips into a story card inside a phone).
-// That travelling note, its hole, the cut line, the phone bezel and the "Guess who?" bubble
-// live in the scene layer, so they are exported separately as NoteScene.
+// the message. The same note then rides into beat 04, inside the lens, its sender scrambling
+// and never resolving, and fades as the lens opens back to the full bath. That travelling
+// note, its hole, the cut line and the "Guess who?" bubble live in the scene layer, so they
+// are exported separately as NoteScene.
 import { useEffect, useRef, type CSSProperties } from "react";
-import { easeIO, lerp, noteCentre, scrambleText, smoothstep, randomGlyphs } from "@/lib/landing/scenes";
+import { noteCentre, scrambleText, smoothstep, randomGlyphs } from "@/lib/landing/scenes";
 import { useExitGroup, useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
 
 const WHO = "someone";
@@ -16,7 +16,7 @@ const AGO = "48 min ago";
 export function DiveBeat() {
     const sectionRef = useRef<HTMLElement>(null);
 
-    useExitGroup(3, () => {
+    useExitGroup(1, () => {
         const section = sectionRef.current;
 
         if (!section) {
@@ -38,7 +38,7 @@ export function DiveBeat() {
                 {/* heading on the bath, phones and tablets */}
                 <div className="placement top-l">
                     <div className="container veil">
-                        <span className="num">03 / 07</span>
+                        <span className="num">03 / 08</span>
                     </div>
                     <div className="container veil">
                         <h2 data-rise="">
@@ -59,7 +59,7 @@ export function DiveBeat() {
                 {/* heading and copy, bottom */}
                 <div className="placement bot-r veil">
                     <div className="container h-wide">
-                        <span className="num">03 / 07</span>
+                        <span className="num">03 / 08</span>
                     </div>
                     <div className="container h-wide">
                         <h2 id="h2-b3" className="mega" data-rise="">
@@ -96,7 +96,6 @@ export function NoteScene() {
     const holeRef = useRef<HTMLDivElement>(null);
     const cutRef = useRef<SVGSVGElement>(null);
     const cutRectRef = useRef<SVGRectElement>(null);
-    const phoneRef = useRef<HTMLDivElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const frontRef = useRef<HTMLDivElement>(null);
     const printRef = useRef<HTMLDivElement>(null);
@@ -167,7 +166,6 @@ export function NoteScene() {
         const hole = holeRef.current;
         const cut = cutRef.current;
         const cutRect = cutRectRef.current;
-        const phone = phoneRef.current;
         const card = cardRef.current;
         const front = frontRef.current;
         const print = printRef.current;
@@ -175,7 +173,7 @@ export function NoteScene() {
         const note = noteRef.current;
         const guess = guessRef.current;
 
-        if (!hole || !cut || !cutRect || !phone || !card || !front || !print || !paper || !note || !guess) {
+        if (!hole || !cut || !cutRect || !card || !front || !print || !paper || !note || !guess) {
             return;
         }
 
@@ -183,7 +181,6 @@ export function NoteScene() {
 
         // sizes that change only on layout; the print is the combed bath under the pin
         if (relaid) {
-            const [sw, sh] = L.story;
             const sc = L.frame.cover * L.K.b3.z;
 
             hole.style.width = `${nw}px`;
@@ -193,9 +190,9 @@ export function NoteScene() {
             cut.setAttribute("viewBox", `0 0 ${nw} ${nh}`);
             cutRect.setAttribute("width", String(nw - 2));
             cutRect.setAttribute("height", String(nh - 2));
-            card.style.width = `${sw}px`;
-            card.style.height = `${sh}px`;
-            front.style.cssText = `width:${nw}px;height:${nh}px;left:${(sw - nw) / 2}px;top:${(sh - nh) / 2}px`;
+            card.style.width = `${nw}px`;
+            card.style.height = `${nh}px`;
+            front.style.cssText = `width:${nw}px;height:${nh}px;left:0;top:0`;
             print.style.backgroundImage = `url(/landing/still-${L.frame.key}-comb.webp)`;
             print.style.backgroundSize = `${L.frame.w * sc}px ${L.frame.h * sc}px`;
             print.style.backgroundPosition = `${nw / 2 - L.red.q[0] * sc}px ${nh / 2 - L.red.q[1] * sc}px`;
@@ -206,11 +203,10 @@ export function NoteScene() {
         }
 
         const p = S.plate;
-        const t6 = L.top[4];
         const cutDone = smoothstep(tokens.card.cut[0], tokens.card.cut[1], S.h3);
         const u = smoothstep(tokens.card.lift[0], tokens.card.lift[1], S.h3);
         const hs = p.z / L.K.b3.z;
-        const show = S.h3 > 0.005 && S.y < t6;
+        const show = S.h3 > 0.005 && S.frame < 1;
 
         // 03 cut line and the hole left in the bath
         cut.style.opacity = String(S.h3 > 0.005 && u < 0.35 && S.lens === 0 ? 1 - smoothstep(0.15, 0.35, u) : 0);
@@ -221,36 +217,19 @@ export function NoteScene() {
         card.style.visibility = show ? "visible" : "hidden";
 
         if (show) {
-            const c = noteCentre(p, L.K, L.card3, { u, lens: S.lens, frame: S.frame });
-            const flip = easeIO(smoothstep(0.1, 0.75, S.frame));
-            const sc = lerp(1 - tokens.card.shrink * u, L.storyK, smoothstep(0.45, 0.9, S.frame));
-            const [sw, sh] = L.story;
+            const c = noteCentre(p, L.K, L.card3, { u, lens: S.lens });
+            const sc = 1 - tokens.card.shrink * u;
             const lift = Math.sin(Math.PI * u) * (1 - S.lens);
 
-            card.style.transform = `translate3d(${(c[0] - sw / 2).toFixed(1)}px,${(c[1] - sh / 2).toFixed(1)}px,0) rotateY(${(flip * 180).toFixed(2)}deg) scale(${sc.toFixed(4)})`;
+            card.style.opacity = (1 - S.frame).toFixed(3);
+            card.style.transform = `translate3d(${(c[0] - nw / 2).toFixed(1)}px,${(c[1] - nh / 2).toFixed(1)}px,0) scale(${sc.toFixed(4)})`;
             front.style.transform = `rotate3d(1,-1,0,${(-tokens.card.peelDeg * lift).toFixed(2)}deg)`;
             front.style.boxShadow = `0 ${6 + 34 * lift}px ${14 + 52 * lift}px rgba(10,10,10,${((0.1 + 0.16 * lift) * smoothstep(0.02, 0.2, u)).toFixed(3)})`;
             print.style.opacity = String(1 - 0.82 * smoothstep(0.3, 0.9, u));
             paper.style.opacity = String(smoothstep(0.3, 0.9, u) * 0.94);
             note.style.opacity = String(smoothstep(0.55, 1, u));
-            card.classList.toggle("ans-on", S.frame >= 1 && S.g > 0.3);
-            card.classList.toggle("new-1", S.frame >= 1 && S.g > 0.55);
-            card.classList.toggle("new-2", S.frame >= 1 && S.g > 0.7);
-            card.classList.toggle("new-3", S.frame >= 1 && S.g > 0.85);
             // 04 guess bubble, top right of the note
             guess.style.transform = `translate3d(${(c[0] + nw * 0.36).toFixed(1)}px,${(c[1] - nh * 0.62).toFixed(1)}px,0)`;
-        }
-
-        // 05 the phone bezel follows the plate once it is a screen
-        const fo = show ? smoothstep(0.55, 0.95, S.frame) : 0;
-
-        phone.style.opacity = fo.toFixed(3);
-
-        if (fo > 0) {
-            phone.style.width = `${p.w + 16}px`;
-            phone.style.height = `${p.h + 16}px`;
-            phone.style.borderRadius = `${p.r + 8}px`;
-            phone.style.transform = `translate3d(${(p.x - 8).toFixed(1)}px,${(p.y - 8).toFixed(1)}px,0)`;
         }
 
         // 04 the sender scrambles and never resolves; the bubble asks
@@ -278,7 +257,6 @@ export function NoteScene() {
             <svg className="container obj cut" ref={cutRef} aria-hidden="true">
                 <rect x="1" y="1" rx="13" pathLength="1" ref={cutRectRef} />
             </svg>
-            <div className="container obj phone-frame" ref={phoneRef} />
             <div className="container obj card" ref={cardRef}>
                 <div className="face front" ref={frontRef}>
                     <div className="print" ref={printRef} />
@@ -301,25 +279,6 @@ export function NoteScene() {
                             <span ref={agoRef}>{AGO}</span>
                         </div>
                     </div>
-                </div>
-                <div className="face back">
-                    <img className="s-logo" src="/brand/logo.svg" alt="" />
-                    <div className="s-card">
-                        <p className="s-q">
-                            the one who leaves sticky notes in the third floor carrels. it was me. it was always me
-                        </p>
-                        <div className="s-place">
-                            <span className="n-pin" />
-                            {PLACE}
-                        </div>
-                    </div>
-                    <p className="s-ans">ok who else sits in the carrels</p>
-                    <div className="s-new">
-                        <span>New note, Gate 2</span>
-                        <span>New note, the jeep line</span>
-                        <span>New note, Main Library</span>
-                    </div>
-                    <span className="s-link">drop.link/maya</span>
                 </div>
             </div>
             <div className="container obj guess" ref={guessRef}>

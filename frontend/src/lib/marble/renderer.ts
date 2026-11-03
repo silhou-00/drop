@@ -4,8 +4,9 @@
 // from the marble tokens, the zone intensity and the colour mode. Progress spreads the red
 // ink from the drop point (1 is settled, red across the whole bath).
 // The landing adds its scene on top: a camera (a frame point held at a screen anchor, with a
-// zoom), a clip window that limits shading to the plate, the combed street map, the calm
-// veil and the ink drop's ripple. Left at their defaults, the bath looks as it does without.
+// zoom), a clip window that limits shading to the plate, the combed street map, the ink drop's
+// ripple, its red share and up to two calm boxes where lines thin and fade so copy above them
+// stays readable. Left at their defaults, the bath looks as it does without.
 // The renderer pauses while the canvas is off screen or the tab is hidden, caps the pixel
 // ratio, and gives up when there is no WebGL, the shader fails, the context is lost or the
 // first frames are slow; onFail then tells the caller to show the still instead. In external
@@ -17,17 +18,19 @@ export type MarbleSettings = { zone: MarbleZone; mode: MarbleMode; driftPeriod: 
 export type MarbleUniforms = Partial<MarbleSettings> & { tokens?: MarbleTokens };
 export type MarbleOptions = MarbleSettings & { onFail: (reason: MarbleFailure) => void; external?: boolean };
 export type MarblePoint = [number, number];
+export type MarbleBox = [number, number, number, number];
 export type MarbleCamera = { point: MarblePoint; anchor: MarblePoint; zoom: number };
 export type MarbleClip = { x: number; y: number; w: number; h: number };
 export type MarbleScene = {
     comb: number;
-    calm: number;
     impactTime: number;
     impactPoint: MarblePoint | null;
     ripple: [number, number];
     streets: [number, number, number];
     redStreet: [number, number];
     accent: number | null;
+    calmBoxes: MarbleBox[];
+    calmFeather: number;
 };
 
 export type MarbleHandle = {
@@ -101,14 +104,16 @@ precision highp float;
 precision mediump float;
 #endif
 uniform vec2 uRes; uniform vec3 uMap; uniform vec2 uRef; uniform vec4 uLine;
-uniform float uTime, uPeriod, uDrift, uInk, uInkR, uPoolR, uAng, uAccent, uComb, uCalm, uImpactT;
-uniform vec2 uImpact, uRip, uRedSt; uniform vec3 uDrop0, uDrop1, uSt;
+uniform float uTime, uPeriod, uDrift, uInk, uInkR, uPoolR, uAng, uAccent, uComb, uImpactT, uFeather;
+uniform vec2 uImpact, uRip, uRedSt; uniform vec3 uDrop0, uDrop1, uSt; uniform vec4 uBox0, uBox1;
 uniform vec3 uGround, uGrey, uPale, uIce, uRed, uRing, uStreet;
 float h1(float n){ return fract(sin(n*127.1)*43758.5453); }
 float hj(float n){ return fract(n*0.6180339887+0.137); }
 float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
   float n=i.x+i.y*57.; return mix(mix(h1(n),h1(n+1.),f.x),mix(h1(n+57.),h1(n+58.),f.x),f.y); }
 float line(float d, float w, float aa){ return 1.-smoothstep(w*.5-aa*.5, w*.5+aa, d); }
+float box(vec4 b, vec2 d){ if(b.z<=0.) return 0.; vec2 e=abs(d-b.xy-b.zw*.5)-b.zw*.5;
+  return 1.-smoothstep(0., uFeather, length(max(e,0.))+min(max(e.x,e.y),0.)); }
 vec2 push(vec2 q, vec3 dr, inout float pr, inout float pi){
   if(dr.z<=.5) return q;
   vec2 d=q-dr.xy; float r=length(d); float R=dr.z;
@@ -119,6 +124,8 @@ void main(){
   vec2 dp = vec2(gl_FragCoord.x, uRes.y-gl_FragCoord.y);
   vec2 p = uMap.xy + dp*uMap.z;
   float aa = uMap.z;
+  // calm boxes: lines thin and fade to the ground under copy, red drops out
+  float cm = max(box(uBox0, dp), box(uBox1, dp));
   float gap=uLine.x, lw=uLine.y, amp=uLine.z, pitch=uLine.w;
   float open = 1.-uComb;
   // ripple from the ink drop: a travelling ring that pushes the veins outward
@@ -142,7 +149,7 @@ void main(){
   float mainRow = 1.-step(.5, mod(idx,6.));
   float ave = 1.-step(.5, mod(idx,24.));
   float lwm = lw*(1.+mainRow*uComb*(.8+ave*.7));
-  float la = line(dist, lwm, aa);
+  float la = line(dist, lwm*(1.-.45*cm), aa)*(1.-.7*cm);
   float hv = h1(idx*1.37+.5);
   vec3 lc = hv<.55 ? uGrey : (hv<.86 ? uPale : uIce);
   lc = mix(lc, uStreet, mainRow*uComb);
@@ -165,19 +172,18 @@ void main(){
   float fr = uInk*uInkR*(.62+.62*n);
   float inR = uInk>.999 ? 1. : 1.-smoothstep(fr-8., fr+2., r0);
   float wet = exp(-pow((r0-fr)/9.,2.))*step(.001,uInk)*(1.-step(.999,uInk));
-  float isRed = step(h1(idx*3.7+1.), uAccent)*inR*(1.-uCalm)*(1.-uComb);
+  float isRed = step(h1(idx*3.7+1.), uAccent)*inR*(1.-cm)*(1.-uComb);
   float redSt = line(abs(y-uRedSt.x), lwm, aa)*uComb;
   float redX = line(abs(bx-uRedSt.y), lw*1.8, aa)*uComb;
   vec3 c1 = mix(lc, uRed, isRed);
   c1 = mix(c1, uRing*.85, wet*isRed);
-  float calm = 1.-.55*uCalm;
   float inPool = step(.5, pi+gi);
-  vec3 col = mix(uGround, c1, la*(1.-inPool)*calm);
-  col = mix(col, uStreet, ka*calm*(1.-inPool));
-  col = mix(col, uRed, max(redSt, redX)*calm*(1.-inPool));
+  vec3 col = mix(uGround, c1, la*(1.-inPool));
+  col = mix(col, uStreet, ka*(1.-inPool));
+  col = mix(col, uRed, max(redSt, redX)*(1.-inPool));
   // pool rings: hairlines inside each clean pool
-  if(pi>.5){ float rr=min(abs(pr-pi*.64),abs(pr-pi*.86)); col = mix(col, uRing, line(rr, lw*1.2, aa)*calm*(1.-uCalm*.6)); }
-  if(gi>.5){ float rr=abs(gr-gi*.8); col = mix(col, uPale, line(rr, lw, aa)); }
+  if(pi>.5){ float rr=min(abs(pr-pi*.64),abs(pr-pi*.86)); col = mix(col, uRing, line(rr, lw*1.2, aa)*(1.-cm)); }
+  if(gi>.5){ float rr=abs(gr-gi*.8); col = mix(col, uPale, line(rr, lw, aa)*(1.-cm)); }
   gl_FragColor = vec4(col,1.);
 }`;
 
@@ -195,8 +201,10 @@ const UNIFORMS = [
     "uAng",
     "uAccent",
     "uComb",
-    "uCalm",
     "uImpactT",
+    "uFeather",
+    "uBox0",
+    "uBox1",
     "uImpact",
     "uRip",
     "uRedSt",
@@ -216,13 +224,14 @@ type UniformName = (typeof UNIFORMS)[number];
 
 const DEFAULT_SCENE: MarbleScene = {
     comb: 0,
-    calm: 0,
     impactTime: -1,
     impactPoint: null,
     ripple: [0, 0],
     streets: [0, 0, 0],
     redStreet: [0, 0],
     accent: null,
+    calmBoxes: [],
+    calmFeather: 0,
 };
 
 // colour maths, same as the design sheet's marble generator
@@ -334,6 +343,16 @@ export function referenceFrame(width: number, height: number, tokens: MarbleToke
         cover,
         crop: [(frame.w - width / cover) / 2, (frame.h - height / cover) / 2],
     };
+}
+
+const NO_BOX: MarbleBox = [0, 0, 0, 0];
+
+function scaleBox(b: MarbleBox | undefined, ratio: number): MarbleBox {
+    if (!b) {
+        return NO_BOX;
+    }
+
+    return [b[0] * ratio, b[1] * ratio, b[2] * ratio, b[3] * ratio];
 }
 
 function smoothstep(a: number, b: number, x: number) {
@@ -507,6 +526,15 @@ export function createMarble(
         );
     }
 
+    // calm boxes in device pixels; an empty slot has no width
+    function placeBoxes(ratio: number) {
+        const [b0, b1] = scene.calmBoxes;
+
+        gl.uniform4f(locations.uBox0, ...scaleBox(b0, ratio));
+        gl.uniform4f(locations.uBox1, ...scaleBox(b1, ratio));
+        gl.uniform1f(locations.uFeather, Math.max(1, scene.calmFeather * ratio));
+    }
+
     // every uniform for one frame
     function draw(seconds: number) {
         if (cssWidth === 0 || cssHeight === 0) {
@@ -517,10 +545,12 @@ export function createMarble(
         const colours = pigments(current, settings.zone, settings.mode);
         const zoneAccent = settings.zone === "hero" ? current.accentShareHero : current.accentShare;
         const impact = scene.impactPoint ?? frame.aim;
+        const ratio = canvas.width / cssWidth;
         const u = locations;
         const g = gl;
 
-        placeView(frame, canvas.width / cssWidth, cssHeight);
+        placeBoxes(ratio);
+        placeView(frame, ratio, cssHeight);
         g.uniform2f(u.uRes, canvas.width, canvas.height);
         g.uniform2f(u.uRef, frame.w, frame.h);
         g.uniform4f(u.uLine, frame.gap, frame.lineWidth, frame.amp, frame.pitch);
@@ -533,7 +563,6 @@ export function createMarble(
         g.uniform1f(u.uAng, COMB_ANGLE);
         g.uniform1f(u.uAccent, scene.accent ?? zoneAccent);
         g.uniform1f(u.uComb, scene.comb);
-        g.uniform1f(u.uCalm, scene.calm);
         g.uniform1f(u.uImpactT, scene.impactTime);
         g.uniform2f(u.uImpact, impact[0], impact[1]);
         g.uniform2f(u.uRip, ...scene.ripple);

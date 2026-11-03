@@ -13,7 +13,7 @@ export function LensBeat() {
     const whoRef = useRef<HTMLElement>(null);
     const scrambleRef = useRef({ on: false, timer: 0 });
 
-    useExitGroup(4, () => {
+    useExitGroup(2, () => {
         const section = sectionRef.current;
 
         if (!section) {
@@ -78,7 +78,7 @@ export function LensBeat() {
                 {/* heading and copy */}
                 <div className="placement copy-l">
                     <div className="container">
-                        <span className="num">04 / 07</span>
+                        <span className="num">04 / 08</span>
                     </div>
                     <div className="container">
                         <h2 id="h2-b4" className="mega" data-rise="">

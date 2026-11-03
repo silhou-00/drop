@@ -1,11 +1,14 @@
 // Smooth wheel scrolling for the landing. Creates one Lenis instance while the landing is
-// mounted, with no loop of its own: the landing's single frame loop drives it. Touch keeps the
-// device's own scrolling, and under reduced motion no instance is made at all, so the page
-// scrolls natively. The instance lives in a small external store: React subscribes after
+// mounted, with no loop of its own: the landing's single frame loop drives it. The wheel is
+// slowed slightly; touch keeps the device's own scrolling, and under reduced motion no
+// instance is made at all, so the page scrolls natively. The instance lives in a small external store: React subscribes after
 // commit, which creates it, and unsubscribes on unmount or when disabled, which destroys it.
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+
+// the wheel moves a little less per notch, so the pinned steps read one at a time
+const WHEEL_MULTIPLIER = 0.8;
 
 function readNothing() {
     return null;
@@ -21,7 +24,7 @@ export function useLenis(enabled: boolean): Lenis | null {
                 return () => {};
             }
 
-            const instance = new Lenis({ autoRaf: false, syncTouch: false });
+            const instance = new Lenis({ autoRaf: false, syncTouch: false, wheelMultiplier: WHEEL_MULTIPLIER });
 
             instanceRef.current = instance;
             onChange();

@@ -1,33 +1,34 @@
-// Beat 07, "Your link is waiting". The band rises onto the flooded bath; once the bath has
-// lifted away like a sheet of paper, the heading, the name field and the button are revealed
-// on plain paper. Submitting the field does not sign anyone up: it opens the claim step with
-// the typed name carried over, the same as the other "Claim your link" buttons.
+// Section 6, "Your link is waiting". The heading, the name field and the button arrive from
+// depth as the section comes in, then the frame stays pinned. Submitting the field does not sign
+// anyone up: it opens the claim step with the typed name carried over, the same as the other
+// "Claim your link" buttons. Under reduced motion everything simply shows.
 import { useRef, type CSSProperties, type FormEvent } from "react";
+import { easeCubic, lerp } from "@/lib/landing/scenes";
 import { useLanding, useTimelineFrame } from "@/hooks/landing/use-scroll-timeline";
 
 export function Claim() {
-    const { reduced, openClaim } = useLanding();
-    const sectionRef = useRef<HTMLElement>(null);
+    const { reduced, tokens, openClaim } = useLanding();
     const headRef = useRef<HTMLHeadingElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const lastRef = useRef<boolean | null>(null);
+    const depthRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const lastRef = useRef(-1);
 
-    useTimelineFrame(({ L, S, changed }) => {
-        const section = sectionRef.current;
+    // the depth zoom: each block grows to full size and fades in on the way to the pin
+    useTimelineFrame(({ S, changed, relaid }) => {
+        const e = easeCubic(S.arrive);
 
-        if (!section || !changed) {
+        if (reduced || !changed || (e === lastRef.current && !relaid)) {
             return;
         }
 
-        const rev = S.y > (reduced ? L.c.mid : L.c.rev);
-
-        if (rev === lastRef.current) {
-            return;
-        }
-
-        lastRef.current = rev;
-        section.classList.toggle("rev", rev);
-        headRef.current?.classList.toggle("in", rev);
+        lastRef.current = e;
+        headRef.current?.classList.toggle("in", e > 0.4);
+        depthRefs.current.forEach((el) => {
+            if (el) {
+                el.style.transform = e < 1 ? `scale(${lerp(tokens.claim.depth, 1, e).toFixed(4)})` : "";
+                el.style.opacity = e < 1 ? e.toFixed(3) : "";
+            }
+        });
     });
 
     // the field opens the claim step with the name it holds
@@ -36,17 +37,20 @@ export function Claim() {
         openClaim(event.currentTarget, inputRef.current?.value ?? "");
     }
 
+    function depth(k: number) {
+        return (el: HTMLDivElement | null) => {
+            depthRefs.current[k] = el;
+        };
+    }
+
     return (
-        <section className="section claim-band" id="claim-band" aria-labelledby="h2-c" ref={sectionRef}>
-            {/* sticky band */}
-            <div className="sub-section">
+        <section className="section pinned claim-band" id="claim-band" data-pin="" aria-labelledby="h2-c">
+            {/* pinned frame */}
+            <div className="sub-section frame">
                 {/* heading */}
-                <div className="placement c-head">
-                    <div className="container">
-                        <span className="num">07 / 07</span>
-                    </div>
-                    <div className="container">
-                        <h2 id="h2-c" className="mega" data-rise-late="" ref={headRef}>
+                <div className="placement c-head" data-calm="">
+                    <div className="container" ref={depth(0)}>
+                        <h2 id="h2-c" className={reduced ? "mega in" : "mega"} ref={headRef}>
                             <span className="ln">
                                 <span className="li" style={{ "--n": 0 } as CSSProperties}>
                                     Your link{" "}
@@ -62,11 +66,11 @@ export function Claim() {
                 </div>
 
                 {/* name field */}
-                <div className="placement c-field">
-                    <div className="container">
-                        <p className="lede veil">Claim it in a minute. Share it anywhere.</p>
+                <div className="placement c-field" data-calm="">
+                    <div className="container" ref={depth(1)}>
+                        <p className="lede">Claim it in a minute. Share it anywhere.</p>
                     </div>
-                    <div className="container">
+                    <div className="container" ref={depth(2)}>
                         <form className="field" onSubmit={handleSubmit}>
                             <label htmlFor="band-name">drop.link/</label>
                             <input
@@ -82,7 +86,7 @@ export function Claim() {
                             </button>
                         </form>
                     </div>
-                    <div className="container">
+                    <div className="container" ref={depth(3)}>
                         <p className="fine">Free, for everyone.</p>
                     </div>
                 </div>

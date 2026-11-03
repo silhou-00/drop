@@ -1,5 +1,11 @@
 # Backend Changelog
 
+## November 3, 2026
+
+**Documentation:**
+
+- The repository now has a front page README, an all-rights-reserved license, and a list of the outside map data, fonts and packages it uses with their licenses.
+
 ## November 1, 2026
 
 **Storage:**

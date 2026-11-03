@@ -125,25 +125,22 @@
     --app-patch-image: url(/marble/comb-land-dark.webp);
 }
 
-/* landing: the dark ground's own palette, which stays dark while the page is forced light */
+/* landing: surfaces, shadows and easings; the page is always light, the dive keeps its own dark */
 :root {
     --on-dark-ground: #0b0c0f;
-    --on-dark-paper: #16181c;
     --on-dark-ink: #f5fdff;
     --on-dark-ink-2: #b4bec3;
     --on-dark-accent-ink: #ff6b6b;
-
-    /* landing surfaces, shadows and easings */
     --landing-glass-fill: rgba(255, 255, 255, 0.72);
-    --landing-glass-fill-dark: rgba(255, 255, 255, 0.94);
     --landing-glass-blur: 18px;
     --landing-glass-edge: 1px solid rgba(255, 255, 255, 0.7);
+    --landing-card-fill: rgba(255, 255, 255, 0.8);
+    --landing-halo: rgba(237, 242, 244, 0.9);
     --landing-shadow-rest: 0 4px 30px rgba(10, 10, 10, 0.08);
     --landing-shadow-lift: 0 12px 32px -14px rgba(10, 10, 10, 0.18);
     --landing-shadow-plate: 0 30px 60px -24px rgba(10, 10, 10, 0.28);
     --landing-e-cubic: cubic-bezier(0.33, 1, 0.68, 1);
     --landing-e-back: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --landing-e-quart: cubic-bezier(0.25, 1, 0.5, 1);
     --landing-e-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --landing-e-bounce: linear(
         0,
@@ -164,51 +161,73 @@
     );
 
     /* landing motion defaults; the frame loop rewrites them from the tokens */
-    --rise-dur: 640ms;
+    --rise-dur: 620ms;
     --rise-stagger: 80ms;
     --pop-dur: 520ms;
     --drop-fall: 700ms;
 
-    /* landing wrapper spacing and type, phones first; bands follow the prototype's layout switches */
-    --landing-s1-pad: 0 18px;
-    --landing-s2-gap: 14px;
+    /* landing section heights: each pins its frame for its height less one screen */
+    --landing-h-hero: 180svh;
+    --landing-h-b2: 170svh;
+    --landing-h-b3: 190svh;
+    --landing-h-b4: 170svh;
+    --landing-h-statement: 240svh;
+    --landing-h-answer: 500svh;
+    --landing-h-redaction: 400svh;
+    --landing-h-claim: 240svh;
+
+    /* landing wrapper spacing and type, phones first */
+    --landing-s1-pad: 0 16px;
+    --landing-s2-gap: 16px;
     --landing-s3-gap: 12px;
-    --landing-gutter: 18px;
-    --landing-nav-h: 76px;
-    --landing-max: 1440px;
+    --landing-s4-pad: 0;
+    --landing-gutter: 16px;
+    --landing-nav-h: 68px;
+    --landing-max: 1200px;
+    --landing-copy: 32ch;
+    --landing-answer-max: 640px;
+    --landing-card-pad: 18px;
+    --landing-radius: 22px;
     --landing-fs-hero: clamp(2.3rem, min(10.4vw, 6.2svh), 3.4rem);
     --landing-fs-h2: clamp(1.9rem, min(8.6vw, 5.2svh), 3rem);
-    --landing-fs-mega: clamp(2.5rem, min(13vw, 7.4svh), 4rem);
+    --landing-fs-mega: clamp(2.4rem, min(12vw, 7.4svh), 4rem);
+    --landing-fs-h3: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    --landing-fs-bubble: clamp(1.3rem, 1.1rem + 1vw, 1.9rem);
+    --landing-fs-lede: clamp(1.0625rem, 0.98rem + 0.45vw, 1.375rem);
+    --landing-fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    --landing-fs-small: clamp(0.8125rem, 0.78rem + 0.15vw, 0.9375rem);
 }
 
 @media (min-width: 48rem) {
     :root {
         --landing-s1-pad: 0 32px;
-        --landing-s2-gap: 16px;
+        --landing-s2-gap: 20px;
         --landing-s3-gap: 14px;
         --landing-gutter: 32px;
+        --landing-card-pad: 22px;
         --landing-fs-hero: clamp(3.4rem, min(9.2vw, 6.6svh), 5.4rem);
-        --landing-fs-h2: clamp(2.6rem, min(6.8vw, 5svh), 3.8rem);
-        --landing-fs-mega: clamp(3.4rem, min(11vw, 7.6svh), 6rem);
+        --landing-fs-h2: clamp(2.4rem, min(6.4vw, 5svh), 3.6rem);
+        --landing-fs-mega: clamp(3.2rem, min(10vw, 7.6svh), 6rem);
     }
 }
 
-/* landing wide layout: 1024 and up, only when the screen is wider than tall */
-@media (min-width: 64rem) and (min-aspect-ratio: 21/20) {
+@media (min-width: 80rem) {
     :root {
         --landing-s1-pad: 0 56px;
-        --landing-s2-gap: 18px;
+        --landing-s2-gap: 28px;
         --landing-s3-gap: 16px;
         --landing-gutter: 56px;
-        --landing-fs-hero: clamp(3.6rem, min(7.4vw, 13svh), 9.5rem);
-        --landing-fs-h2: clamp(2.6rem, min(4.4vw, 8svh), 5.6rem);
-        --landing-fs-mega: clamp(4rem, min(9vw, 16svh), 10.5rem);
+        --landing-card-pad: 26px;
+        --landing-fs-hero: clamp(3.6rem, min(7.4vw, 13svh), 8.5rem);
+        --landing-fs-h2: clamp(2.6rem, min(4.2vw, 8svh), 4.6rem);
+        --landing-fs-mega: clamp(4rem, min(8vw, 15svh), 9rem);
     }
 }
 
 @media (min-width: 120rem) {
     :root {
         --landing-gutter: 80px;
+        --landing-s1-pad: 0 80px;
     }
 }
 
