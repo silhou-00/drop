@@ -21,33 +21,6 @@ while a statement is up, two hours at a time.
 - **Data:** PostgreSQL with PostGIS, file storage for photos
 - **Hosting:** one service that serves both the API and the web app
 
-## Running it locally
-
-Needs Node 24 and pnpm 10.
-
-```
-pnpm install
-cp .env.example .env    # then fill in the values
-pnpm db:migrate
-pnpm dev:backend        # API on port 3000
-pnpm dev:frontend       # web app, forwarding /api to port 3000
-```
-
-The map tiles are not in this repository. Put them in a `tiles/` folder at the root.
-
-| Command                        | Does                               |
-| ------------------------------ | ---------------------------------- |
-| `pnpm build`                   | Build the web app, then the server |
-| `pnpm start`                   | Run the built server               |
-| `pnpm test`                    | Run the backend tests              |
-| `pnpm lint` / `pnpm typecheck` | Lint and type check                |
-
-## Documentation
-
-- [documentation/](documentation/README.md): how the system works, in plain language
-- [documentation/technical/](documentation/technical/): structure, settings, endpoints, commands
-- [documentation/progress/](documentation/progress/): what was built, module by module
-
 ## License
 
 All rights reserved. The source is public to read, not to reuse. See [LICENSE](LICENSE)
