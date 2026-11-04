@@ -1,10 +1,13 @@
 // Builds the story card for one drop and holds it as a PNG with a blob URL for the preview. The
 // card is rebuilt when the options change, and each blob URL is revoked when it is replaced or
 // the panel closes. The photo is loaded once from the drop's same-origin photo path; a failed
-// load leaves the card without it. Share hands the file to the device's share sheet when the
-// browser can share files, and otherwise saves it, like Save. A ref lock stops a double click
-// from firing twice; a cancelled share is not an error. Nothing is uploaded or stored. The
-// drawing code loads on first use, so a page that offers a card does not carry it up front.
+// load leaves the card without it. Share first writes the owner's full address to the
+// clipboard again, in the same tap, so it is ready to paste into the Link sticker. Then it
+// hands the file to the device's share sheet when the browser can share files, and otherwise
+// (in-app browsers) saves it and leaves a notice saying what to do next. A ref
+// lock stops a double click from firing twice; a cancelled share is not an error. Nothing is
+// uploaded or stored. The drawing code loads on first use, so a page that offers a card does
+// not carry it up front.
 import { useEffect, useRef, useState } from "react";
 import { dropPhotoPath } from "@/lib/drops/api";
 import { DOWNLOAD_LOCK_MS, STORY_FILE_NAME, STORY_FILE_TYPE, type StoryOptions } from "@/lib/share/model";
@@ -17,7 +20,7 @@ export type StorySource = {
     message: string;
     placeName: string | null;
     hasPhoto: boolean;
-    link: string;
+    linkUrl: string;
 };
 
 type PhotoResult = { id: string; image: HTMLImageElement | null };
@@ -35,12 +38,14 @@ function download(url: string) {
     anchor.remove();
 }
 
+const SAVED_NOTICE = "Image saved. Open Instagram or Facebook, add it to your story, then add a Link sticker.";
+
 function isAbort(error: unknown) {
     return error instanceof DOMException && error.name === "AbortError";
 }
 
 export function useStoryCard(source: StorySource, options: StoryOptions) {
-    const { id, message, placeName, hasPhoto, link } = source;
+    const { id, message, placeName, hasPhoto, linkUrl } = source;
     const { includePhoto, includePlace } = options;
     const lockRef = useRef(false);
     const timerRef = useRef(0);
@@ -48,10 +53,11 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
     const [card, setCard] = useState<CardResult | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
     const photoPath = hasPhoto ? dropPhotoPath(id) : null;
     const photoSettled = !photoPath || (photo !== null && photo.id === id);
     const image = photoPath && photo && photo.id === id ? photo.image : null;
-    const key = [id, message, placeName, link, includePhoto, includePlace, photoSettled, image !== null].join("|");
+    const key = [id, message, placeName, includePhoto, includePlace, photoSettled, image !== null].join("|");
 
     // the photo once per drop, from its same-origin path
     useEffect(() => {
@@ -92,7 +98,7 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
 
         import("@/lib/share/render")
             .then(({ renderStoryCard }) =>
-                renderStoryCard({ message, placeName, photo: image, link }, { includePhoto, includePlace }),
+                renderStoryCard({ message, placeName, photo: image }, { includePhoto, includePlace }),
             )
             .then(
                 (blob) => {
@@ -117,7 +123,7 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
                 URL.revokeObjectURL(url);
             }
         };
-    }, [key, message, placeName, image, link, includePhoto, includePlace, photoSettled]);
+    }, [key, message, placeName, image, includePhoto, includePlace, photoSettled]);
 
     // a pending lock release does not outlive the panel
     useEffect(() => {
@@ -148,10 +154,12 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
         lockRef.current = true;
         setBusy(true);
         setError("");
+        setNotice("");
 
         return current;
     }
 
+    // the address goes on the clipboard in the same tap, without waiting, so the share keeps it
     async function share() {
         const taken = take();
 
@@ -161,8 +169,12 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
 
         const file = new File([taken.blob], STORY_FILE_NAME, { type: STORY_FILE_TYPE });
 
+        navigator.clipboard?.writeText(linkUrl).catch(() => undefined);
+
         if (!navigator.canShare?.({ files: [file] })) {
             saveNow(taken.url);
+            setNotice(SAVED_NOTICE);
+
             return;
         }
 
@@ -191,6 +203,7 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
         busy,
         photoAvailable: image !== null,
         error: current?.failed ? BUILD_FAILED_MESSAGE : error,
+        notice,
         share,
         save,
     };

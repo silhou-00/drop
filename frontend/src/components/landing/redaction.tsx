@@ -20,7 +20,11 @@ const ROWS: Row[] = [
     },
     { label: "Photo", fixed: "IMG_2041.jpg", field: { was: "GPS 14.65371 N 121.06874 E", now: "", step: 2 } },
     { label: "Message", fixed: "saw you on the library steps. your laugh carried across the whole quad" },
-    { label: "To", fixed: "drop.link/maya", field: { was: "Open, 1 h 58 m left", now: "Closed", step: 3 } },
+    {
+        label: "To",
+        fixed: `${window.location.host}/maya`,
+        field: { was: "Open, 1 h 58 m left", now: "Closed", step: 3 },
+    },
 ];
 const CAPTIONS = [
     "Nobody sees who sent it.",

@@ -185,7 +185,7 @@ export function ClaimIris({ request, onClosed }: ClaimIrisProps) {
                     </div>
                     <div className="container">
                         <form className="field" onSubmit={handleSubmit}>
-                            <label htmlFor="claim-name">drop.link/</label>
+                            <label htmlFor="claim-name">{window.location.host}/</label>
                             <input
                                 id="claim-name"
                                 name="name"

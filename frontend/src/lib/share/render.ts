@@ -2,13 +2,16 @@
 // except the same-origin logo and the brand fonts, which load before the first stroke. The
 // message is drawn as canvas text only, wrapped and shrunk until it fits its paper card, and
 // emoji fall back to the system fonts. The photo is a same-origin image, so the canvas stays
-// readable. The layout follows the story comp; positions and sizes live in model.ts.
+// readable. In place of the address, a dashed spot with arrows marks where the owner puts the
+// Link sticker. The layout follows the story comp; positions and sizes live in model.ts.
 import {
+    ARROW_PATH,
     CARD_HEIGHT,
     CARD_WIDTH,
     PIN_GRID,
     PIN_PATH,
     PLACE_SOURCE_LABEL,
+    SPOT_LABEL,
     STORY_COLORS,
     STORY_FILE_TYPE,
     STORY_FONT_FACES,
@@ -132,21 +135,6 @@ function fitMessage(ctx: Ctx, message: string, width: number, height: number): F
     kept[keep - 1] = ellipsize(ctx, kept[keep - 1] ?? "", width);
 
     return { size: messageMinSize, lines: kept };
-}
-
-// the largest single-line size that fits the width, cut with an ellipsis past the floor
-function fitLine(ctx: Ctx, text: string, weight: number, family: string, range: [number, number], width: number) {
-    for (let size = range[0]; size >= range[1]; size -= SIZE_STEP) {
-        ctx.font = font(weight, size, family);
-
-        if (ctx.measureText(text).width <= width) {
-            return { size, text };
-        }
-    }
-
-    ctx.font = font(weight, range[1], family);
-
-    return { size: range[1], text: ellipsize(ctx, text, width) };
 }
 
 function roundRect(ctx: Ctx, x: number, y: number, width: number, height: number, radius: number) {
@@ -332,31 +320,51 @@ function drawPlace(ctx: Ctx, name: string) {
     ctx.fillText(PLACE_SOURCE_LABEL, left + width - placePaddingInline - sourceWidth, middle);
 }
 
-// the link on a black pill near the foot
-function drawLink(ctx: Ctx, link: string) {
-    const { linkBottom, linkPaddingBlock, linkPaddingInline, linkMaxSize, linkMinSize, pillMaxWidth } = STORY_LAYOUT;
-    const fit = fitLine(
-        ctx,
-        link,
-        700,
-        STORY_FONTS.meta,
-        [linkMaxSize, linkMinSize],
-        pillMaxWidth - linkPaddingInline * 2,
-    );
+// the dashed sticker spot near the foot, with three arrows under it pointing up at it
+function drawSpot(ctx: Ctx) {
+    const {
+        spotBottom,
+        spotWidth,
+        spotHeight,
+        spotRadius,
+        spotDash,
+        spotLineWidth,
+        spotTextSize,
+        arrowSize,
+        arrowGap,
+        arrowSpacing,
+    } = STORY_LAYOUT;
+    const left = (CARD_WIDTH - spotWidth) / 2;
+    const top = CARD_HEIGHT - spotBottom - spotHeight;
 
-    ctx.font = font(700, fit.size, STORY_FONTS.meta);
-
-    const width = ctx.measureText(fit.text).width + linkPaddingInline * 2;
-    const height = fit.size * PILL_LINE_HEIGHT + linkPaddingBlock * 2;
-    const top = CARD_HEIGHT - linkBottom - height;
-
-    ctx.fillStyle = STORY_COLORS.ink;
-    roundRect(ctx, (CARD_WIDTH - width) / 2, top, width, height, height / 2);
+    ctx.fillStyle = STORY_COLORS.paper;
+    roundRect(ctx, left, top, spotWidth, spotHeight, spotRadius);
     ctx.fill();
-    ctx.fillStyle = STORY_COLORS.ice;
+
+    ctx.save();
+    ctx.setLineDash(spotDash);
+    ctx.lineWidth = spotLineWidth;
+    ctx.strokeStyle = STORY_COLORS.ink2;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = font(500, spotTextSize, STORY_FONTS.body);
+    ctx.fillStyle = STORY_COLORS.ink2;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(fit.text, CARD_WIDTH / 2, top + height / 2);
+    ctx.fillText(SPOT_LABEL, CARD_WIDTH / 2, top + spotHeight / 2);
+
+    const arrow = new Path2D(ARROW_PATH);
+    const arrowTop = top + spotHeight + arrowGap;
+
+    for (const offset of [-arrowSpacing, 0, arrowSpacing]) {
+        ctx.save();
+        ctx.translate(CARD_WIDTH / 2 + offset - arrowSize / 2, arrowTop);
+        ctx.scale(arrowSize / PIN_GRID, arrowSize / PIN_GRID);
+        ctx.fillStyle = STORY_COLORS.accent;
+        ctx.fill(arrow);
+        ctx.restore();
+    }
 }
 
 function toBlob(canvas: HTMLCanvasElement) {
@@ -392,7 +400,7 @@ export async function renderStoryCard(input: StoryInput, options: StoryOptions):
         drawPlace(ctx, input.placeName);
     }
 
-    drawLink(ctx, input.link);
+    drawSpot(ctx);
 
     return toBlob(canvas);
 }

@@ -163,7 +163,7 @@
     text-align: center;
 }
 
-/* link name field: the fixed drop.link/ part sits inside the box */
+/* link name field: the fixed host/ part sits inside the box */
 .auth-page .auth-prefixed {
     display: flex;
     align-items: center;

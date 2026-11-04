@@ -2,6 +2,28 @@
 
 ## November 4, 2026
 
+**Sharing:**
+
+- The guide now starts with copying the link, has a Back button, and no longer asks which app is used.
+- Each guide screenshot now rings what to tap.
+- The guide now shows screenshots of each step and lets people share right away from any step.
+- Share on My link now starts the picked statement, copies the link and opens a four-step guide for adding it to an Instagram or Facebook story as a Link sticker. The story image shows a "Paste your link here" spot instead of a printed address, and sharing a drop's image opens the same guide.
+
+**Statements:**
+
+- Dots under the cards show how many there are, and the neighbouring cards show more on phones.
+- "Write your own" is now the first card, and the cards no longer get cut off at the edges.
+- My link shows swipeable statement cards, including one to write your own, in place of the old statement form.
+
+**My link:**
+
+- On wide screens the steps column now starts level with the running statement.
+- On wide screens the steps sit in a column on the right, and the link text breaks after the slash.
+
+**Links:**
+
+- The link people see and copy now follows the address the site runs on instead of a fixed name.
+
 **Branding:**
 
 - The browser tab shows the Drop pin instead of the default icon, iPhones get a home screen icon, and links shared in chats show a Drop preview image.

@@ -65,7 +65,7 @@ function ClaimPage() {
         check.status === "checking"
             ? "Checking the name"
             : check.status === "available" && !serverTaken
-              ? `drop.link/${check.username} is free.`
+              ? `${window.location.host}/${check.username} is free.`
               : check.status === "idle"
                 ? check.message
                 : "";
@@ -182,7 +182,7 @@ function ClaimPage() {
                         <div className="container">
                             <div className="auth-prefixed" data-invalid={nameMessage ? "true" : undefined}>
                                 <span className="auth-mono" aria-hidden="true">
-                                    drop.link/
+                                    {window.location.host}/
                                 </span>
                                 <input
                                     id="claim-name"

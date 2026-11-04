@@ -22,7 +22,7 @@ export function DeleteAccount({ username, pending, error, onConfirm, onCancel }:
     const matches = matchesUsername(typed, username);
     const shown = error || (mismatch ? CONFIRM_MESSAGE : "");
     const consequences = [
-        `Your link drop.link/${username} stops working right away.`,
+        `Your link ${window.location.host}/${username} stops working right away.`,
         "Every drop sent to you is deleted, with its photos and places.",
         "Your statements are deleted.",
         "You are signed out on every device.",

@@ -1,7 +1,9 @@
 /* Styles for the story share panel on a drop's page: the panel itself, its heading and close
    button, the 9:16 preview held to a phone-sized height, the option switches and the waiting
-   text. It builds on the auth and inbox styles (buttons, notes, the action row) and is scoped
-   under the same auth root. Every value comes from tokens.css. */
+   text. Also the sticker guide: a full-screen layer with app tabs, step dots and drawn mocks of
+   a story editor. It builds on the auth and inbox styles (buttons, notes, the action row) and
+   is scoped under the same auth root. Layout values come from tokens.css; the small shape
+   sizes inside the mocks are set in em so they scale with the text. */
 
 /* panel */
 .auth-page .share-panel {
@@ -115,4 +117,126 @@
 
 .auth-page .share-switch-input:checked::before {
     transform: translateX(calc(var(--share-switch-w) - var(--share-switch-knob) - var(--share-switch-inset) * 2));
+}
+
+/* sticker guide: a full-screen layer above the app nav, one capped column */
+.auth-page.guide-layer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--guide-layer-z);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.auth-page .guide {
+    max-width: var(--guide-max);
+}
+
+.auth-page .guide-top {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+.auth-page .guide-title {
+    font: 700 var(--guide-fs-title) / 1.05 var(--family-display);
+    letter-spacing: -0.02em;
+    border-radius: 8px;
+}
+
+.auth-page .guide-step-name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--placement-gap);
+    font: 700 var(--guide-fs-step) / 1.2 var(--family-display);
+}
+
+.auth-page .guide-step-num {
+    color: var(--accent-ink);
+    font: 600 var(--type-mono) / 1 var(--family-meta);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.auth-page .guide-stage {
+    justify-content: center;
+}
+
+/* step screenshot: shown whole, capped in height so the tall toolbar shot stays small */
+.auth-page .guide-shot-frame {
+    align-items: center;
+    width: 100%;
+}
+
+.auth-page .guide-shot-box {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.auth-page .guide-shot {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: var(--guide-shot-max-h);
+    border-radius: var(--guide-shot-radius);
+    box-shadow: var(--shadow-lift);
+}
+
+/* step 1: the link in large type, breaking after the slash */
+.auth-page .guide-link-box {
+    padding: var(--guide-link-padding);
+    border-radius: var(--guide-shot-radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-rest);
+}
+
+.auth-page .guide-link {
+    font: 700 var(--guide-fs-link) / 1.15 var(--family-meta);
+    overflow-wrap: break-word;
+}
+
+/* the ring over what to tap, pulsing gently */
+.auth-page .guide-hot {
+    position: absolute;
+    border: var(--guide-hot-border) solid var(--accent-fill);
+    border-radius: var(--guide-hot-radius);
+    box-shadow: var(--guide-hot-glow);
+    pointer-events: none;
+    animation: guide-hot-pulse 1.6s ease-in-out infinite;
+}
+
+.auth-page .guide-hot[data-round="true"] {
+    border-radius: 50%;
+}
+
+@keyframes guide-hot-pulse {
+    50% {
+        box-shadow: var(--guide-hot-glow-wide);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-page .guide-hot {
+        animation: none;
+    }
+}
+
+/* step dots and the copy line */
+.auth-page .guide-dots,
+.auth-page .guide-copy {
+    justify-content: center;
+}
+
+.auth-page .guide-dot {
+    display: block;
+    width: var(--guide-dot-size);
+    height: var(--guide-dot-size);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+}
+
+.auth-page .guide-dot[data-current="true"] {
+    background: var(--ink);
 }

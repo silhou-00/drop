@@ -1,4 +1,4 @@
-// Public send page at drop.link/<name>. Anyone can write the owner an anonymous drop here,
+// Public send page at <host>/<name>. Anyone can write the owner an anonymous drop here,
 // with its GPS place, while the owner has a statement running. A name with capitals is sent on
 // to its lowercase form. The page shows loading, a friendly not-found (also for invalid or
 // reserved names), a load error, the open link (the statement in a quoted card with the time
@@ -74,7 +74,9 @@ function ProfileHeading({ profile, closed }: { profile: PublicProfile; closed: b
                     )}
                 </div>
                 <div className="container">
-                    <p className="send-handle">drop.link/{profile.username}</p>
+                    <p className="send-handle">
+                        {window.location.host}/{profile.username}
+                    </p>
                 </div>
             </div>
 
@@ -169,7 +171,7 @@ function SendPage() {
                         </div>
                         <div className="container">
                             {missing ? (
-                                <p className="auth-lede">There is no drop.link with that name. Check the spelling.</p>
+                                <p className="auth-lede">There is no link with that name. Check the spelling.</p>
                             ) : (
                                 <p className="auth-error" role="alert">
                                     {page.error}
@@ -216,7 +218,7 @@ function SendPage() {
                         </div>
                         <div className="container">
                             <Link className="auth-btn auth-btn-ink" to="/claim">
-                                Get your own drop.link
+                                Get your own link
                             </Link>
                         </div>
                     </div>

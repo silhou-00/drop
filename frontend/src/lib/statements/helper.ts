@@ -1,5 +1,5 @@
 // Time labels for statements. A running statement shows how long it has left in its largest
-// useful units ("1h 20m left", "4m left", "45s left"), and the start button names the fixed
+// useful units ("1h 20m left", "4m left", "45s left"), and the note by Share names the fixed
 // length ("2 hours"), worked out from the shared constant so the two can never disagree.
 import { STATEMENT_DURATION_SECONDS } from "./model";
 

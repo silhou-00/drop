@@ -1,10 +1,11 @@
 // Story card shapes and layout. The card is a 1080 by 1920 PNG drawn on a canvas in the
 // browser and never uploaded. Every size, colour and position below is taken from the approved
 // Marbled Bath story comp: the logo on top, the message on a paper card, the photo in a round
-// frame with ice and red rings, the place on a white pill and the link on a black pill. The
-// colours are the light palette from tokens.css and the hero-intensity marble pigments, because
-// the card is always light whatever the device theme is. The My link card uses the running
-// statement's text in place of a drop's message.
+// frame with ice and red rings, the place on a white pill, and near the foot a dashed sticker
+// spot with arrows that shows where the owner places their story app's Link sticker. The card
+// never prints the address itself. The colours are the light palette from tokens.css and the
+// hero-intensity marble pigments, because the card is always light whatever the device theme
+// is. The My link card uses the statement's text in place of a drop's message.
 
 export const CARD_WIDTH = 1080;
 export const CARD_HEIGHT = 1920;
@@ -33,17 +34,11 @@ export const STORY_COLORS = {
 export const STORY_FONTS = {
     display: '"Unbounded"',
     body: '"Onest"',
-    meta: '"Azeret Mono"',
     fallback: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif',
 };
 
 // the font faces the card draws with, loaded before the first stroke
-export const STORY_FONT_FACES = [
-    '500 52px "Onest"',
-    '500 26px "Onest"',
-    '700 40px "Unbounded"',
-    '700 38px "Azeret Mono"',
-];
+export const STORY_FONT_FACES = ['500 52px "Onest"', '500 26px "Onest"', '700 40px "Unbounded"'];
 
 export const STORY_LAYOUT = {
     logoTop: 262,
@@ -70,11 +65,16 @@ export const STORY_LAYOUT = {
     placeMaxSize: 40,
     placeMinSize: 26,
     placeSourceSize: 26,
-    linkBottom: 390,
-    linkPaddingBlock: 18,
-    linkPaddingInline: 38,
-    linkMaxSize: 38,
-    linkMinSize: 24,
+    spotBottom: 300,
+    spotWidth: 620,
+    spotHeight: 120,
+    spotRadius: 32,
+    spotDash: [18, 14],
+    spotLineWidth: 5,
+    spotTextSize: 36,
+    arrowSize: 48,
+    arrowGap: 18,
+    arrowSpacing: 96,
     pillMaxWidth: 900,
     veinGap: 24,
     veinWidth: 2.2,
@@ -87,6 +87,12 @@ export const PIN_PATH =
     "M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z";
 export const PIN_GRID = 256;
 
+// the Phosphor up arrow, bold weight, on the same grid
+export const ARROW_PATH =
+    "M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z";
+
+export const SPOT_LABEL = "Paste your link here";
+
 // every drop's place comes from GPS, so the pill's source label is fixed
 export const PLACE_SOURCE_LABEL = "GPS";
 
@@ -96,5 +102,4 @@ export type StoryInput = {
     message: string;
     placeName: string | null;
     photo: HTMLImageElement | ImageBitmap | null;
-    link: string;
 };

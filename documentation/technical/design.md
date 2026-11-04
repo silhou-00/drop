@@ -352,18 +352,37 @@ The statement picker sits under the chips on the map: a glass pill button at `--
 
 ## My link
 
-The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), a Statement card (while one runs: a Live mark with the time left, the statement in large quoted type at `--statement-fs-card`, the drop count and "End now", then a "New statement" toggle; while closed: the start form), then a card with the caption "Put this in your story", the link in large text, Copy and Share buttons, and a tilted preview of the story image in a white ring. While the link is closed the card keeps Copy and shows a note in place of Share and the preview.
+The page at `/my-link`. Styles in `src/styles/my-link.css`; tokens in `src/styles/tokens.css`. A heading section (with the logo above it on phones), a Statement card (only while one runs: a Live mark with the time left, the statement in large quoted type at `--statement-fs-card`, the drop count and "End now"), a row of statement cards the owner swipes through (one snapped to the middle, its neighbours peeking in, the selected one ringed and full size, the others at `--mylink-tpl-rest-scale`), then a steps card (the statement, the cards and the steps sit in `.mylink-columns`: stacked below 80rem; from 80rem a grid of `minmax(0, 1fr)` and `minmax(0, var(--mylink-steps-w))`, the steps column spanning both rows so its top is level with the statement, sticky at `--mylink-steps-top`, and the 36rem cap lifted for both): "Step 1: Copy your link" with the link in large text and a Copy link button, and "Step 2: Share link on your story" with a tilted preview of the story image in a white ring and the Share button. The first statement card is a slab holding the text field and its count. The row has block padding (`--mylink-carousel-pad-y`) so the ring and shadow are not clipped, and its left and right edges fade out (`--mylink-carousel-fade`, 12px) instead of being cut. Under the row a dots row (`.mylink-dots`) has one tap area per card (`--mylink-dot-hit`); each dot is a `::before` pill of `--mylink-dot-size`, and the picked one stretches to `--mylink-dot-active-w`. The link text breaks after the slash (a zero-width break) and otherwise at `overflow-wrap: break-word`, so it breaks after the slash rather than mid-word.
 
-| Token                      | Value                                   | Use                      |
-| -------------------------- | --------------------------------------- | ------------------------ |
-| `--mylink-card-max`        | `100%`; 80rem `36rem`                   | Card width cap           |
-| `--mylink-fs-url`          | `clamp(1.4rem, 1.1rem + 1.4vw, 2.2rem)` | Link text                |
-| `--mylink-story-w`         | `min(13.75rem, 50%)`                    | Preview width            |
-| `--mylink-story-tilt`      | `-3deg`                                 | Preview tilt             |
-| `--mylink-story-radius`    | `18px`                                  | Preview radius           |
-| `--mylink-story-ring`      | `0 0 0 6px #fff`                        | Preview ring             |
-| `--mylink-preview-padding` | `12px 0`                                | Space around the preview |
-| `--mylink-wait-padding`    | `12px`                                  | "Making the image" note  |
+| Token                       | Value                                      | Use                         |
+| --------------------------- | ------------------------------------------ | --------------------------- |
+| `--mylink-card-max`         | `100%`; 80rem `36rem`                      | Card width cap              |
+| `--mylink-carousel-pad-y`   | `20px`                                     | Card row block padding      |
+| `--mylink-carousel-fade`    | `12px`                                     | Card row edge fade          |
+| `--mylink-dot-hit`          | `28px`                                     | Card dot tap area           |
+| `--mylink-dot-size`         | `8px`                                      | Card dot size               |
+| `--mylink-dot-active-w`     | `22px`                                     | Picked card dot width       |
+| `--mylink-steps-w`          | `30rem`                                    | Steps column width, 80rem   |
+| `--mylink-steps-top`        | `24px`                                     | Steps column sticky offset  |
+| `--mylink-fs-url`           | `clamp(1.15rem, 1rem + 0.8vw, 1.6rem)`     | Link text                   |
+| `--mylink-story-w`          | `min(13.75rem, 50%)`                       | Preview width               |
+| `--mylink-story-tilt`       | `-3deg`                                    | Preview tilt                |
+| `--mylink-story-radius`     | `18px`                                     | Preview radius              |
+| `--mylink-story-ring`       | `0 0 0 6px #fff`                           | Preview ring                |
+| `--mylink-preview-padding`  | `12px 0`                                   | Space around the preview    |
+| `--mylink-wait-padding`     | `12px`                                     | "Making the image" note     |
+| `--mylink-fs-step`          | `var(--type-subheading)`                   | Step headings               |
+| `--mylink-share-min-h`      | `56px`                                     | Share button height         |
+| `--mylink-slide-w`          | `min(70%, 20rem)`; 48rem `min(62%, 22rem)` | Statement card width        |
+| `--mylink-tpl-padding`      | `16px`                                     | Statement card padding      |
+| `--mylink-tpl-radius`       | `24px`                                     | Statement card radius       |
+| `--mylink-tpl-rest-scale`   | `0.94`                                     | Unselected card scale       |
+| `--mylink-tpl-ring`         | `0 0 0 3px var(--ink)`                     | Selected card ring          |
+| `--mylink-tpl-slab-padding` | `14px 16px`                                | Write your own slab padding |
+| `--mylink-tpl-slab-radius`  | `16px`                                     | Write your own slab radius  |
+| `--mylink-fs-tpl`           | `clamp(1.45rem, 1.2rem + 1.3vw, 2.1rem)`   | Statement card text         |
+| `--mylink-tpl-mark-w`       | `2.5em`                                    | Card mark width             |
+| `--mylink-tpl-mark-h`       | `0.5em`                                    | Card mark height            |
 
 ### Statement tokens
 
@@ -485,6 +504,25 @@ The story panel on a drop's page. Styles in `src/styles/share.css`, scoped under
 | `--share-switch-h`       | `32px`                                   | Switch height      |
 | `--share-switch-knob`    | `24px`                                   | Switch knob size   |
 | `--share-switch-inset`   | `4px`                                    | Switch knob inset  |
+
+### Sticker guide
+
+The full-screen guide opened by Share. Styles in `src/styles/share.css`, scoped under `.auth-page`; tokens in `src/styles/tokens.css`. It sits in a portalled layer above the app nav (`--guide-layer-z`), one column up to `--guide-max`. Step 1 has no screenshot: a paper panel (`.guide-link-box`, padded by `--guide-link-padding`) shows the link in large text (`.guide-link`, `--guide-fs-link`, breaking after the slash). The other four steps each show a screenshot of the Instagram story editor (`.guide-shot-frame`, `.guide-shot`), at most `--guide-shot-max-h` tall with corners at `--guide-shot-radius`. What to tap is ringed in accent red (`.guide-hot`, `--guide-hot-border`, `--guide-hot-radius`, round for the sticker button) with a glow that pulses between `--guide-hot-glow` and `--guide-hot-glow-wide`; under reduced motion it stays still.
+
+| Token                                       | Value                               | Used for              |
+| ------------------------------------------- | ----------------------------------- | --------------------- |
+| `--guide-layer-z`                           | `50`                                | Layer stacking        |
+| `--guide-max`                               | `36rem`                             | Guide width cap       |
+| `--guide-fs-title`                          | `var(--type-heading)`               | Guide heading         |
+| `--guide-fs-step`                           | `var(--type-subheading)`            | Step name             |
+| `--guide-link-padding`                      | `20px`                              | Link panel padding    |
+| `--guide-fs-link`                           | `clamp(1.2rem, 1rem + 1vw, 1.7rem)` | Link text             |
+| `--guide-shot-max-h`                        | `min(22rem, 42svh)`                 | Screenshot height cap |
+| `--guide-shot-radius`                       | `18px`                              | Screenshot radius     |
+| `--guide-hot-border`                        | `3px`                               | Tap ring width        |
+| `--guide-hot-radius`                        | `14px`                              | Tap ring radius       |
+| `--guide-hot-glow`, `--guide-hot-glow-wide` | red glows, 4px and 10px             | Tap ring pulse        |
+| `--guide-dot-size`                          | `10px`                              | Progress dot          |
 
 ## Scrollbar
 

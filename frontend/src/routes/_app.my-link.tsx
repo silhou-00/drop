@@ -1,28 +1,28 @@
-// The My link page. First the statement: the line that opens the owner's link for a fixed
-// time. While one runs it shows with its time left, its drop count and "End now", and "New
-// statement" opens the form to replace it; with none running the form shows on its own. Then
-// the owner's public link with Copy, and while a statement runs, Share and a preview of the
-// story image made from it, so the link can go into a story or a bio from anywhere in the app.
-// The page owns ending a statement, so the server's message stays on screen after the running
-// card closes. On phones the logo sits above the heading, since there is no rail to carry it.
+// The My link page. First the running statement, when there is one, with its time left, its
+// drop count and "End now". Then the statement cards to swipe through: a first card to write
+// your own, then ready-made lines. Then the two steps, in a right-hand column on wide screens: copy the link, and Share, which starts the
+// chosen statement when it is not the one running and opens the guide for adding the link to
+// a story. A running statement that matches a card starts with that card chosen. The page owns
+// ending a statement, so the server's message stays on screen after the running card closes.
+// On phones the logo sits above the heading, since there is no rail to carry it.
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { LinkCard } from "@/components/profiles/link-card";
 import { RunningStatement } from "@/components/statements/running-statement";
-import { StatementForm } from "@/components/statements/statement-form";
+import { TemplateCarousel } from "@/components/statements/template-carousel";
 import { useCurrentStatement } from "@/hooks/statements/use-current-statement";
 import { useEndStatement } from "@/hooks/statements/use-end-statement";
+import { CUSTOM_TEMPLATE_ID, DEFAULT_TEMPLATE_ID, STATEMENT_TEMPLATES, templateFor } from "@/lib/statements/templates";
 import "@/styles/my-link.css";
 
 export const Route = createFileRoute("/_app/my-link")({
     component: MyLinkPage,
 });
 
-// the statement card, the form, or the load state
+// the running statement, the load state, or why the last one closed; nothing otherwise
 function StatementSection() {
     const current = useCurrentStatement();
     const ending = useEndStatement();
-    const [replacingFor, setReplacingFor] = useState<string | null>(null);
 
     if (current.status === "error") {
         return (
@@ -59,57 +59,37 @@ function StatementSection() {
         );
     }
 
-    if (!current.statement) {
-        return (
-            <>
-                <StatementForm replacing={false} />
-                {ending.error ? (
-                    // why the last statement closed
-                    <div className="sub-section">
-                        <div className="placement">
-                            <div className="container">
-                                <p className="auth-status" role="status">
-                                    {ending.error}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
-            </>
-        );
+    if (current.statement) {
+        return <RunningStatement statement={current.statement} ending={ending} />;
     }
 
-    const statement = current.statement;
-    const replacing = replacingFor === statement.id;
+    if (!ending.error) {
+        return null;
+    }
 
     return (
-        <>
-            <RunningStatement statement={statement} ending={ending} />
-
-            {/* new statement toggle */}
-            <div className="sub-section">
-                <div className="placement">
-                    <div className="container">
-                        <button
-                            className="auth-btn auth-btn-paper"
-                            type="button"
-                            aria-expanded={replacing}
-                            aria-controls="statement-text"
-                            onClick={() => {
-                                setReplacingFor(replacing ? null : statement.id);
-                            }}
-                        >
-                            {replacing ? "Keep this statement" : "New statement"}
-                        </button>
-                    </div>
+        // why the last statement closed
+        <div className="sub-section">
+            <div className="placement">
+                <div className="container">
+                    <p className="auth-status" role="status">
+                        {ending.error}
+                    </p>
                 </div>
             </div>
-            {replacing ? <StatementForm replacing /> : null}
-        </>
+        </div>
     );
 }
 
 function MyLinkPage() {
+    const current = useCurrentStatement();
+    const [chosen, setChosen] = useState<string | null>(null);
+    const [customText, setCustomText] = useState("");
+    const runningTemplate = current.statement ? templateFor(current.statement.text) : undefined;
+    const selectedId = chosen ?? runningTemplate?.id ?? DEFAULT_TEMPLATE_ID;
+    const selected = STATEMENT_TEMPLATES.find((template) => template.id === selectedId);
+    const selectedText = selectedId === CUSTOM_TEMPLATE_ID ? customText : (selected?.text ?? "");
+
     return (
         <div className="app-sheet">
             {/* heading section */}
@@ -132,15 +112,28 @@ function MyLinkPage() {
                 </div>
             </section>
 
-            {/* statement section */}
-            <section className="section mylink-section" aria-label="Your statement">
-                <StatementSection />
-            </section>
+            {/* statement, cards and steps; the steps move to a right-hand column from laptop width */}
+            <div className="mylink-columns">
+                {/* statement section */}
+                <section className="section mylink-section" aria-label="Your statement">
+                    <StatementSection />
+                </section>
 
-            {/* link section */}
-            <section className="section mylink-section" aria-label="Your link">
-                <LinkCard />
-            </section>
+                {/* cards section */}
+                <section className="section mylink-section" aria-label="Statement cards">
+                    <TemplateCarousel
+                        selectedId={selectedId}
+                        customText={customText}
+                        onSelect={setChosen}
+                        onCustomText={setCustomText}
+                    />
+                </section>
+
+                {/* link section */}
+                <section className="section mylink-section mylink-steps-col" aria-label="Your link">
+                    <LinkCard text={selectedText} />
+                </section>
+            </div>
         </div>
     );
 }

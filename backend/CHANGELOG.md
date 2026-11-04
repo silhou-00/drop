@@ -2,6 +2,12 @@
 
 ## November 4, 2026
 
+**Documentation:**
+
+- The documents now describe the five-step sharing guide and the card dots on My link.
+- The documents now describe the guide screenshots, the card order and the wide-screen My link layout.
+- The product requirements and the technical and progress documents now describe the statement cards, the story sharing guide and the site-address links.
+
 **Link preview:**
 
 - Shared links now show the Drop preview image in chat apps, and the home page and every other page get a title and description too.

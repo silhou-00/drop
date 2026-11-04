@@ -72,7 +72,7 @@ export function Claim() {
                     </div>
                     <div className="container" ref={depth(2)}>
                         <form className="field" onSubmit={handleSubmit}>
-                            <label htmlFor="band-name">drop.link/</label>
+                            <label htmlFor="band-name">{window.location.host}/</label>
                             <input
                                 id="band-name"
                                 name="name"

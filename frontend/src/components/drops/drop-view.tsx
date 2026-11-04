@@ -289,7 +289,7 @@ export function DropView({ id, wide }: DropViewProps) {
                             </div>
                         }
                     >
-                        <ShareSheet item={item} link={link} onClose={handleCloseShare} />
+                        <ShareSheet item={item} link={link} url={own.url} onClose={handleCloseShare} />
                     </Suspense>
                 ) : null}
             </div>

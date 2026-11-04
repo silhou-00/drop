@@ -1,12 +1,14 @@
-/* The My link page: the statement card or the form that starts one, then the link card, all
-   capped and start-aligned on wide screens. The running statement shows a Live mark, the time
-   left and the statement in large quoted type; the form has its count under the text box. The
-   link card has a caption, the link in large mono type that breaks anywhere, and the story
-   preview tilted inside a white ring. Every size comes from tokens.css. */
+/* The My link page: the running statement, the row of statement cards, then the two steps.
+   Phones and tablets stack them; from laptop width the steps move to a right-hand column, level
+   with the top of the statement, that stays in view while the page scrolls. The running statement shows a Live mark, the
+   time left and the statement in large quoted type. The cards snap one to the middle with
+   their neighbours peeking in; the chosen one sits full size with an ink ring. The steps card
+   has the link in large mono type that breaks anywhere, the story preview tilted inside a
+   white ring, and a tall Share button. Every size comes from tokens.css. */
 
 .auth-page .mylink-card,
 .auth-page .mylink-running,
-.auth-page .mylink-statement-form {
+.auth-page .mylink-cards {
     width: 100%;
     max-width: var(--mylink-card-max);
 }
@@ -35,14 +37,171 @@
     overflow-wrap: anywhere;
 }
 
-/* statement form: the note on the left, the count on the right */
-.auth-page .mylink-statement-meta {
-    flex-wrap: nowrap;
-    justify-content: space-between;
+/* cards and steps: one column, then two from laptop width */
+.auth-page .mylink-columns {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: var(--content-max);
+    margin-inline: auto;
 }
 
-.auth-page .mylink-count-wrap {
-    margin-left: auto;
+@media (min-width: 80rem) {
+    .auth-page .mylink-columns {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, var(--mylink-steps-w));
+        align-items: start;
+    }
+
+    .auth-page .mylink-columns .mylink-cards,
+    .auth-page .mylink-columns .mylink-card {
+        max-width: none;
+    }
+
+    .auth-page .mylink-columns > .section {
+        grid-column: 1;
+    }
+
+    .auth-page .mylink-columns > .mylink-steps-col {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        position: sticky;
+        top: var(--mylink-steps-top);
+    }
+}
+
+/* statement cards: a snapping row, with end spacers so the first and last can sit centred.
+   Block padding leaves room for the ring and shadow; the edges fade instead of cutting off */
+.auth-page .mylink-carousel {
+    position: relative;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding-block: var(--mylink-carousel-pad-y);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 var(--mylink-carousel-fade),
+        #000 calc(100% - var(--mylink-carousel-fade)),
+        transparent
+    );
+}
+
+.auth-page .mylink-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.auth-page .mylink-carousel::before,
+.auth-page .mylink-carousel::after {
+    content: "";
+    flex: 0 0 max(0px, calc((100% - var(--mylink-slide-w)) / 2 - var(--placement-gap)));
+}
+
+/* card dots: the picked one stretches into a short pill; each has a full-size tap area */
+.auth-page .mylink-dots {
+    justify-content: center;
+}
+
+.auth-page .mylink-dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mylink-dot-hit);
+    height: var(--mylink-dot-hit);
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.auth-page .mylink-dot::before {
+    content: "";
+    width: var(--mylink-dot-size);
+    height: var(--mylink-dot-size);
+    border-radius: 999px;
+    background: var(--ink-2);
+    opacity: 0.45;
+    transition:
+        width 180ms var(--landing-e-cubic),
+        opacity 180ms var(--landing-e-cubic);
+}
+
+.auth-page .mylink-dot[aria-current="true"]::before {
+    width: var(--mylink-dot-active-w);
+    background: var(--ink);
+    opacity: 1;
+}
+
+.auth-page .mylink-slide {
+    flex: 0 0 var(--mylink-slide-w);
+    scroll-snap-align: center;
+}
+
+.auth-page .mylink-tpl {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: var(--placement-gap);
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    padding: var(--mylink-tpl-padding);
+    border: 0;
+    border-radius: var(--mylink-tpl-radius);
+    background: var(--app-patch-image) center / cover no-repeat var(--ground);
+    box-shadow: var(--shadow-rest);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transform: scale(var(--mylink-tpl-rest-scale));
+    transition:
+        transform 180ms var(--landing-e-cubic),
+        box-shadow 180ms var(--landing-e-cubic);
+}
+
+.auth-page .mylink-tpl[data-selected="true"] {
+    box-shadow: var(--mylink-tpl-ring), var(--shadow-lift);
+    transform: none;
+}
+
+.auth-page .mylink-tpl-mark {
+    display: block;
+    width: var(--mylink-tpl-mark-w);
+    height: var(--mylink-tpl-mark-h);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: var(--tpl-accent);
+}
+
+.auth-page .mylink-tpl-text {
+    width: 100%;
+    padding: var(--mylink-tpl-slab-padding);
+    border-radius: var(--mylink-tpl-slab-radius);
+    background: var(--paper);
+    font: 700 var(--mylink-fs-tpl) / 1.08 var(--family-display);
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+.auth-page .mylink-tpl-custom {
+    justify-content: flex-end;
+    align-items: stretch;
+    cursor: default;
+}
+
+.auth-page .mylink-tpl-label {
+    padding: var(--mylink-tpl-slab-padding);
+    border-radius: var(--mylink-tpl-slab-radius);
+    background: var(--paper);
+    font: 700 var(--mylink-fs-tpl) / 1.08 var(--family-display);
+    letter-spacing: -0.01em;
+}
+
+.auth-page .mylink-tpl-custom .mylink-count {
+    align-self: flex-end;
 }
 
 .auth-page .mylink-count {
@@ -55,6 +214,15 @@
     color: var(--accent-ink);
 }
 
+.auth-page .mylink-step {
+    font: 700 var(--mylink-fs-step) / 1.2 var(--family-display);
+    letter-spacing: -0.01em;
+}
+
+.auth-page .mylink-share {
+    min-height: var(--mylink-share-min-h);
+}
+
 .auth-page .mylink-caption {
     color: var(--ink-2);
     font: 500 var(--type-caption) / 1.3 var(--family-body);
@@ -62,7 +230,7 @@
 
 .auth-page .mylink-url {
     font: 700 var(--mylink-fs-url) / 1.15 var(--family-meta);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .auth-page .mylink-preview {
@@ -96,4 +264,16 @@
     justify-content: center;
     padding: var(--mylink-wait-padding);
     text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-page .mylink-tpl,
+    .auth-page .mylink-dot::before {
+        transition: none;
+    }
+}
+
+/* the statement section has nothing to show while no statement runs */
+.mylink-section:empty {
+    display: none;
 }

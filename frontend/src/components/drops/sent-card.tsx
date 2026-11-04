@@ -1,6 +1,6 @@
 // Confirmation after a drop is sent. Says the drop went and that the sender stays unknown,
 // offers to send another (which clears the send state and brings the empty form back), and
-// links on to claiming a drop.link of their own. Focus moves to the heading when it appears,
+// links on to claiming a link of their own. Focus moves to the heading when it appears,
 // so screen readers announce the result.
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle } from "@phosphor-icons/react";
@@ -41,7 +41,7 @@ export function SentCard({ displayName, onSendAnother }: SentCardProps) {
                 <div className="placement auth-stack">
                     <div className="container">
                         <Link className="auth-btn auth-btn-ink" to="/claim">
-                            Get your own drop.link
+                            Get your own link
                             <ArrowRight weight="bold" aria-hidden="true" />
                         </Link>
                     </div>

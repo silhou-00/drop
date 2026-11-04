@@ -199,7 +199,7 @@ export function YourAnswer() {
                             </div>
                         </div>
                         <div className="container ans-chip">
-                            <p className="ans-posted">Posted to your story · drop.link/maya</p>
+                            <p className="ans-posted">Posted to your story · {window.location.host}/maya</p>
                         </div>
                         {INCOMING.map((text) => (
                             <div className="container ans-new" key={text}>

@@ -1,26 +1,34 @@
 // The in-page panel that turns a drop into a story image. It shows a preview of the 9:16 card,
 // switches for the photo (only when the drop has one that loaded) and the place (only when the
-// drop has a place name), and Share and Save image buttons, both locked while one runs. Focus
-// moves to the panel's heading when it opens; Escape or the close button closes it, and the
-// page returns focus to its Share button. The card is drawn in the browser and never uploaded.
+// drop has a place name), and Share and Save image buttons, both locked while one runs. Share
+// copies the owner's link in the same tap and opens the sticker guide, which ends in sharing
+// the image. Focus moves to the panel's heading when it opens; Escape or the close button
+// closes it (or only the guide while that is open), and the page returns focus to its Share
+// button. The card is drawn in the browser and never uploaded.
 import { DownloadSimple, ShareFat, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { StickerGuide } from "@/components/share/sticker-guide";
+import { useLinkShare } from "@/hooks/profiles/use-link-share";
 import { useStoryCard } from "@/hooks/share/use-story-card";
 import type { InboxItem } from "@/lib/drops/model";
 import "@/styles/share.css";
 
-const HINT = "In Instagram or TikTok, long-press the image to save it.";
+const HINT = "Share copies your link and shows how to add it to your story as a Link sticker.";
 
 type ShareSheetProps = {
     item: InboxItem;
     link: string;
+    url: string;
     onClose: () => void;
 };
 
-export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
+export function ShareSheet({ item, link, url, onClose }: ShareSheetProps) {
     const headingRef = useRef<HTMLHeadingElement>(null);
+    const shareRef = useRef<HTMLButtonElement>(null);
     const [includePhoto, setIncludePhoto] = useState(true);
     const [includePlace, setIncludePlace] = useState(true);
+    const [guiding, setGuiding] = useState(false);
+    const copy = useLinkShare(url);
 
     const card = useStoryCard(
         {
@@ -28,7 +36,7 @@ export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
             message: item.message,
             placeName: item.location.name,
             hasPhoto: item.has_photo,
-            link,
+            linkUrl: url,
         },
         { includePhoto, includePlace },
     );
@@ -37,10 +45,10 @@ export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
         headingRef.current?.focus();
     }, []);
 
-    // Escape closes the panel from anywhere on the page
+    // Escape closes the panel from anywhere on the page; the guide handles its own
     useEffect(() => {
         function handleKey(event: KeyboardEvent) {
-            if (event.key === "Escape") {
+            if (event.key === "Escape" && !guiding) {
                 onClose();
             }
         }
@@ -50,9 +58,21 @@ export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
         return () => {
             document.removeEventListener("keydown", handleKey);
         };
-    }, [onClose]);
+    }, [onClose, guiding]);
 
     const locked = !card.ready || card.busy;
+
+    // copy in the same tap, then open the guide
+    function handleShare() {
+        void copy.copy();
+        setGuiding(true);
+    }
+
+    // closing the guide puts focus back on Share
+    function handleCloseGuide() {
+        setGuiding(false);
+        shareRef.current?.focus();
+    }
 
     return (
         <div id="share-panel" className="share-panel" role="region" aria-labelledby="share-title">
@@ -125,12 +145,11 @@ export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
             <div className="placement inbox-actions">
                 <div className="container">
                     <button
+                        ref={shareRef}
                         className="auth-btn auth-btn-ink"
                         type="button"
                         disabled={locked}
-                        onClick={() => {
-                            void card.share();
-                        }}
+                        onClick={handleShare}
                     >
                         <ShareFat weight="bold" aria-hidden="true" />
                         Share
@@ -151,10 +170,12 @@ export function ShareSheet({ item, link, onClose }: ShareSheetProps) {
                 </div>
                 <div className="container">
                     <p className="auth-error" role="alert">
-                        {card.error}
+                        {guiding ? "" : card.error}
                     </p>
                 </div>
             </div>
+
+            {guiding ? <StickerGuide card={card} link={link} copy={copy} onClose={handleCloseGuide} /> : null}
         </div>
     );
 }

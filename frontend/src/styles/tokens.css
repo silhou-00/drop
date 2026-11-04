@@ -463,19 +463,62 @@
    preview with its white ring */
 :root {
     --mylink-card-max: 100%;
-    --mylink-fs-url: clamp(1.4rem, 1.1rem + 1.4vw, 2.2rem);
+    --mylink-fs-url: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
     --mylink-story-w: min(13.75rem, 50%);
     --mylink-story-tilt: -3deg;
     --mylink-story-radius: 18px;
     --mylink-story-ring: 0 0 0 6px #fff;
     --mylink-preview-padding: 12px 0;
     --mylink-wait-padding: 12px;
+    --mylink-fs-step: var(--type-subheading);
+    --mylink-share-min-h: 56px;
+    --mylink-slide-w: min(70%, 20rem);
+    --mylink-carousel-pad-y: 20px;
+    --mylink-carousel-fade: 12px;
+    --mylink-dot-hit: 28px;
+    --mylink-dot-size: 8px;
+    --mylink-dot-active-w: 22px;
+    --mylink-steps-w: 30rem;
+    --mylink-steps-top: 24px;
+    --mylink-tpl-padding: 16px;
+    --mylink-tpl-radius: 24px;
+    --mylink-tpl-rest-scale: 0.94;
+    --mylink-tpl-ring: 0 0 0 3px var(--ink);
+    --mylink-tpl-slab-padding: 14px 16px;
+    --mylink-tpl-slab-radius: 16px;
+    --mylink-fs-tpl: clamp(1.45rem, 1.2rem + 1.3vw, 2.1rem);
+    --mylink-tpl-mark-w: 2.5em;
+    --mylink-tpl-mark-h: 0.5em;
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --mylink-slide-w: min(62%, 22rem);
+    }
 }
 
 @media (min-width: 80rem) {
     :root {
         --mylink-card-max: 36rem;
     }
+}
+
+/* sticker guide: the full-screen steps for adding the link to a story, each with a screenshot
+   of that step */
+:root {
+    --guide-layer-z: 50;
+    --guide-max: 36rem;
+    --guide-fs-title: var(--type-heading);
+    --guide-fs-step: var(--type-subheading);
+    --guide-shot-max-h: min(22rem, 42svh);
+    --guide-shot-radius: 18px;
+    --guide-link-padding: 20px;
+    --guide-fs-link: clamp(1.2rem, 1rem + 1vw, 1.7rem);
+    --guide-hot-border: 3px;
+    --guide-hot-radius: 14px;
+    --guide-hot-glow: 0 0 0 4px rgba(255, 49, 49, 0.3);
+    --guide-hot-glow-wide: 0 0 0 10px rgba(255, 49, 49, 0.12);
+    --guide-dot-size: 10px;
 }
 
 /* statements: the quoted line on the send page and My link, the inbox pill and section

@@ -231,7 +231,10 @@ function SignInPage() {
                         {username ? (
                             <div className="container">
                                 <p className="auth-note">
-                                    Next, you claim <span className="auth-mono">drop.link/{username}</span>
+                                    Next, you claim{" "}
+                                    <span className="auth-mono">
+                                        {window.location.host}/{username}
+                                    </span>
                                 </p>
                             </div>
                         ) : null}

@@ -14,8 +14,8 @@ This replaces the old pause switch. A link used to be open until its owner pause
 
 ## What Was Built
 
-- An owner can start a statement from My link: one line of up to 120 characters, with a live count. Starting it opens the link for two hours.
-- Starting a new statement while one is running ends the running one first. The form says so before the owner commits.
+- An owner can start a statement from My link: one line of up to 120 characters. Starting it opens the link for two hours. (Since November 4 this is done by picking a card and pressing Share. See the update below.)
+- Starting a new statement while one is running ends the running one first. (From November 4 the owner picks a card and Share does this, with a note beforehand. See the update below.)
 - An owner can end a statement early. A short in-page question asks first, and a double click ends it once.
 - My link shows the running statement with a live countdown, how many drops it has brought so far, and an "End now" button. The countdown never asks the server for the time. It counts down on the screen and stops at zero.
 - A sender who opens the link sees the statement in a quoted card with how long the link stays open, then the form. When the time runs out while the page is open, the page switches to the closed message by itself. If the owner ends the statement while a sender is writing, the send is turned away with the closed message and nothing is stored.
@@ -28,10 +28,18 @@ This replaces the old pause switch. A link used to be open until its owner pause
 - The status pill and the "N new" count are two pills that melt into one shape with a narrow neck between them, using the same gooey effect as the navigation bead. They sit in the same place on every screen size, and the shape stays correct when only one of the two is showing.
 - The map has a statement picker under the chips, listing each statement with its drop count and "Earlier". Choosing one narrows the pins and the list.
 - The picker is a custom pill that opens a list which melts out of it, instead of the plain system menu. It works from the keyboard (arrows, Home, End, Enter, Space and Escape), closes when tapped outside, and tells screen readers which choice is picked.
-- The story image made from My link now carries the statement instead of a fixed line. When the link is closed, My link keeps the Copy button and hides the preview and Share, because sharing a closed link would waste the story.
+- The story image made from My link now carries the statement instead of a fixed line. (From November 4, a closed link still shows the preview and Share, because Share is what opens the link. See the update below.)
 - The empty states in the inbox and on the map now point to My link instead of offering to share a closed link.
 - The link preview that chat apps show does not include the statement. Chat apps keep previews long after a two-hour statement ends.
 - The old pause switch, its stored setting and its error name are gone.
+
+### Update: November 4, 2026, statement cards and sharing from My link
+
+- My link no longer has a "New statement" button or a text form. It shows a row of cards the owner swipes through: "Send me drops", "Spotted me where?", "Where's our spot?", "Confess anything", "Where next?" and "Write your own", the first card, which holds a text box with its live count. One card sits in the middle with its neighbours peeking in, and tapping a card, swiping or using the arrow keys picks it. A row of dots under the cards shows how many there are and which is picked, and tapping a dot jumps to that card. On phones the neighbouring cards show more than before, because owners could not tell there were other cards.
+- If a statement is already running and matches a card, that card starts out picked. Otherwise "Send me drops" is, so the page opens on it even though "Write your own" comes first.
+- Below the cards are two steps. Step 1, "Copy your link", shows the link and a copy button. Step 2, "Share link on your story", shows a preview of the story image and a Share button.
+- Share starts the picked statement if it is not the one already running, copies the link in the same tap, and opens a guide. A short note beside Share says it opens the link for two hours, or that it ends the current statement first. If the typed text is not valid, the same message as before shows and nothing starts.
+- The running statement card still shows the countdown, the drop count and "End now". A closed link now shows the cards, the preview and Share, so a closed link no longer hides Share.
 
 ## Decisions & Trade-offs
 
@@ -48,6 +56,13 @@ This replaces the old pause switch. A link used to be open until its owner pause
 - **The same-origin check was strengthened here, and it fixes an existing gap.** The old check only looked at form posts, so a JSON request that changed a drop (mark read, delete) from another site was not checked. The new check covers every request that changes data, whatever its content type, and is used on both the drops and the statements routes.
 - **The per-owner request limiter is now shared.** The statements routes needed the same limiter the inbox uses, with a longer window, so it moved to shared code.
 - **Every current owner's link closed when this shipped.** No one had a statement yet. This is fine before launch.
+
+**November 4 update**
+
+- **Share is how a statement is started.** The owner does not start a statement and then share it as two jobs. One press does both, so a link is never shared while closed, and the owner cannot forget a step.
+- **Ready-made cards and a free-text card.** Most owners want a short line they do not have to think about. Typing is still there, on the first card.
+- **The copy happens inside the same tap as Share.** Phones only allow copying while the tap is still happening, and the guide that opens next would otherwise lose that right.
+- **The old start form and its toggle were removed**, not hidden, since nothing else used them.
 
 ## Security Pass
 
@@ -66,11 +81,11 @@ This replaces the old pause switch. A link used to be open until its owner pause
 **Web app**
 
 - Is any secret in the web app or a browser-visible setting? No. No new setting was added.
-- Is any token, credential or personal data in browser storage or the address bar? No. The running statement lives in memory only. The statement filter in the address holds a statement id or the word "earlier", checked before use, and anything else is dropped.
-- Is server or user content ever rendered as raw markup? No. Statement text is shown as plain text in the page and as canvas text in the story image. It is never put in a link, image source, style or preview tag.
-- Is any unchecked value put into a link, image source or style? No. The statement text never goes there. The statement id in the address is checked as a UUID or "earlier" first.
+- Is any token, credential or personal data in browser storage or the address bar? No. The running statement and the picked card live in memory only. The statement filter in the address holds a statement id or the word "earlier", checked before use, and anything else is dropped.
+- Is server or user content ever rendered as raw markup? No. Statement text is shown as plain text in the page, in the card row and in the story image. It is never put in a link, image source, style or preview tag.
+- Is any unchecked value put into a link, image source or style? No. The statement text never goes there. The statement id in the address is checked as a UUID or "earlier" first. Re-walked on November 4: the card lines are fixed constants, typed text is checked with the same rule as before any request, and the link shown and copied comes from a checked name and the site's own address, never from a typed value.
 - Do external links carry the safe link attributes? Not applicable, this module adds no external links.
-- Does every form have a submit lock? Yes. Start and end each hold a lock, so a double click sends one request. A double click on start was tested.
+- Does every form have a submit lock? Yes. Start and end each hold a lock, so a double click sends one request. A double click on start was tested. Re-walked on November 4: Share holds the same start lock and is switched off while it runs and until the current statement has loaded, and Copy link is locked while a copy runs.
 - Does a failed sign-in hide which part was wrong? Not applicable, no sign-in change.
 - Is debug logging removed? Yes, there is none.
 - Too many requests: the existing wait message shows when a limit is hit.
@@ -87,6 +102,8 @@ Open risk carried into the PRD: statement text is public, unmoderated text, on a
 
 ## Open Items
 
+- The November 4 My link cards and the sharing guide still need a manual look at phone, tablet and wide widths, in light and dark, and with the arrow keys and a screen reader.
+- The picked card is not stored anywhere. It lasts until the page is reloaded, then the running statement's card or "Send me drops" is picked again.
 - Only the tablet width (958 px) was checked in the browser, because the window would not resize. The phone (390), laptop (1280) and wide (1920) widths still need a manual check.
 - The later restyle (the status pill, the picker and the "View all" button) has not been checked by hand at 390, 768 and 1920 pixels. Those three widths still need a manual check.
 - Not tried in the browser: a send turned away as closed (sending needs a GPS fix), ending a statement that had already ended, and the public page's countdown reaching zero on its own. The first two are covered by tests.
