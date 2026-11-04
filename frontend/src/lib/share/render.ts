@@ -2,16 +2,14 @@
 // except the same-origin logo and the brand fonts, which load before the first stroke. The
 // message is drawn as canvas text only, wrapped and shrunk until it fits its paper card, and
 // emoji fall back to the system fonts. The photo is a same-origin image, so the canvas stays
-// readable. In place of the address, a dashed spot with arrows marks where the owner puts the
-// Link sticker. The layout follows the story comp; positions and sizes live in model.ts.
+// readable. The card never prints the address; the owner adds their own Link sticker anywhere
+// on it. The layout follows the story comp; positions and sizes live in model.ts.
 import {
-    ARROW_PATH,
     CARD_HEIGHT,
     CARD_WIDTH,
     PIN_GRID,
     PIN_PATH,
     PLACE_SOURCE_LABEL,
-    SPOT_LABEL,
     STORY_COLORS,
     STORY_FILE_TYPE,
     STORY_FONT_FACES,
@@ -320,53 +318,6 @@ function drawPlace(ctx: Ctx, name: string) {
     ctx.fillText(PLACE_SOURCE_LABEL, left + width - placePaddingInline - sourceWidth, middle);
 }
 
-// the dashed sticker spot near the foot, with three arrows under it pointing up at it
-function drawSpot(ctx: Ctx) {
-    const {
-        spotBottom,
-        spotWidth,
-        spotHeight,
-        spotRadius,
-        spotDash,
-        spotLineWidth,
-        spotTextSize,
-        arrowSize,
-        arrowGap,
-        arrowSpacing,
-    } = STORY_LAYOUT;
-    const left = (CARD_WIDTH - spotWidth) / 2;
-    const top = CARD_HEIGHT - spotBottom - spotHeight;
-
-    ctx.fillStyle = STORY_COLORS.paper;
-    roundRect(ctx, left, top, spotWidth, spotHeight, spotRadius);
-    ctx.fill();
-
-    ctx.save();
-    ctx.setLineDash(spotDash);
-    ctx.lineWidth = spotLineWidth;
-    ctx.strokeStyle = STORY_COLORS.ink2;
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.font = font(500, spotTextSize, STORY_FONTS.body);
-    ctx.fillStyle = STORY_COLORS.ink2;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(SPOT_LABEL, CARD_WIDTH / 2, top + spotHeight / 2);
-
-    const arrow = new Path2D(ARROW_PATH);
-    const arrowTop = top + spotHeight + arrowGap;
-
-    for (const offset of [-arrowSpacing, 0, arrowSpacing]) {
-        ctx.save();
-        ctx.translate(CARD_WIDTH / 2 + offset - arrowSize / 2, arrowTop);
-        ctx.scale(arrowSize / PIN_GRID, arrowSize / PIN_GRID);
-        ctx.fillStyle = STORY_COLORS.accent;
-        ctx.fill(arrow);
-        ctx.restore();
-    }
-}
-
 function toBlob(canvas: HTMLCanvasElement) {
     return new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((blob) => {
@@ -399,8 +350,6 @@ export async function renderStoryCard(input: StoryInput, options: StoryOptions):
     if (options.includePlace && input.placeName) {
         drawPlace(ctx, input.placeName);
     }
-
-    drawSpot(ctx);
 
     return toBlob(canvas);
 }

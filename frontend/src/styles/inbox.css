@@ -740,7 +740,8 @@
         overflow: hidden;
     }
 
-    .auth-page .app-pane-read .drop-view .placement {
+    /* the map's floating buttons keep their own size and corner */
+    .auth-page .app-pane-read .drop-view .placement:not(.inbox-map-ctl) {
         width: 100%;
         max-width: var(--app-read-max);
         margin-inline: auto;

@@ -1,9 +1,8 @@
 // Story card shapes and layout. The card is a 1080 by 1920 PNG drawn on a canvas in the
 // browser and never uploaded. Every size, colour and position below is taken from the approved
 // Marbled Bath story comp: the logo on top, the message on a paper card, the photo in a round
-// frame with ice and red rings, the place on a white pill, and near the foot a dashed sticker
-// spot with arrows that shows where the owner places their story app's Link sticker. The card
-// never prints the address itself. The colours are the light palette from tokens.css and the
+// frame with ice and red rings, and the place on a white pill. The foot is left clear for the
+// owner's own Link sticker; the card never prints the address itself. The colours are the light palette from tokens.css and the
 // hero-intensity marble pigments, because the card is always light whatever the device theme
 // is. The My link card uses the statement's text in place of a drop's message.
 
@@ -65,16 +64,6 @@ export const STORY_LAYOUT = {
     placeMaxSize: 40,
     placeMinSize: 26,
     placeSourceSize: 26,
-    spotBottom: 300,
-    spotWidth: 620,
-    spotHeight: 120,
-    spotRadius: 32,
-    spotDash: [18, 14],
-    spotLineWidth: 5,
-    spotTextSize: 36,
-    arrowSize: 48,
-    arrowGap: 18,
-    arrowSpacing: 96,
     pillMaxWidth: 900,
     veinGap: 24,
     veinWidth: 2.2,
@@ -86,12 +75,6 @@ export const STORY_LAYOUT = {
 export const PIN_PATH =
     "M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z";
 export const PIN_GRID = 256;
-
-// the Phosphor up arrow, bold weight, on the same grid
-export const ARROW_PATH =
-    "M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z";
-
-export const SPOT_LABEL = "Paste your link here";
 
 // every drop's place comes from GPS, so the pill's source label is fixed
 export const PLACE_SOURCE_LABEL = "GPS";

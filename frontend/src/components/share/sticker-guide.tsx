@@ -1,6 +1,6 @@
 // The "add the Link sticker" guide, opened by Share on My link and on a drop's story panel. It
 // covers the screen, above the app's nav, and walks five steps: copy the link, tap the sticker
-// button, tap Link, paste the link, place it on the marked spot on the image. The first step
+// button, tap Link, paste the link, place it anywhere on the image. The first step
 // shows the link with a Copy link button (it was already copied when the guide opened); the
 // others show a screenshot of that step in the Instagram story editor, with a red ring over
 // what to tap, and "Copy again". Back
@@ -72,8 +72,8 @@ const STEPS: GuideStep[] = [
         },
     },
     {
-        title: "Place it on the spot",
-        body: "Drag the sticker onto the marked spot on your image.",
+        title: "Place the sticker",
+        body: "Drag the sticker to where you want it on your image.",
         shot: {
             src: "/guide/step-4-place-sticker.webp",
             width: 900,
