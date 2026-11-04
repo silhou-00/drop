@@ -2,8 +2,7 @@
 // reference at motion-reference.takayustudio.jp, as approved on the design sheet. Each
 // app token holds a duration in milliseconds, an easing name from the easings file, and a
 // distance (px), a starting scale or a step where the movement needs one. The schema sets
-// the tweak sliders. The landing motion values at the end are edited through the landing's
-// own tweak group instead.
+// the tweak sliders.
 import type { TweakSchema } from "@/lib/tweaks/model";
 import { EASING_NAMES, SPRINGS } from "./easings";
 
@@ -58,12 +57,3 @@ export const motionSchema: TweakSchema<MotionTokens> = {
     tabSpring: SPRING,
     reducedFade: { duration: DURATION, easing: EASING },
 };
-
-// landing motion: the headline rise, the claim iris and the ink drop's ripple
-export const landingMotion = {
-    // headings rise through a mask on entry; pop is the call to action badge
-    rise: { dur: 620, stagger: 80, pop: 520 },
-    iris: { dur: 760 },
-    // the ink drop's travelling ring that pushes the veins outward
-    ripple: { push: 2.4, speed: 4.2 },
-} as const;
