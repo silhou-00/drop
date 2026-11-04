@@ -1,5 +1,11 @@
 # Backend Changelog
 
+## November 4, 2026
+
+**Link preview:**
+
+- Shared links now show the Drop preview image in chat apps, and the home page and every other page get a title and description too.
+
 ## November 3, 2026
 
 **Documentation:**

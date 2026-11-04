@@ -1,5 +1,11 @@
 # Frontend Changelog
 
+## November 4, 2026
+
+**Branding:**
+
+- The browser tab shows the Drop pin instead of the default icon, iPhones get a home screen icon, and links shared in chats show a Drop preview image.
+
 ## November 1, 2026
 
 **Landing:**

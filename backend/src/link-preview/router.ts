@@ -1,11 +1,11 @@
-// Link preview route. Answers GET /:username with the built index.html, filled with Open
-// Graph tags for that profile. Anything that is not a live profile falls through to the
-// next handler, so static files, the SPA fallback and the frontend router stay in charge.
+// Link preview routes. Answer GET /:username with the built index.html filled with Open
+// Graph tags for that profile, and every other page, the home page included, with the site
+// card. Static files are served before these routes, so only page addresses reach them.
 import { readFile } from "node:fs/promises";
 import { Hono } from "hono";
 import { AppError } from "../shared/errors.js";
 import type { PublicProfile } from "../profiles/service.js";
-import { renderProfilePage } from "./service.js";
+import { renderProfilePage, renderSitePage } from "./service.js";
 
 type Options = {
     getPublicProfile: (username: string) => Promise<PublicProfile>;
@@ -48,6 +48,19 @@ export function createLinkPreviewRouter({ getPublicProfile, templatePath, origin
         c.header("Cache-Control", "no-cache");
 
         return c.html(renderProfilePage(html, profile, origin));
+    });
+
+    // every other page, the home page included, gets the site card
+    router.get("*", async (c, next) => {
+        const html = await loadTemplate();
+
+        if (html === null) {
+            return next();
+        }
+
+        c.header("Cache-Control", "no-cache");
+
+        return c.html(renderSitePage(html, origin));
     });
 
     return router;

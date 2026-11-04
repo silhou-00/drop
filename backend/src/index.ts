@@ -1,6 +1,7 @@
 // Entry point for the Drop server. One Node process serves the API under /api and
 // the built frontend for every other path, so the app runs as a single service.
-// Any non-API path falls back to index.html and the frontend router takes over.
+// Any non-API path that is not a file gets index.html, filled with link preview tags,
+// and the frontend router takes over.
 import path from "node:path";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
@@ -113,8 +114,8 @@ app.all("/api/*", (c) => {
 // map files, served from the same origin
 app.route("/", createTilesRouter({ dir: config.TILES_DIR }));
 
-// frontend
-app.use("/*", serveStatic({ root: FRONTEND_DIST }));
+// frontend files; folders are not answered with index.html, the preview routes fill it
+app.use("/*", serveStatic({ root: FRONTEND_DIST, index: "no-folder-index" }));
 app.route(
     "/",
     createLinkPreviewRouter({
@@ -123,7 +124,6 @@ app.route(
         origin: ORIGIN,
     }),
 );
-app.get("*", serveStatic({ path: path.join(FRONTEND_DIST, "index.html") }));
 
 const server = serve({ fetch: app.fetch, port: config.PORT }, (info) => {
     console.log(`Drop server listening on http://localhost:${info.port}`);
