@@ -23,7 +23,7 @@ export type NewDropRow = {
     deviceKey: string;
 };
 
-export type InsertDropResult = "inserted" | "closed" | "missing";
+export type InsertDropResult = { status: "inserted"; id: string } | { status: "closed" } | { status: "missing" };
 
 // a listed row carries its time at microsecond precision, for the page cursor
 export type ListedDropRow = DropRow & { cursorAt: string };
@@ -32,7 +32,7 @@ const CURSOR_AT_SQL = sql<string>`to_char(${drops.createdAt} at time zone 'utc',
 
 export function createDropRepository(db: NodePgDatabase) {
     async function insertDrop(row: NewDropRow): Promise<InsertDropResult> {
-        return db.transaction(async (tx) => {
+        return db.transaction(async (tx): Promise<InsertDropResult> => {
             const owners = await tx
                 .select({ id: profiles.id })
                 .from(profiles)
@@ -40,7 +40,7 @@ export function createDropRepository(db: NodePgDatabase) {
                 .for("share");
 
             if (owners.length === 0) {
-                return "missing";
+                return { status: "missing" };
             }
 
             const running = await tx
@@ -51,12 +51,15 @@ export function createDropRepository(db: NodePgDatabase) {
                 .for("share");
 
             if (running.length === 0) {
-                return "closed";
+                return { status: "closed" };
             }
 
-            await tx.insert(drops).values({ ...row, statementId: running[0].id });
+            const [created] = await tx
+                .insert(drops)
+                .values({ ...row, statementId: running[0].id })
+                .returning({ id: drops.id });
 
-            return "inserted";
+            return { status: "inserted", id: created.id };
         });
     }
 

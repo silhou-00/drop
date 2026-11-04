@@ -66,12 +66,12 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
         const statementRepo = createStatementRepository(db);
 
         // no statement running: the link is closed
-        expect(await repo.insertDrop(row)).toBe("closed");
+        expect(await repo.insertDrop(row)).toEqual({ status: "closed" });
 
         // insert with a location, under the running statement
         const first = await statementRepo.start(recipientId, "Out tonight");
 
-        expect(await repo.insertDrop(row)).toBe("inserted");
+        expect(await repo.insertDrop(row)).toMatchObject({ status: "inserted" });
 
         const stored = await db
             .select({
@@ -99,6 +99,7 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
             const { createKeyMaker } = await import("./keys.js");
             const { createSendLimiter } = await import("./limits.js");
             const { createDropService } = await import("./service.js");
+            const { createDropEvents } = await import("./events.js");
             const { cleanPhoto, newPhotoKey } = await import("../photos/service.js");
             const { createLocalDiskStore } = await import("../shared/storage/local-disk.js");
             const service = createDropService({
@@ -113,6 +114,7 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
                 store: createLocalDiskStore({ dir: uploads }),
                 cleanPhoto,
                 newPhotoKey,
+                events: createDropEvents(),
             });
             const jpeg = await sharp({ create: { width: 300, height: 200, channels: 3, background: "teal" } })
                 .jpeg()
@@ -152,7 +154,7 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
 
         // an ended statement closes the link
         expect((await statementRepo.end(recipientId, first.id)).status).toBe("ended");
-        expect(await repo.insertDrop(row)).toBe("closed");
+        expect(await repo.insertDrop(row)).toEqual({ status: "closed" });
 
         // a statement past its end time closes the link without any job
         await db.insert(statements).values({
@@ -163,13 +165,15 @@ describe.skipIf(!run)("sending a drop against the database", { timeout: DB_TIMEO
         });
 
         expect(await statementRepo.findRunning(recipientId)).toBeNull();
-        expect(await repo.insertDrop(row)).toBe("closed");
+        expect(await repo.insertDrop(row)).toEqual({ status: "closed" });
 
         // a new statement opens it again, and a missing profile is reported
         const second = await statementRepo.start(recipientId, "Back again");
 
-        expect(await repo.insertDrop(row)).toBe("inserted");
-        expect(await repo.insertDrop({ ...row, recipientId: "00000000-0000-0000-0000-000000000000" })).toBe("missing");
+        expect(await repo.insertDrop(row)).toMatchObject({ status: "inserted" });
+        expect(await repo.insertDrop({ ...row, recipientId: "00000000-0000-0000-0000-000000000000" })).toEqual({
+            status: "missing",
+        });
 
         const [latest] = await db
             .select({ statementId: drops.statementId })

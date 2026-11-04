@@ -1,6 +1,6 @@
 /* The My link page: the running statement, the row of statement cards, then the two steps.
-   Phones and tablets stack them; from laptop width the steps move to a right-hand column, level
-   with the top of the statement, that stays in view while the page scrolls. The running statement shows a Live mark, the
+   Phones and tablets stack them; from laptop width the steps move to a left-hand column and the
+   statement cards sit on the right, staying in view while the page scrolls. The running statement shows a Live mark, the
    time left and the statement in large quoted type. The cards snap one to the middle with
    their neighbours peeking in; the chosen one sits full size with an ink ring. The steps card
    has the link in large mono type that breaks anywhere, the story preview tilted inside a
@@ -49,7 +49,7 @@
 @media (min-width: 80rem) {
     .auth-page .mylink-columns {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, var(--mylink-steps-w));
+        grid-template-columns: minmax(0, var(--mylink-steps-w)) minmax(0, 1fr);
         align-items: start;
     }
 
@@ -59,12 +59,16 @@
     }
 
     .auth-page .mylink-columns > .section {
-        grid-column: 1;
+        grid-column: 2;
     }
 
     .auth-page .mylink-columns > .mylink-steps-col {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 1 / span 2;
+    }
+
+    /* the statement cards stay in view while the steps scroll */
+    .auth-page .mylink-columns > .mylink-cards-col {
         position: sticky;
         top: var(--mylink-steps-top);
     }

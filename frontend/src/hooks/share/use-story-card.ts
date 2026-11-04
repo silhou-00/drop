@@ -1,6 +1,6 @@
 // Builds the story card for one drop and holds it as a PNG with a blob URL for the preview. The
-// card is rebuilt when the options change, and each blob URL is revoked when it is replaced or
-// the panel closes. The photo is loaded once from the drop's same-origin photo path; a failed
+// card is rebuilt when the options or the chosen style change, and each blob URL is revoked
+// when it is replaced or the panel closes. The photo is loaded once from the drop's same-origin photo path; a failed
 // load leaves the card without it. Share first writes the owner's full address to the
 // clipboard again, in the same tap, so it is ready to paste into the Link sticker. Then it
 // hands the file to the device's share sheet when the browser can share files, and otherwise
@@ -46,7 +46,7 @@ function isAbort(error: unknown) {
 
 export function useStoryCard(source: StorySource, options: StoryOptions) {
     const { id, message, placeName, hasPhoto, linkUrl } = source;
-    const { includePhoto, includePlace } = options;
+    const { includePhoto, includePlace, style } = options;
     const lockRef = useRef(false);
     const timerRef = useRef(0);
     const [photo, setPhoto] = useState<PhotoResult | null>(null);
@@ -57,7 +57,20 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
     const photoPath = hasPhoto ? dropPhotoPath(id) : null;
     const photoSettled = !photoPath || (photo !== null && photo.id === id);
     const image = photoPath && photo && photo.id === id ? photo.image : null;
-    const key = [id, message, placeName, includePhoto, includePlace, photoSettled, image !== null].join("|");
+    const key = [
+        id,
+        message,
+        placeName,
+        includePhoto,
+        includePlace,
+        photoSettled,
+        image !== null,
+        style.background,
+        style.card,
+        style.font,
+        style.size,
+        style.align,
+    ].join("|");
 
     // the photo once per drop, from its same-origin path
     useEffect(() => {
@@ -98,7 +111,7 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
 
         import("@/lib/share/render")
             .then(({ renderStoryCard }) =>
-                renderStoryCard({ message, placeName, photo: image }, { includePhoto, includePlace }),
+                renderStoryCard({ message, placeName, photo: image }, { includePhoto, includePlace, style }),
             )
             .then(
                 (blob) => {
@@ -123,7 +136,7 @@ export function useStoryCard(source: StorySource, options: StoryOptions) {
                 URL.revokeObjectURL(url);
             }
         };
-    }, [key, message, placeName, image, includePhoto, includePlace, photoSettled]);
+    }, [key, message, placeName, image, includePhoto, includePlace, photoSettled, style]);
 
     // a pending lock release does not outlive the panel
     useEffect(() => {

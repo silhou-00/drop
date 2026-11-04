@@ -54,6 +54,11 @@ export function updateMap(change: (current: MapSnapshot) => MapSnapshot) {
     }
 }
 
+// marks the kept drops stale so the next map mount loads them again
+export function expireMap() {
+    updateMap((current) => ({ ...current, loadedAt: 0 }));
+}
+
 // a read change replaces the kept copy, and a delete takes it out
 onDropChange((change) => {
     if (change.kind === "read") {

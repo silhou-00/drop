@@ -3,7 +3,10 @@
 // message is drawn as canvas text only, wrapped and shrunk until it fits its paper card, and
 // emoji fall back to the system fonts. The photo is a same-origin image, so the canvas stays
 // readable. The card never prints the address; the owner adds their own Link sticker anywhere
-// on it. The layout follows the story comp; positions and sizes live in model.ts.
+// on it. The layout follows the story comp; positions and sizes live in model.ts. The chosen
+// style sets the ground and its veins, the card and text colours, the font, the largest
+// message size and the alignment; dark grounds take the light logo. The default style draws
+// the comp unchanged.
 import {
     CARD_HEIGHT,
     CARD_WIDTH,
@@ -11,13 +14,19 @@ import {
     PIN_PATH,
     PLACE_SOURCE_LABEL,
     STORY_COLORS,
+    STORY_BACKGROUNDS,
+    STORY_CARD_COLORS,
     STORY_FILE_TYPE,
     STORY_FONT_FACES,
     STORY_FONTS,
     STORY_LAYOUT,
-    STORY_LOGO_PATH,
+    STORY_TEXT_SIZES,
+    STORY_TYPEFACES,
+    type StoryAlign,
+    type StoryBackgroundSpec,
     type StoryInput,
     type StoryOptions,
+    type StoryStyle,
 } from "./model";
 
 const ELLIPSIS = "…";
@@ -28,29 +37,64 @@ const CANVAS_FAILED = "The canvas could not be drawn.";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
-let logoLoad: Promise<HTMLImageElement | null> | null = null;
+const logoLoads = new Map<string, Promise<HTMLImageElement | null>>();
 
 type Ctx = CanvasRenderingContext2D;
 
 type Fit = { size: number; lines: string[] };
 
+// how the message card looks, resolved from the chosen style
+type Look = {
+    fill: string;
+    edge: string | null;
+    ink: string;
+    family: string;
+    weight: number;
+    maxSize: number;
+    align: StoryAlign;
+};
+
 function font(weight: number, size: number, family: string) {
     return `${weight} ${size}px ${family}, ${STORY_FONTS.fallback}`;
 }
 
-// the logo once per page; a failed load leaves the card without it
-function loadLogo() {
-    if (!logoLoad) {
+// each logo once per page; a failed load leaves the card without it
+function loadLogo(path: string) {
+    let load = logoLoads.get(path);
+
+    if (!load) {
         const image = new Image();
 
-        image.src = STORY_LOGO_PATH;
-        logoLoad = image.decode().then(
+        image.src = path;
+        load = image.decode().then(
             () => image,
             () => null,
         );
+        logoLoads.set(path, load);
     }
 
-    return logoLoad;
+    return load;
+}
+
+// the entry for an id; the style is checked before it gets here, so the first is only a guard
+function pick<T extends { id: string }>(list: readonly T[], id: string) {
+    return list.find((entry) => entry.id === id) ?? list[0];
+}
+
+function resolveLook(style: StoryStyle): Look {
+    const card = pick(STORY_CARD_COLORS, style.card);
+    const background = pick(STORY_BACKGROUNDS, style.background);
+    const typeface = pick(STORY_TYPEFACES, style.font);
+
+    return {
+        fill: card.fill,
+        edge: background.cardEdge,
+        ink: card.ink,
+        family: typeface.family,
+        weight: typeface.weight,
+        maxSize: pick(STORY_TEXT_SIZES, style.size).maxSize,
+        align: style.align,
+    };
 }
 
 function loadFonts() {
@@ -111,11 +155,11 @@ function ellipsize(ctx: Ctx, text: string, width: number) {
 }
 
 // the largest message size whose lines fit the box; past the floor the last line is cut
-function fitMessage(ctx: Ctx, message: string, width: number, height: number): Fit {
-    const { messageMaxSize, messageMinSize, messageLineHeight } = STORY_LAYOUT;
+function fitMessage(ctx: Ctx, message: string, width: number, height: number, look: Look): Fit {
+    const { messageMinSize, messageLineHeight } = STORY_LAYOUT;
 
-    for (let size = messageMaxSize; size >= messageMinSize; size -= SIZE_STEP) {
-        ctx.font = font(500, size, STORY_FONTS.body);
+    for (let size = look.maxSize; size >= messageMinSize; size -= SIZE_STEP) {
+        ctx.font = font(look.weight, size, look.family);
 
         const lines = wrapText(ctx, message, width);
 
@@ -124,7 +168,7 @@ function fitMessage(ctx: Ctx, message: string, width: number, height: number): F
         }
     }
 
-    ctx.font = font(500, messageMinSize, STORY_FONTS.body);
+    ctx.font = font(look.weight, messageMinSize, look.family);
 
     const lines = wrapText(ctx, message, width);
     const keep = Math.max(1, Math.floor(height / (messageMinSize * messageLineHeight)));
@@ -141,11 +185,11 @@ function roundRect(ctx: Ctx, x: number, y: number, width: number, height: number
 }
 
 // combed veins on the ground, grey and pale with a red line now and then
-function drawBath(ctx: Ctx) {
+function drawBath(ctx: Ctx, background: StoryBackgroundSpec) {
     const { veinGap, veinWidth, veinAmplitude, veinPitch } = STORY_LAYOUT;
     const turn = Math.PI * 2;
 
-    ctx.fillStyle = STORY_COLORS.ground;
+    ctx.fillStyle = background.ground;
     ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
     ctx.lineWidth = veinWidth;
     ctx.lineCap = "round";
@@ -153,7 +197,7 @@ function drawBath(ctx: Ctx) {
     for (let index = 0, y = -veinAmplitude * 2; y < CARD_HEIGHT + veinAmplitude * 2; index += 1, y += veinGap) {
         const red = Math.sin(index * 0.37) + Math.sin(index * 0.11) > 1.3;
 
-        ctx.strokeStyle = red ? STORY_COLORS.veinRed : index % 2 === 0 ? STORY_COLORS.veinGrey : STORY_COLORS.veinPale;
+        ctx.strokeStyle = red ? background.veinRed : index % 2 === 0 ? background.veinGrey : background.veinPale;
         ctx.beginPath();
 
         for (let x = 0; x <= CARD_WIDTH + VEIN_STEP; x += VEIN_STEP) {
@@ -183,7 +227,7 @@ function drawLogo(ctx: Ctx, logo: HTMLImageElement | null) {
 }
 
 // the message paper; returns where it ends
-function drawPaper(ctx: Ctx, fit: Fit, top: number) {
+function drawPaper(ctx: Ctx, fit: Fit, top: number, look: Look) {
     const { paperInset, paperPaddingBlock, paperPaddingInline, paperRadius, paperShadowBlur, paperShadowY } =
         STORY_LAYOUT;
     const lineHeight = fit.size * STORY_LAYOUT.messageLineHeight;
@@ -194,31 +238,47 @@ function drawPaper(ctx: Ctx, fit: Fit, top: number) {
     ctx.shadowColor = STORY_COLORS.shadow;
     ctx.shadowBlur = paperShadowBlur;
     ctx.shadowOffsetY = paperShadowY;
-    ctx.fillStyle = STORY_COLORS.paper;
+    ctx.fillStyle = look.fill;
     roundRect(ctx, paperInset, top, width, height, paperRadius);
     ctx.fill();
     ctx.restore();
 
-    ctx.font = font(500, fit.size, STORY_FONTS.body);
-    ctx.fillStyle = STORY_COLORS.ink;
-    ctx.textAlign = "left";
+    // a hairline so a dark card still reads on a dark ground
+    if (look.edge) {
+        ctx.strokeStyle = look.edge;
+        ctx.lineWidth = STORY_LAYOUT.paperEdgeWidth;
+        roundRect(ctx, paperInset, top, width, height, paperRadius);
+        ctx.stroke();
+    }
+
+    const x = look.align === "center" ? CARD_WIDTH / 2 : paperInset + paperPaddingInline;
+
+    ctx.font = font(look.weight, fit.size, look.family);
+    ctx.fillStyle = look.ink;
+    ctx.textAlign = look.align;
     ctx.textBaseline = "middle";
     fit.lines.forEach((line, index) => {
-        ctx.fillText(line, paperInset + paperPaddingInline, top + paperPaddingBlock + (index + 0.5) * lineHeight);
+        ctx.fillText(line, x, top + paperPaddingBlock + (index + 0.5) * lineHeight);
     });
 
     return top + height;
 }
 
 // the photo, cover-fit in a circle inside its ice and red rings
-function drawPhoto(ctx: Ctx, photo: HTMLImageElement | ImageBitmap, centerY: number, size: number) {
+function drawPhoto(
+    ctx: Ctx,
+    photo: HTMLImageElement | ImageBitmap,
+    centerY: number,
+    size: number,
+    background: StoryBackgroundSpec,
+) {
     const centerX = CARD_WIDTH / 2;
     const radius = size / 2;
     const [grey, outerIce, red, innerIce] = STORY_LAYOUT.photoRings;
     const rings: [number, string][] = [
-        [grey, STORY_COLORS.veinGrey],
+        [grey, background.ringOuter],
         [outerIce, STORY_COLORS.ice],
-        [red, STORY_COLORS.veinRed],
+        [red, background.ringAccent],
         [innerIce, STORY_COLORS.ice],
     ];
 
@@ -244,7 +304,13 @@ function drawPhoto(ctx: Ctx, photo: HTMLImageElement | ImageBitmap, centerY: num
 }
 
 // the message, and the photo under it when there is one, between the logo and the place pill
-function drawBody(ctx: Ctx, message: string, photo: HTMLImageElement | ImageBitmap | null) {
+function drawBody(
+    ctx: Ctx,
+    message: string,
+    photo: HTMLImageElement | ImageBitmap | null,
+    look: Look,
+    background: StoryBackgroundSpec,
+) {
     const { paperInset, paperPaddingBlock, paperPaddingInline, paperTop, photoGap, photoMaxSize, photoMinSize } =
         STORY_LAYOUT;
     const ringSpan = STORY_LAYOUT.photoRings[0] * 2;
@@ -252,24 +318,24 @@ function drawBody(ctx: Ctx, message: string, photo: HTMLImageElement | ImageBitm
     const textWidth = CARD_WIDTH - paperInset * 2 - paperPaddingInline * 2;
 
     if (!photo) {
-        const fit = fitMessage(ctx, message, textWidth, bottom - paperTop - paperPaddingBlock * 2);
+        const fit = fitMessage(ctx, message, textWidth, bottom - paperTop - paperPaddingBlock * 2, look);
         const height = fit.lines.length * fit.size * STORY_LAYOUT.messageLineHeight + paperPaddingBlock * 2;
 
-        drawPaper(ctx, fit, paperTop + (bottom - paperTop - height) / 2);
+        drawPaper(ctx, fit, paperTop + (bottom - paperTop - height) / 2, look);
         return;
     }
 
     const textHeight = bottom - paperTop - photoGap - photoMinSize - ringSpan - paperPaddingBlock * 2;
-    const fit = fitMessage(ctx, message, textWidth, textHeight);
-    const paperBottom = drawPaper(ctx, fit, paperTop);
+    const fit = fitMessage(ctx, message, textWidth, textHeight, look);
+    const paperBottom = drawPaper(ctx, fit, paperTop, look);
     const room = bottom - paperBottom - photoGap;
     const size = Math.min(photoMaxSize, room - ringSpan);
 
-    drawPhoto(ctx, photo, paperBottom + photoGap + room / 2, size);
+    drawPhoto(ctx, photo, paperBottom + photoGap + room / 2, size, background);
 }
 
-// the place on a white pill: pin, name and where it came from
-function drawPlace(ctx: Ctx, name: string) {
+// the place on a white pill: pin, name and where it came from; a shadow lifts it off pale grounds
+function drawPlace(ctx: Ctx, name: string, background: StoryBackgroundSpec) {
     const { placeTop, placePaddingBlock, placePaddingInline, placeGap, placeMaxSize, placeMinSize, placeSourceSize } =
         STORY_LAYOUT;
 
@@ -298,9 +364,18 @@ function drawPlace(ctx: Ctx, name: string) {
     const left = (CARD_WIDTH - width) / 2;
     const middle = placeTop + height / 2;
 
+    ctx.save();
+
+    if (background.pillShadow) {
+        ctx.shadowColor = background.pillShadow;
+        ctx.shadowBlur = STORY_LAYOUT.pillShadowBlur;
+        ctx.shadowOffsetY = STORY_LAYOUT.pillShadowY;
+    }
+
     ctx.fillStyle = STORY_COLORS.paper;
     roundRect(ctx, left, placeTop, width, height, height / 2);
     ctx.fill();
+    ctx.restore();
 
     ctx.save();
     ctx.translate(left + placePaddingInline, middle - fit.size / 2);
@@ -331,7 +406,9 @@ function toBlob(canvas: HTMLCanvasElement) {
 }
 
 export async function renderStoryCard(input: StoryInput, options: StoryOptions): Promise<Blob> {
-    const [logo] = await Promise.all([loadLogo(), loadFonts()]);
+    const background = pick(STORY_BACKGROUNDS, options.style.background);
+    const look = resolveLook(options.style);
+    const [logo] = await Promise.all([loadLogo(background.logo), loadFonts()]);
     const canvas = document.createElement("canvas");
 
     canvas.width = CARD_WIDTH;
@@ -343,12 +420,12 @@ export async function renderStoryCard(input: StoryInput, options: StoryOptions):
         throw new Error(CANVAS_FAILED);
     }
 
-    drawBath(ctx);
+    drawBath(ctx, background);
     drawLogo(ctx, logo);
-    drawBody(ctx, input.message, options.includePhoto ? input.photo : null);
+    drawBody(ctx, input.message, options.includePhoto ? input.photo : null, look, background);
 
     if (options.includePlace && input.placeName) {
-        drawPlace(ctx, input.placeName);
+        drawPlace(ctx, input.placeName, background);
     }
 
     return toBlob(canvas);

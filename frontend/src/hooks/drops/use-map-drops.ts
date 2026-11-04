@@ -5,13 +5,15 @@
 // up to a cap. A failure never retries on its own: a failed first page shows the server's text
 // (including the wait after too many requests), and a later failed page keeps what loaded.
 // Each page also brings the statements behind its drops and the count from before statements,
-// kept for the statement picker.
+// kept for the statement picker. A live refresh reads page one again and puts new drops and
+// statements in front of the kept ones, only while the map is loaded.
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { setUnreadCount } from "@/hooks/drops/inbox-store";
 import { getSnapshot, subscribe, updateMap, type MapSnapshot } from "@/hooks/drops/map-store";
 import { ApiError } from "@/lib/api";
 import { listDrops } from "@/lib/drops/api";
 import { MAP_AUTO_PAGES, MAP_FRESH_MS, MAP_MAX_DROPS, MAP_PAGE_SIZE, type InboxItem } from "@/lib/drops/model";
+import type { InboxPage } from "@/lib/drops/model";
 import type { Statement } from "@/lib/statements/model";
 
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
@@ -36,6 +38,58 @@ function mergeStatements(kept: Statement[], page: Statement[]) {
         ...kept.map((statement) => fresh.get(statement.id) ?? statement),
         ...page.filter((statement) => !seen.has(statement.id)),
     ];
+}
+
+// page one again; new drops and statements go in front, failures are silent
+export async function refreshMap(signal: AbortSignal): Promise<void> {
+    if (getSnapshot().status !== "ready") {
+        return;
+    }
+
+    let page: InboxPage;
+
+    try {
+        page = await listDrops({ limit: MAP_PAGE_SIZE }, signal);
+    } catch {
+        return;
+    }
+
+    if (signal.aborted) {
+        return;
+    }
+
+    setUnreadCount(page.unread_count);
+    updateMap((current) => {
+        if (current.status !== "ready") {
+            return current;
+        }
+
+        const kept = new Set(current.items.map((item) => item.id));
+        const keptStatements = new Set(current.statements.map((statement) => statement.id));
+        const fresh = new Map(page.statements.map((statement) => [statement.id, statement]));
+        const statements = [
+            ...page.statements.filter((statement) => !keptStatements.has(statement.id)),
+            ...current.statements.map((statement) => fresh.get(statement.id) ?? statement),
+        ];
+
+        // a page that shares nothing with the kept list has a gap behind it, so it replaces the list
+        if (!page.items.some((item) => kept.has(item.id)) && page.next_cursor !== null) {
+            return {
+                ...current,
+                items: page.items,
+                statements,
+                earlierCount: page.earlier_count,
+                nextCursor: page.next_cursor,
+            };
+        }
+
+        return {
+            ...current,
+            items: [...page.items.filter((item) => !kept.has(item.id)), ...current.items],
+            statements,
+            earlierCount: page.earlier_count,
+        };
+    });
 }
 
 export function useMapDrops(): MapSnapshot & { retry: () => void; loadOlder: () => Promise<void> } {

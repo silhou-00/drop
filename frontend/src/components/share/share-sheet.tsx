@@ -1,15 +1,18 @@
 // The in-page panel that turns a drop into a story image. It shows a preview of the 9:16 card,
 // switches for the photo (only when the drop has one that loaded) and the place (only when the
-// drop has a place name), and Share and Save image buttons, both locked while one runs. Share
-// copies the owner's link in the same tap and opens the sticker guide, which ends in sharing
-// the image. Focus moves to the panel's heading when it opens; Escape or the close button
+// drop has a place name), the Style controls that restyle the card, and Share and Save image
+// buttons, both locked while one runs. Share copies the owner's link in the same tap and opens
+// the sticker guide, which ends in sharing the image. The style is shared with My link and
+// lasts until the app reloads. Focus moves to the panel's heading when it opens; Escape or the close button
 // closes it (or only the guide while that is open), and the page returns focus to its Share
 // button. The card is drawn in the browser and never uploaded.
 import { DownloadSimple, ShareFat, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { StickerGuide } from "@/components/share/sticker-guide";
+import { StoryStyleControls } from "@/components/share/story-style-controls";
 import { useLinkShare } from "@/hooks/profiles/use-link-share";
 import { useStoryCard } from "@/hooks/share/use-story-card";
+import { useStoryStyle } from "@/hooks/share/use-story-style";
 import type { InboxItem } from "@/lib/drops/model";
 import "@/styles/share.css";
 
@@ -29,6 +32,7 @@ export function ShareSheet({ item, link, url, onClose }: ShareSheetProps) {
     const [includePlace, setIncludePlace] = useState(true);
     const [guiding, setGuiding] = useState(false);
     const copy = useLinkShare(url);
+    const { style } = useStoryStyle();
 
     const card = useStoryCard(
         {
@@ -38,7 +42,7 @@ export function ShareSheet({ item, link, url, onClose }: ShareSheetProps) {
             hasPhoto: item.has_photo,
             linkUrl: url,
         },
-        { includePhoto, includePlace },
+        { includePhoto, includePlace, style },
     );
 
     useEffect(() => {
@@ -102,6 +106,8 @@ export function ShareSheet({ item, link, url, onClose }: ShareSheetProps) {
                     )}
                 </div>
             </div>
+
+            <StoryStyleControls />
 
             {card.photoAvailable || item.location.name ? (
                 // options

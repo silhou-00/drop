@@ -35,6 +35,7 @@ describe.skipIf(!run)("inbox against the database", { timeout: DB_TIMEOUT_MS }, 
         const { statements } = await import("../statements/model.js");
         const { createStatementRepository } = await import("../statements/repository.js");
         const { createDropService } = await import("./service.js");
+        const { createDropEvents } = await import("./events.js");
         const { createKeyMaker } = await import("./keys.js");
         const { createSendLimiter } = await import("./limits.js");
 
@@ -98,6 +99,7 @@ describe.skipIf(!run)("inbox against the database", { timeout: DB_TIMEOUT_MS }, 
             },
             cleanPhoto: async (bytes) => bytes,
             newPhotoKey: () => PHOTO_KEY,
+            events: createDropEvents(),
         });
 
         // order: time descending, then id descending

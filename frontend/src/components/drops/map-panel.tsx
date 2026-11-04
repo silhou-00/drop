@@ -2,9 +2,10 @@
 // showing that place's drops; from laptops it stays docked beside the rail and lists every drop
 // that matches the filter until a place is chosen. It is not a dialog: the map stays usable
 // behind it. Its heading takes focus when it opens, and Close hands focus back to the page.
-// Each card opens the drop with only the filter and the statement in the address.
+// Each card opens the drop with only the filter and the statement in the address. When the
+// docked list is folded or unfolded it slides, and tells the page once the slide has ended.
 import { X } from "@phosphor-icons/react";
-import type { RefObject } from "react";
+import type { AnimationEvent, RefObject } from "react";
 import { InboxCard } from "@/components/drops/inbox-card";
 import type { InboxItem } from "@/lib/drops/model";
 
@@ -14,13 +15,39 @@ type MapPanelProps = {
     items: InboxItem[];
     search: { filter?: "unread" | "photos"; statement?: string };
     closable: boolean;
+    motion: "entering" | "leaving" | null;
+    onMotionEnd: () => void;
     onClose: () => void;
     headingRef: RefObject<HTMLHeadingElement | null>;
 };
 
-export function MapPanel({ title, count, items, search, closable, onClose, headingRef }: MapPanelProps) {
+export function MapPanel({
+    title,
+    count,
+    items,
+    search,
+    closable,
+    motion,
+    onMotionEnd,
+    onClose,
+    headingRef,
+}: MapPanelProps) {
+    // only the panel's own slide counts, not an animation inside it
+    function handleAnimationEnd(event: AnimationEvent<HTMLElement>) {
+        if (motion !== null && event.target === event.currentTarget) {
+            onMotionEnd();
+        }
+    }
+
     return (
-        <aside id="map-list" className="section map-panel" role="region" aria-labelledby="map-panel-title">
+        <aside
+            id="map-list"
+            className="section map-panel"
+            role="region"
+            aria-labelledby="map-panel-title"
+            data-motion={motion ?? undefined}
+            onAnimationEnd={handleAnimationEnd}
+        >
             {/* heading row */}
             <div className="sub-section map-panel-head">
                 <div className="placement map-panel-handle" aria-hidden="true">

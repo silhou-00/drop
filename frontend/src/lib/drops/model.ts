@@ -34,6 +34,7 @@ export const STATEMENT_FILTER_MESSAGE = "That statement is not valid.";
 export const INBOX_FILTERS = ["all", "unread", "photos"] as const;
 
 export const MAP_PAGE_SIZE = 50;
+export const DROP_STREAM_EVENT = "drop";
 export const MAP_AUTO_PAGES = 4;
 export const MAP_MAX_DROPS = 500;
 export const MAP_FRESH_MS = 60_000;

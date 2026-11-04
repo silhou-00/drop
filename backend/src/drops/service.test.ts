@@ -1,6 +1,6 @@
 // Tests for the send service with fakes: the order of the checks (the closed link comes
 // before the limits), what reaches the repository, the place-name fallback, and the
-// photo save and cleanup order.
+// photo save and cleanup order, and the announcement to the owner only after a stored drop.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
@@ -15,6 +15,7 @@ const photo = new File([new Uint8Array([1, 2, 3])], "a.jpg", { type: "image/jpeg
 
 const keys = createKeyMaker("s".repeat(40));
 const recipient = { id: "r1" };
+const NEW_ID = "99999999-9999-4999-8999-999999999999";
 
 type Options = {
     recipient?: typeof recipient | null;
@@ -37,6 +38,7 @@ function build({
     const lookups: unknown[] = [];
     const saved: string[] = [];
     const removed: string[] = [];
+    const published: [string, string][] = [];
     const service = createDropService({
         findOwnProfile: async () => null,
         findRecipient: async () => found,
@@ -55,7 +57,7 @@ function build({
                     throw insertError;
                 }
 
-                return result;
+                return result === "inserted" ? { status: "inserted", id: NEW_ID } : { status: result };
             },
         },
         limiter: createSendLimiter(),
@@ -82,15 +84,53 @@ function build({
             return Buffer.from("cleaned");
         },
         newPhotoKey: () => PHOTO_KEY,
+        events: {
+            subscribe: () => null,
+            publish: (ownerId, dropId) => {
+                published.push([ownerId, dropId]);
+            },
+        },
     });
 
-    return { service, rows, lookups, saved, removed };
+    return { service, rows, lookups, saved, removed, published };
 }
 
 const gps = { latitude: "14.599512", longitude: "120.984222", location_source: "gps" };
 const base = { username: "maya", ip: "203.0.113.7", deviceId: "d".repeat(43) };
 
 describe("sendDrop", () => {
+    it("publishes the new id to the recipient once, after a stored drop", async () => {
+        const { service, published } = build();
+
+        await service.sendDrop({ ...base, fields: { message: "hi", ...gps } });
+
+        expect(published).toEqual([["r1", NEW_ID]]);
+    });
+
+    it("publishes nothing when the link is closed, the profile is gone or the insert throws", async () => {
+        for (const options of [
+            { result: "closed" as const },
+            { result: "missing" as const },
+            { insertError: new Error("x") },
+        ]) {
+            const { service, published } = build(options);
+
+            await service.sendDrop({ ...base, fields: { message: "hi", ...gps } }).catch(() => undefined);
+
+            expect(published).toEqual([]);
+        }
+    });
+
+    it("publishes nothing when validation or the limit refuses the drop", async () => {
+        const { service, published } = build();
+
+        for (let i = 0; i < 6; i += 1) {
+            await service.sendDrop({ ...base, fields: {} }).catch(() => undefined);
+        }
+
+        expect(published).toEqual([]);
+    });
+
     it("answers 404 for an unknown or invalid name", async () => {
         await expect(
             build({ recipient: null }).service.sendDrop({ ...base, fields: { message: "hi", ...gps } }),

@@ -1,10 +1,13 @@
 // The sign-in code email: subject, plain text and HTML. The HTML is one centred card in tables
 // with inline styles, because mail apps ignore style sheets: the logo on a pale header, the code
 // in large spaced type, how long it lasts, and a footer with the studio line and the site
-// address. The logo is a PNG on the site itself, since mail apps do not show SVG; with images
-// off, its alt text still reads "Drop". Every value put into the HTML is escaped first.
+// address. The logo is a PNG sent inside the email and shown by its content id, so it loads
+// even when the site cannot be reached (mail apps do not show SVG); with images off, its alt
+// text still reads "Drop". Every value put into the HTML is escaped first.
 
 export const CODE_TTL_MINUTES = 5;
+export const LOGO_CONTENT_ID = "drop-logo";
+export const LOGO_FILE_NAME = "logo-email.png";
 
 const SUBJECT = "Your Drop sign-in code";
 const COPYRIGHT = "Fundr. Studios © 2026";
@@ -58,7 +61,7 @@ export function buildSignInEmail(code: string, siteUrl: string): SignInEmail {
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:${PAPER};border-radius:24px;overflow:hidden;">
 <tr><td align="center" style="padding:32px 24px 24px;border-bottom:1px solid ${HAIR};">
-<a href="${safeOrigin}" style="text-decoration:none;"><img src="${safeOrigin}/brand/logo-email.png" width="128" height="66" alt="Drop" style="display:block;border:0;width:128px;height:66px;font:700 28px ${FONT};color:${INK};"></a>
+<a href="${safeOrigin}" style="text-decoration:none;"><img src="cid:${LOGO_CONTENT_ID}" width="128" height="66" alt="Drop" style="display:block;border:0;width:128px;height:66px;font:700 28px ${FONT};color:${INK};"></a>
 </td></tr>
 <tr><td style="padding:32px 32px 8px;font:700 22px/1.3 ${FONT};color:${INK};">Your sign-in code</td></tr>
 <tr><td style="padding:0 32px 24px;font:400 17px/1.5 ${FONT};color:${INK_2};">Enter this code on Drop to finish signing in.</td></tr>

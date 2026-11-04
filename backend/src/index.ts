@@ -20,6 +20,7 @@ import { createRateLimiter } from "./middleware/rate-limit.js";
 import { createSecurityHeaders } from "./middleware/security-headers.js";
 import { createTilesRouter } from "./middleware/tiles.js";
 import { createSessionMiddleware, type AppEnv } from "./middleware/session.js";
+import { createDropEvents } from "./drops/events.js";
 import { createKeyMaker } from "./drops/keys.js";
 import { createSendLimiter } from "./drops/limits.js";
 import { createDropRepository } from "./drops/repository.js";
@@ -67,6 +68,7 @@ const placeService = createPlaceService({
     repo: createPlaceRepository(db),
     client: createLocationIqClient({ apiKey: config.LOCATIONIQ_API_KEY }),
 });
+const dropEvents = createDropEvents();
 const dropService = createDropService({
     findOwnProfile: profileRepository.findByUserId,
     findRecipient: profileRepository.findByUsername,
@@ -79,6 +81,7 @@ const dropService = createDropService({
     store,
     cleanPhoto,
     newPhotoKey,
+    events: dropEvents,
 });
 
 const accountService = createAccountService({ accounts: createAccountRepository(db), store });

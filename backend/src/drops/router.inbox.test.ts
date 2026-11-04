@@ -1,8 +1,9 @@
 // Tests for the inbox routes against a fake service and a fake session: sign-in required,
 // the 404 for foreign or malformed ids, 422 on bad input, status codes, the photo
-// headers, no-store on JSON, and the per-user 429.
+// headers, no-store on JSON, the per-user 429, and the live stream (its headers, the
+// retry hint, drop and ping events, closing on cancel and on lifetime, and its errors).
 import { Hono } from "hono";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSessionMiddleware, type AppEnv, type GetSession } from "../middleware/session.js";
 import { AppError, errorHandler } from "../shared/errors.js";
 import {
@@ -38,7 +39,24 @@ function notFound(): never {
     throw new AppError(404, "NOT_FOUND", "Not found");
 }
 
+const stream = {
+    onDrop: null as ((id: string) => void) | null,
+    stops: 0,
+    failure: null as AppError | null,
+};
+
 const service = {
+    watchInbox: async (_user: string, onDrop: (id: string) => void) => {
+        if (stream.failure) {
+            throw stream.failure;
+        }
+
+        stream.onDrop = onDrop;
+
+        return () => {
+            stream.stops += 1;
+        };
+    },
     sendDrop: async () => ({ delivered: true as const }),
     listInbox: async () => ({ items: [item], next_cursor: null, unread_count: 1, statements: [], earlier_count: 1 }),
     getDrop: async (_user: string, id: string) => (id === MINE ? item : notFound()),
@@ -48,7 +66,13 @@ const service = {
     readPhoto: async (_user: string, id: string) => (id === MINE ? Buffer.from("webp") : notFound()),
 } satisfies DropService;
 
-type Limits = { inboxLimit?: number; photoLimit?: number };
+type Limits = {
+    inboxLimit?: number;
+    photoLimit?: number;
+    streamLimit?: number;
+    heartbeatMs?: number;
+    streamLifetimeMs?: number;
+};
 
 function build(getSession: GetSession = signedIn, limits: Limits = {}) {
     const app = new Hono<AppEnv>();
@@ -81,6 +105,7 @@ describe("signed out", () => {
             patch(app, MINE, { is_read: true }),
             app.request(`/api/v1/drops/${MINE}`, { method: "DELETE", headers: { Origin: ORIGIN } }),
             app.request(`/api/v1/drops/${MINE}/photo`),
+            app.request("/api/v1/drops/stream"),
         ];
 
         for (const res of await Promise.all(calls)) {
@@ -295,5 +320,128 @@ describe("rate limits", () => {
         expect((await app.request(`/api/v1/drops/${MINE}/photo`)).status).toBe(200);
         expect((await app.request(`/api/v1/drops/${MINE}/photo`)).status).toBe(429);
         expect((await app.request("/api/v1/drops")).status).toBe(200);
+    });
+});
+
+// reads chunks until one contains the text, or the stream ends
+async function readUntil(reader: ReadableStreamDefaultReader<Uint8Array>, text: string): Promise<string> {
+    const decoder = new TextDecoder();
+    let seen = "";
+
+    for (;;) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            return seen;
+        }
+
+        seen += decoder.decode(value);
+
+        if (seen.includes(text)) {
+            return seen;
+        }
+    }
+}
+
+describe("GET /drops/stream", () => {
+    beforeEach(() => {
+        stream.onDrop = null;
+        stream.stops = 0;
+        stream.failure = null;
+    });
+
+    it("answers 200 as an event stream that is never cached or buffered", async () => {
+        const res = await build().request("/api/v1/drops/stream");
+
+        expect(res.status).toBe(200);
+        expect(res.headers.get("Content-Type")).toContain("text/event-stream");
+        expect(res.headers.get("Cache-Control")).toBe("no-store");
+        expect(res.headers.get("X-Accel-Buffering")).toBe("no");
+
+        await res.body!.cancel();
+    });
+
+    it("sends the retry hint first, then each drop id as a drop event", async () => {
+        const res = await build().request("/api/v1/drops/stream");
+        const reader = res.body!.getReader();
+
+        expect(await readUntil(reader, "retry: 5000")).toContain("retry: 5000");
+
+        stream.onDrop!(MINE);
+
+        expect(await readUntil(reader, "data:")).toContain(`event: drop\ndata: ${MINE}`);
+
+        await reader.cancel();
+    });
+
+    it("sends a ping while it is open", async () => {
+        const res = await build(signedIn, { heartbeatMs: 10 }).request("/api/v1/drops/stream");
+        const reader = res.body!.getReader();
+
+        expect(await readUntil(reader, ": ping")).toContain(": ping");
+
+        await reader.cancel();
+    });
+
+    it("stops watching when the client cancels", async () => {
+        const res = await build().request("/api/v1/drops/stream");
+        const reader = res.body!.getReader();
+
+        await readUntil(reader, "retry: 5000");
+        await reader.cancel();
+        await vi.waitFor(() => expect(stream.stops).toBe(1));
+    });
+
+    it("ends after its lifetime and stops watching", async () => {
+        const res = await build(signedIn, { streamLifetimeMs: 50 }).request("/api/v1/drops/stream");
+        const reader = res.body!.getReader();
+
+        for (;;) {
+            const { done } = await reader.read();
+
+            if (done) {
+                break;
+            }
+        }
+
+        expect(stream.stops).toBe(1);
+    });
+
+    it("answers the service error as JSON with Retry-After", async () => {
+        stream.failure = new AppError(429, "RATE_LIMITED", "Too many open tabs. Close one and try again.", 60);
+
+        const res = await build().request("/api/v1/drops/stream");
+
+        expect(res.status).toBe(429);
+        expect(res.headers.get("Retry-After")).toBe("60");
+        expect(await errorOf(res)).toEqual({
+            code: "RATE_LIMITED",
+            message: "Too many open tabs. Close one and try again.",
+        });
+    });
+
+    it("limits how often one user can open a stream", async () => {
+        const app = build(signedIn, { streamLimit: 2 });
+
+        for (let i = 0; i < 2; i += 1) {
+            const res = await app.request("/api/v1/drops/stream");
+
+            expect(res.status).toBe(200);
+
+            await res.body!.cancel();
+        }
+
+        const res = await app.request("/api/v1/drops/stream");
+
+        expect(res.status).toBe(429);
+        expect(Number(res.headers.get("Retry-After"))).toBeGreaterThan(0);
+    });
+
+    it("is not handled as a drop id", async () => {
+        const res = await build().request("/api/v1/drops/stream");
+
+        expect(res.headers.get("Content-Type")).not.toContain("application/json");
+
+        await res.body!.cancel();
     });
 });

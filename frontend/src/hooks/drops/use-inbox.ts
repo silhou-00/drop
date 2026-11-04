@@ -5,12 +5,13 @@
 // empty, so a list from the old scope is never shown under the new one. "Load more" appends
 // the next page for the same scope behind a lock, skipping drops already shown. Each page
 // brings the inbox-wide unread count, the statements behind its drops for the section headers,
-// and the count of drops from before statements.
+// and the count of drops from before statements. A live refresh reads page one again for the
+// scope on screen and puts new drops in front without disturbing the rest of the list.
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { getSnapshot, subscribe, update, type InboxSnapshot } from "@/hooks/drops/inbox-store";
 import { ApiError } from "@/lib/api";
 import { listDrops } from "@/lib/drops/api";
-import type { InboxFilter } from "@/lib/drops/model";
+import type { InboxFilter, InboxPage } from "@/lib/drops/model";
 import type { Statement } from "@/lib/statements/model";
 
 const FALLBACK_MESSAGE = "Something went wrong. Try again.";
@@ -49,6 +50,51 @@ function emptyFor(current: InboxSnapshot, filter: InboxFilter, statement: string
         loadingMore: false,
         moreError: "",
     };
+}
+
+// page one again for the scope on screen; new drops go in front, failures are silent
+export async function refreshInbox(signal: AbortSignal): Promise<void> {
+    const { filter, statement } = getSnapshot();
+    let page: InboxPage;
+
+    try {
+        page = await listDrops({ filter, statement }, signal);
+    } catch {
+        return;
+    }
+
+    if (signal.aborted) {
+        return;
+    }
+
+    update((current) => {
+        const counted = { ...current, unreadCount: page.unread_count };
+
+        if (!sameScope(current, filter, statement) || current.status !== "ready") {
+            return counted;
+        }
+
+        const inPage = new Set(page.items.map((item) => item.id));
+        const shared = current.items.some((item) => inPage.has(item.id));
+
+        // a page that shares nothing with the kept list has a gap behind it, so it replaces the list
+        if (!shared && page.next_cursor !== null) {
+            return {
+                ...counted,
+                items: page.items,
+                sections: mergeSections(current.sections, page.statements),
+                earlierCount: page.earlier_count,
+                nextCursor: page.next_cursor,
+            };
+        }
+
+        return {
+            ...counted,
+            items: [...page.items, ...current.items.filter((item) => !inPage.has(item.id))],
+            sections: mergeSections(current.sections, page.statements),
+            earlierCount: page.earlier_count,
+        };
+    });
 }
 
 export function useInbox(filter: InboxFilter, statement?: string) {

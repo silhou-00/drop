@@ -529,9 +529,50 @@
         border-radius: 0 var(--app-dock-radius) var(--app-dock-radius) 0;
         box-shadow: var(--shadow-rest);
     }
+
+    /* folding: the list wipes toward the rail, and the button and chips follow it */
+    .auth-page .map-panel[data-motion="leaving"] {
+        animation: map-list-out var(--map-list-dur) var(--landing-e-cubic) both;
+    }
+
+    .auth-page .map-panel[data-motion="entering"] {
+        animation: map-list-out var(--map-list-dur) var(--landing-e-cubic) reverse both;
+    }
+
+    .auth-page .map-collapse,
+    .auth-page .map-chips,
+    .auth-page .map-older,
+    .auth-page .statement-picker {
+        transition: left var(--map-list-dur) var(--landing-e-cubic);
+    }
+}
+
+@keyframes map-list-out {
+    from {
+        clip-path: inset(0 0 0 0 round 0 var(--app-dock-radius) var(--app-dock-radius) 0);
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        clip-path: inset(0 100% 0 0 round 0 var(--app-dock-radius) var(--app-dock-radius) 0);
+        opacity: 0;
+        transform: translateX(var(--map-list-shift));
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .auth-page .map-panel {
+        animation: none;
+    }
+
+    .auth-page .map-collapse,
+    .auth-page .map-chips,
+    .auth-page .map-older,
+    .auth-page .statement-picker {
+        transition: none;
+    }
+
     .auth-page .map-pin,
     .auth-page .statement-picker-caret {
         transition: none;

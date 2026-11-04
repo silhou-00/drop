@@ -394,7 +394,8 @@
     }
 }
 
-/* share: the story panel on a drop's page, its 9:16 preview and the option switches */
+/* share: the story panel on a drop's page, its 9:16 preview, the option switches and the
+   story style controls */
 :root {
     --share-panel-padding: 16px;
     --share-panel-radius: 16px;
@@ -407,6 +408,19 @@
     --share-switch-h: 32px;
     --share-switch-knob: 24px;
     --share-switch-inset: 4px;
+
+    /* story style controls: swatches and chips with full-size tap targets */
+    --story-fs-title: var(--type-subheading);
+    --story-fs-legend: var(--type-caption);
+    --story-fs-choice: var(--type-caption);
+    --story-legend-gap: 8px;
+    --story-options-gap: 8px;
+    --story-target: 44px;
+    --story-swatch-size: 36px;
+    --story-swatch-padding: 4px;
+    --story-swatch-radius: 12px;
+    --story-chip-padding: 0 16px;
+    --story-picked-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
 }
 
 @media (min-width: 48rem) {
@@ -438,6 +452,8 @@
     --map-fs-panel-title: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
     --map-close-size: 44px;
     --map-collapse-size: 44px;
+    --map-list-dur: 320ms;
+    --map-list-shift: -24px;
     --map-note-padding: 16px;
     --map-note-radius: 22px;
     --map-empty-max: 28rem;

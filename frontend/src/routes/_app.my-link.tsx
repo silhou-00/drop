@@ -1,9 +1,10 @@
 // The My link page. First the running statement, when there is one, with its time left, its
 // drop count and "End now". Then the statement cards to swipe through: a first card to write
-// your own, then ready-made lines. Then the two steps, in a right-hand column on wide screens: copy the link, and Share, which starts the
+// your own, then ready-made lines. Then the two steps: copy the link, and Share, which starts the
 // chosen statement when it is not the one running and opens the guide for adding the link to
 // a story. A running statement that matches a card starts with that card chosen. The page owns
 // ending a statement, so the server's message stays on screen after the running card closes.
+// On wide screens the steps take the left column and the cards stay in view on the right.
 // On phones the logo sits above the heading, since there is no rail to carry it.
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
@@ -120,7 +121,7 @@ function MyLinkPage() {
                 </section>
 
                 {/* cards section */}
-                <section className="section mylink-section" aria-label="Statement cards">
+                <section className="section mylink-section mylink-cards-col" aria-label="Statement cards">
                     <TemplateCarousel
                         selectedId={selectedId}
                         customText={customText}

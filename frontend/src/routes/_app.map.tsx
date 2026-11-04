@@ -4,15 +4,17 @@
 // anything else is dropped. The map fills the screen behind glass chips, the statement picker
 // and controls. Choosing a place opens its drops in a sheet on phones and tablets and in the
 // docked list from laptops, where the list otherwise shows every matching drop and can be
-// folded away. MapLibre loads only once drops have arrived; with no drops at all the page
-// points to My link instead. The chips and the picker filter what is already loaded.
+// folded away, sliding out and back in. MapLibre loads only once drops have arrived; with no drops at all the page
+// points to My link instead. The chips and the picker filter what is already loaded. The page
+// keeps the live stream open, so a new drop shows on the map without a reload.
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CaretLeft, CaretRight, LinkSimple } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { FilterChips } from "@/components/drops/filter-chips";
 import { MapPanel } from "@/components/drops/map-panel";
 import { StatementPicker } from "@/components/statements/statement-picker";
-import { useMapDrops } from "@/hooks/drops/use-map-drops";
+import { useDropStream } from "@/hooks/drops/use-drop-stream";
+import { refreshMap, useMapDrops } from "@/hooks/drops/use-map-drops";
 import { useWide } from "@/hooks/layout/use-wide";
 import { filterDrops, groupByPlace } from "@/lib/drops/helper";
 import {
@@ -33,6 +35,7 @@ const AllDropsMap = lazy(() =>
 
 const EDGE_GAP = 16;
 const SIDE_QUERY = "(min-width: 80rem)";
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 const LIST_TITLES: Record<InboxFilter, string> = {
     all: "All drops",
@@ -111,8 +114,11 @@ function MapPage() {
     const navigate = useNavigate();
     const { filter, statement, place } = Route.useSearch();
     const data = useMapDrops();
+
+    useDropStream(refreshMap);
     const wide = useWide();
     const [listOpen, setListOpen] = useState(true);
+    const [listMotion, setListMotion] = useState<"entering" | "leaving" | null>(null);
     const headingRef = useRef<HTMLHeadingElement>(null);
     const lastPinKeyRef = useRef<string | null>(null);
     const focusPendingRef = useRef(false);
@@ -158,6 +164,35 @@ function MapPage() {
     }, [selectedKey]);
 
     // clear the place and hand focus back to its pin, or to the page heading
+    const listShowing = listOpen && listMotion !== "leaving";
+
+    // fold or unfold the docked list; the panel stays mounted until its slide out ends
+    function toggleList() {
+        const still = window.matchMedia(REDUCED_MOTION_QUERY).matches;
+
+        if (listShowing) {
+            if (still) {
+                setListOpen(false);
+            } else {
+                setListMotion("leaving");
+            }
+
+            return;
+        }
+
+        setListOpen(true);
+        setListMotion(still ? null : "entering");
+    }
+
+    // the slide finished: a fold unmounts the panel, an unfold just settles
+    function handleListMotionEnd() {
+        if (listMotion === "leaving") {
+            setListOpen(false);
+        }
+
+        setListMotion(null);
+    }
+
     function closeSelection() {
         const key = lastPinKeyRef.current ?? place ?? null;
 
@@ -238,7 +273,7 @@ function MapPage() {
     }
 
     return (
-        <div className="map-page" data-list={wide && !listOpen ? "closed" : undefined}>
+        <div className="map-page" data-list={wide && (!listOpen || listMotion === "leaving") ? "closed" : undefined}>
             {/* map stage */}
             <section className="section map-stage" aria-labelledby="map-title">
                 {/* heading, filters and list toggle */}
@@ -289,13 +324,11 @@ function MapPage() {
                                     className="map-collapse-btn"
                                     type="button"
                                     aria-controls="map-list"
-                                    aria-expanded={listOpen}
-                                    aria-label={listOpen ? "Hide the list" : "Show the list"}
-                                    onClick={() => {
-                                        setListOpen((current) => !current);
-                                    }}
+                                    aria-expanded={listShowing}
+                                    aria-label={listShowing ? "Hide the list" : "Show the list"}
+                                    onClick={toggleList}
                                 >
-                                    {listOpen ? (
+                                    {listShowing ? (
                                         <CaretLeft weight="bold" aria-hidden="true" />
                                     ) : (
                                         <CaretRight weight="bold" aria-hidden="true" />
@@ -402,6 +435,8 @@ function MapPage() {
                     items={panelItems}
                     search={{ filter, statement }}
                     closable={selected !== null}
+                    motion={wide ? listMotion : null}
+                    onMotionEnd={handleListMotionEnd}
                     onClose={closeSelection}
                     headingRef={headingRef}
                 />

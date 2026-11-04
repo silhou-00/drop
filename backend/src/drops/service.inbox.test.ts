@@ -1,13 +1,14 @@
 // Tests for the inbox side of the drop service with an in-memory repository: ownership,
 // the shared 404, paging with the cursor, the filter, the statement scope, the unread and
 // earlier counts, the statements a page carries, mark read, delete with its file (and a
-// file failure that is swallowed), and the photo read.
+// file failure that is swallowed), the photo read, and watching the inbox live.
 import { describe, expect, it } from "vitest";
 import { createKeyMaker } from "./keys.js";
 import { createSendLimiter } from "./limits.js";
 import { inboxQuerySchema, type DropRow } from "./model.js";
 import type { DropRepository, ListedDropRow } from "./repository.js";
 import type { StatementView } from "../statements/model.js";
+import { createDropEvents } from "./events.js";
 import { createDropService } from "./service.js";
 
 const USER = "user-1";
@@ -63,6 +64,7 @@ type Options = {
     removeError?: Error;
     readError?: Error;
     profile?: boolean;
+    maxStreams?: number;
 };
 
 // the repository keeps the recipient filter and the newest-first order
@@ -72,8 +74,9 @@ function build(initial: DropRow[], options: Options = {}) {
     const read: string[] = [];
     const filters: string[] = [];
     const summaryCalls: string[][] = [];
+    const events = createDropEvents({ maxPerOwner: options.maxStreams });
     const drops: DropRepository = {
-        insertDrop: async () => "inserted",
+        insertDrop: async () => ({ status: "inserted", id: DROP_A }),
         listForRecipient: async (profileId, limit, cursor, filter, statement) => {
             filters.push(filter);
 
@@ -161,9 +164,10 @@ function build(initial: DropRow[], options: Options = {}) {
         },
         cleanPhoto: async (bytes) => bytes,
         newPhotoKey: () => PHOTO_KEY,
+        events,
     });
 
-    return { service, removed, read, filters, summaryCalls };
+    return { service, removed, read, filters, summaryCalls, events };
 }
 
 const query = (input: Record<string, string> = {}) => inboxQuerySchema.parse(input);
@@ -174,6 +178,41 @@ const rows = [
     row(DROP_C, PROFILE, null, 3),
     row(FOREIGN, OTHER_PROFILE, PHOTO_KEY, 4),
 ];
+
+describe("watchInbox", () => {
+    it("answers 404 when the user has no profile", async () => {
+        const { service } = build(rows, { profile: false });
+
+        await expect(service.watchInbox(USER, () => {})).rejects.toMatchObject({ status: 404 });
+    });
+
+    it("subscribes under the profile id, not the user id", async () => {
+        const { service, events } = build(rows);
+        const seen: string[] = [];
+
+        await service.watchInbox(USER, (id) => seen.push(id));
+        events.publish(USER, DROP_A);
+        events.publish(OTHER_PROFILE, DROP_A);
+        events.publish(PROFILE, DROP_B);
+
+        expect(seen).toEqual([DROP_B]);
+    });
+
+    it("answers 429 with a 60 second wait when the owner has too many streams", async () => {
+        const { service } = build(rows, { maxStreams: 1 });
+        const stop = await service.watchInbox(USER, () => {});
+
+        await expect(service.watchInbox(USER, () => {})).rejects.toMatchObject({
+            status: 429,
+            code: "RATE_LIMITED",
+            retryAfterSeconds: 60,
+        });
+
+        stop();
+
+        await expect(service.watchInbox(USER, () => {})).resolves.toBeTypeOf("function");
+    });
+});
 
 describe("inbox service", () => {
     it("answers 404 when the user has no profile", async () => {

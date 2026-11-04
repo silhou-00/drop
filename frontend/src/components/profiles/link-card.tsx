@@ -1,5 +1,6 @@
 // The two steps on My link. Step 1 shows the owner's link as text with "Copy link". Step 2 is
-// Share, under a small tilted preview of the story image made from the chosen statement card.
+// Share, under a small tilted preview of the story image made from the chosen statement card
+// and the Style controls that restyle it.
 // Share starts that statement first when it is not the one already running (a note says when
 // this ends the current one), copies the link in the same tap, then opens the sticker guide,
 // which walks the owner through adding the link to their story and shares the image. Typed
@@ -10,9 +11,11 @@
 import { Link, ShareFat } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { StickerGuide } from "@/components/share/sticker-guide";
+import { StoryStyleControls } from "@/components/share/story-style-controls";
 import { useLinkShare } from "@/hooks/profiles/use-link-share";
 import { useOwnLink } from "@/hooks/profiles/use-own-link";
 import { useStoryCard } from "@/hooks/share/use-story-card";
+import { useStoryStyle } from "@/hooks/share/use-story-style";
 import { useCurrentStatement } from "@/hooks/statements/use-current-statement";
 import { useStartStatement } from "@/hooks/statements/use-start-statement";
 import { durationLabel } from "@/lib/statements/helper";
@@ -32,13 +35,14 @@ function LinkSteps({ link, url, text }: LinkStepsProps) {
     const startStatement = useStartStatement();
     const shareRef = useRef<HTMLButtonElement>(null);
     const [guiding, setGuiding] = useState(false);
+    const { style } = useStoryStyle();
     const value = normalizeStatement(text);
     const running = current.statement;
     const needsStart = !running || running.text !== value;
     const replaces = running !== null && needsStart;
     const card = useStoryCard(
         { id: "link", message: value || PREVIEW_PLACEHOLDER, placeName: null, hasPhoto: false, linkUrl: url },
-        STORY_OPTIONS,
+        { ...STORY_OPTIONS, style },
     );
     const failed = !card.ready && card.error !== "";
 
@@ -116,6 +120,8 @@ function LinkSteps({ link, url, text }: LinkStepsProps) {
                     )}
                 </div>
             </div>
+
+            <StoryStyleControls />
 
             {/* share */}
             <div className="placement auth-stack">

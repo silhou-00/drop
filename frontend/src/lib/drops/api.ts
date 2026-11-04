@@ -4,9 +4,12 @@
 // drops a page at a time (all, unread or with a photo, optionally for one statement or for the
 // drops from before statements), read one, set its read flag and delete it. The photo is never
 // fetched here: the page loads it as an image from the path built below, and only for an id
-// that passes the UUID check. A failure arrives as an ApiError with the server's status and code.
+// that passes the UUID check. The live stream is a same-origin event stream the browser opens
+// with its cookies; it carries only drop ids. A failure arrives as an ApiError with the server's status and code.
 import { apiRequest } from "@/lib/api";
 import { formatCoordinate, isDropId, type DropDraft, type InboxFilter, type InboxItem, type InboxPage } from "./model";
+
+export const DROP_STREAM_PATH = "/api/v1/drops/stream";
 
 export function sendDrop(username: string, draft: DropDraft) {
     const form = new FormData();
@@ -74,6 +77,11 @@ export function setDropRead(id: string, isRead: boolean) {
 
 export function deleteDrop(id: string) {
     return apiRequest<undefined>(`/api/v1/drops/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// the live stream of new drops; nothing is put in its address
+export function openDropStream() {
+    return new EventSource(DROP_STREAM_PATH);
 }
 
 // same-origin photo path for a valid drop id, otherwise null

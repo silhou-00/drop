@@ -1,7 +1,7 @@
 // Tests for the sign-in email: the code and expiry appear in both parts, the logo and links
 // point at the site's own origin, and anything odd in a value is escaped in the HTML.
 import { describe, expect, it } from "vitest";
-import { CODE_TTL_MINUTES, buildSignInEmail } from "./sign-in-email.js";
+import { CODE_TTL_MINUTES, LOGO_CONTENT_ID, buildSignInEmail } from "./sign-in-email.js";
 
 const SITE = "https://drop.fundrstudio.com/";
 
@@ -16,10 +16,10 @@ describe("buildSignInEmail", () => {
         expect(email.html).toContain(`It expires in ${CODE_TTL_MINUTES} minutes.`);
     });
 
-    it("has the header logo and the footer from the site's origin", () => {
+    it("has the inline header logo and the footer from the site's origin", () => {
         const { html, text } = buildSignInEmail("226809", SITE);
 
-        expect(html).toContain('src="https://drop.fundrstudio.com/brand/logo-email.png"');
+        expect(html).toContain(`src="cid:${LOGO_CONTENT_ID}"`);
         expect(html).toContain('alt="Drop"');
         expect(html).toContain("Fundr. Studios © 2026");
         expect(html).toContain(">drop.fundrstudio.com</a>");

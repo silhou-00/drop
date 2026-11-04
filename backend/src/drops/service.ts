@@ -6,12 +6,15 @@
 // The inbox side resolves the signed-in user's profile first, then lists (with the
 // filter, the statement scope, the counts and the statements the page needs), reads,
 // marks, deletes and serves the photo of drops that belong to it. A drop that is
-// missing, malformed or someone else's gets the same 404.
+// missing, malformed or someone else's gets the same 404. A stored drop is announced
+// to its owner's open inbox streams after the insert commits, and watching the inbox
+// opens one of those streams, up to a few per owner.
 import { usernameSchema, type Profile } from "../profiles/model.js";
 import { AppError } from "../shared/errors.js";
 import { snapToGrid, type SnappedPoint } from "../shared/geo.js";
 import type { FileStore } from "../shared/storage/model.js";
 import { toStatement, type Statement, type StatementView } from "../statements/model.js";
+import type { DropEvents } from "./events.js";
 import type { KeyMaker } from "./keys.js";
 import type { SendLimiter } from "./limits.js";
 import {
@@ -37,6 +40,7 @@ type Dependencies = {
     store: FileStore;
     cleanPhoto: (bytes: Buffer) => Promise<Buffer>;
     newPhotoKey: () => string;
+    events: Pick<DropEvents, "subscribe" | "publish">;
 };
 
 export type SendDropRequest = {
@@ -74,6 +78,7 @@ export function createDropService({
     store,
     cleanPhoto,
     newPhotoKey,
+    events,
 }: Dependencies) {
     async function sendDrop({ username, ip, deviceId, fields }: SendDropRequest): Promise<{ delivered: true }> {
         // recipient
@@ -140,17 +145,20 @@ export function createDropService({
             throw error;
         }
 
-        if (result !== "inserted" && photoKey) {
+        if (result.status !== "inserted" && photoKey) {
             await store.remove(photoKey);
         }
 
-        if (result === "missing") {
+        if (result.status === "missing") {
             throw notFound();
         }
 
-        if (result === "closed") {
+        if (result.status === "closed") {
             throw closed();
         }
+
+        // announced only after the transaction has committed
+        events.publish(recipient.id, result.id);
 
         return { delivered: true };
     }
@@ -274,7 +282,19 @@ export function createDropService({
         }
     }
 
-    return { sendDrop, listInbox, getDrop, markRead, deleteDrop, readPhoto };
+    // opens a live stream for the owner; the caller runs the returned function to close it
+    async function watchInbox(userId: string, onDrop: (dropId: string) => void): Promise<() => void> {
+        const profileId = await ownProfileId(userId);
+        const stop = events.subscribe(profileId, onDrop);
+
+        if (!stop) {
+            throw new AppError(429, "RATE_LIMITED", "Too many open tabs. Close one and try again.", 60);
+        }
+
+        return stop;
+    }
+
+    return { sendDrop, watchInbox, listInbox, getDrop, markRead, deleteDrop, readPhoto };
 }
 
 export type DropService = ReturnType<typeof createDropService>;
